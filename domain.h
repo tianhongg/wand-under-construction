@@ -57,6 +57,13 @@ class Domain : public NList{
     double dz;
     double dt;
 
+    // for variable mesh size
+    int MeshType;
+    double delta;
+    double dxRefine;
+    double order;
+
+
     int Adap_dt;
 
     int Ndt;
@@ -150,6 +157,9 @@ class Domain : public NList{
     void AddSpecie(int P_type);
 
     int Get_NSpecie(int SpecieType);
+
+
+    double CustomGrid(double r);
 
 
 

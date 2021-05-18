@@ -38,6 +38,12 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    AddEntry((char*)"YStep",		&dy,	1.0);
    AddEntry((char*)"ZStep",		&dz,	1.0);
 
+   AddEntry((char*)"MeshType",    &MeshType,  0);
+   AddEntry((char*)"dxRefine",    &dxRefine,  2);
+   AddEntry((char*)"order",       &order,  4);
+   AddEntry((char*)"delta",       &delta,  1);
+
+
    AddEntry((char*)"TStep",		&dt,	1.0);
    AddEntry((char*)"AdaptiveDt", &Adap_dt,  0);
    AddEntry((char*)"SubCycle",   &Ndt, 1  );
@@ -79,26 +85,43 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    //=======================Creating Mesh     ======================
    //===============================================================
    // set number of grids
-   XGridN = round(Xmax/(p_MPP->GetXpart()*1.0)/dx);
-   YGridN = round(Ymax/(p_MPP->GetYpart()*1.0)/dy);
-   ZGridN = round(Zmax/dz);
 
+
+   if( Xmax != Ymax || dx != dy || ( p_MPP->GetXpart() ) != ( p_MPP->GetYpart() ) )
+   {
+      if (rank==0)  std::cout << "==== At this Stage: Please Make X, Y Direction Identical====\n";
+      exit(0);
+   }
+
+
+   double lim=0;
+   int totalGrid=0;
+
+   while(lim<=Xmax*0.5)
+   {
+      lim +=CustomGrid(lim);
+      totalGrid++;
+   }
+
+   XGridN = round(totalGrid*2.0/(p_MPP->GetXpart()));
+   YGridN = round(totalGrid*2.0/(p_MPP->GetYpart()));
+   ZGridN = round(Zmax/dz);
 
    //Round XY-Mesh to even number
    XGridN = ceil(XGridN/2.0)*2; 
    YGridN = ceil(YGridN/2.0)*2; 
 
-
-   if( XGridN != YGridN || ( p_MPP->GetXpart() ) != ( p_MPP->GetYpart() ) )
+   totalGrid=0;
+   lim=0;
+   while(totalGrid<XGridN*p_MPP->GetXpart()/2)
    {
-   if (rank==0)  std::cout << "==== Please Make X, Y Direction Identical====\n";
-   exit(0);
+      lim +=CustomGrid(lim);
+      totalGrid++;
    }
 
-
    //Resize the domain;
-   Xmax=XGridN*dx*p_MPP->GetXpart();
-   Ymax=YGridN*dy*p_MPP->GetYpart();
+   Xmax=lim*2;
+   Ymax=lim*2;
    Zmax=ZGridN*dz;
 
 
@@ -140,8 +163,6 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
       if (rank==0)  std::cout << "==== Domain: No Pulse In Domain.         ====\n";
 
    }
-
-   
 
    if (rank==0)  std::cout << "==== Domain: Creating Mesh.              ====\n";
    p_Meshes = new Mesh(XGridN,YGridN,ZGridN,p_File);
@@ -450,6 +471,29 @@ int Domain::Get_NSpecie(int SpecieType)
 
    }
    return num;
+
+}
+
+
+double domain::CustomGrid(double r)
+{
+
+   switch(MeshType)
+   {
+      case 0:
+         return dx;
+      break;
+
+
+      case 1:
+         if(order<0) order=0;
+         if(dxRefine<1) dxRefine=1;
+         if(delta<=0) delta=1;
+         return dx/( (dxRefine-1.0)/(pow(r/delta,order)+1.0)+1.0);
+      break;
+
+   }
+
 
 }
 
