@@ -62,7 +62,7 @@ private:
 
 public:
   
-  Trajectory(double xt, double yt, double ztime, int TpCellx, int TpCelly);
+  Trajectory(double xt, double yt, double ztime, double TpCellx, double TpCelly);
   ~Trajectory();
 
 };

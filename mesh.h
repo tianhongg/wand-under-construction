@@ -119,15 +119,17 @@ public:
 
 
    //Get Physical Coordinates of the Cells in the Mesh;
-   inline double CellX(int i)
+   inline double CellX(int i) //not useful in this version
    {
       return dx*(i - 0.5)+Offset_X;
    };
 
-   inline double CellY(int j)
+   inline double CellY(int j) //not useful in this version
    {
       return dy*(j - 0.5)+Offset_Y;
    };
+
+
 
    inline double CellZ(int k)
    {

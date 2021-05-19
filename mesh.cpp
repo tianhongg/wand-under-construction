@@ -22,7 +22,7 @@
 
 #include "wand_PIC.h"
 #include <exception>
-
+#include<vector>
 
 
 //---------------------------- Mesh::Mesh --------------------
@@ -39,41 +39,78 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 	// dx = p_domain()->Get_dx();
 	// dy = p_domain()->Get_dy();
 
-	
 	dz = p_domain()->Get_dz();
 	dt = p_domain()->Get_dt();
-
 	dt0 = dt;
 	dzz = dz;
 
 	minGamma=1.0;
-
 	GridX = XGridN;
 	GridY = YGridN;
 	GridZ = ZGridN;
 	CellNum = (GridX+2)*(GridY+2)*ZGridN;  //Extra Cells Overlapping With Neighboring Partitions;
+
+
+	int N_Xpart=p_domain()->p_Partition()->GetXpart();
+	int N_Ypart=p_domain()->p_Partition()->GetYpart();
+
+	//
+	std::vector<double> GridsTmp(XGridN*N_Xpart+2,0);
+	std::vector<double> GridsAcc(XGridN*N_Xpart+2,0);
+
+	double ddxx=0;
+	for(int i=0;i<XGridN*N_Xpart/2+1;i++)
+	{	
+		double dd=p_domain()->CustomGrid(ddxx);
+		dd= floor(dd*1e4)/1e4;
+		GridsTmp[XGridN*N_Xpart/2-i]   =dd;
+		GridsTmp[XGridN*N_Xpart/2+i+1] =dd;
+		ddxx+=dd;
+	}
+	for(int i=1;i<XGridN*N_Xpart+2;i++)
+	{
+		GridsAcc[i]=GridsAcc[i-1]+GridsTmp[i];
+	}
+
+
+	//set up the new size of the domain;
+	p_domain()->Set_Xmax(GridsAcc[XGridN*N_Xpart]);
+	p_domain()->Set_Ymax(GridsAcc[XGridN*N_Xpart]);
 
 	//Big Coordinates of the Rank
 	RankIdx_X = p_domain()->p_Partition()->RankIdx_X(); 
 	RankIdx_Y = p_domain()->p_Partition()->RankIdx_Y(); 
 
 	// Coordinates of the Mesh Bottom_Left Corner. 
-	//(0,0) origin is defined at the domain Bottom_Left Corner. 
-	Offset_X = (RankIdx_X-1)*(GridX*dx)-p_domain()->Get_Xmax()*0.5;
-	Offset_Y = (RankIdx_Y-1)*(GridY*dy)-p_domain()->Get_Ymax()*0.5;
+	Offset_X = GridsAcc[(RankIdx_X-1)*(GridX)] - p_domain()->Get_Xmax()*0.5;
+	Offset_Y = GridsAcc[(RankIdx_Y-1)*(GridY)] - p_domain()->Get_Ymax()*0.5;
 
 	//Seed Cells
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// printf("Rank %d,%f,%f\n", Rank,Offset_X,Offset_Y);
+
+	if(Rank==0)
+	{
+		char name[128];
+  		sprintf(name,"Grids.ini");
+		FILE * dFile;
+		dFile = fopen (name,"w");
+		for (int j=1; j<=XGridN*N_Xpart; j++) fprintf(dFile, "%f ", GridsTmp[j]);
+		fclose (dFile);
+	}
+
+
 	try
   	{
-	p_CellArray = new Cell[CellNum];
+		p_CellArray = new Cell[CellNum];
 	}
   	catch (std::exception& e)
   	{
-  	std::cout << "==== Mesh: Creating Cell Failed.         ====\n";
-  	std::cout << "==== Maybe Too Many Cells per Processor, ====\n";
-  	std::cout << "==== Or Wrong Cell Number                ====\n";
-    std::cout << e.what() << '\n';
-    exit(1);
+  		std::cout << "==== Mesh: Creating Cell Failed.         ====\n";
+  		std::cout << "==== Maybe Too Many Cells per Processor, ====\n";
+  		std::cout << "==== Or Wrong Cell Number                ====\n";
+    	std::cout << e.what() << '\n';
+    	exit(1);
   	}
 	// Pointer to the Cell Object.
 
@@ -81,16 +118,22 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
   	// set shifted position for ions
   	for (int k=0; k<GridZ; k++)
 	{
-		for (int j=1; j<=GridY; j++)
+		for (int j=0; j<=GridY+1; j++)
 		{
-			for (int i=1; i<=GridX; i++)
+			for (int i=0; i<=GridX+1; i++)
 			{
 				Cell &c = GetCell(i,  j,  k);
+
+				//assign grid size....
+				c.dx=GridsTmp[(RankIdx_X-1)*(GridX)+i];
+				c.dy=GridsTmp[(RankIdx_Y-1)*(GridY)+j];
+				// coordinates of the center of cell...
+				c.Xcord = GridsAcc[(RankIdx_X-1)*(GridX)+i]+Offset_X-c.dx*0.5;
+				c.Ycord = GridsAcc[(RankIdx_Y-1)*(GridY)+j]+Offset_Y-c.dy*0.5;
 				c.Z_shifted = CellZ(k);
 			}
 		}
 	}
-
 
   	AddEntry((char*)"PlasProfile_T", 	&PProfileT, 1);
   	AddEntry((char*)"PlasProfile_L", 	&PProfileL, 1);
@@ -108,21 +151,35 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
   	AddEntry((char*)"PlasmaDen",	&Pla_ne,1e18);
   	AddEntry((char*)"DopingRate",	&Dop_ne,0.01);
 
-
   	AddEntry((char*)"PlateauBegin",	&PlateauBegin,0);
   	AddEntry((char*)"PlasmaBegin",	&PlasmaBegin, 0);
   	AddEntry((char*)"PlateauEnd",	&PlateauEnd,  1e10);
   	AddEntry((char*)"PlasmaEnd",	&PlasmaEnd,	  1e10);
   	AddEntry((char*)"PlasRadius",	&PlasRadius,100.0);
 
+/*
+  	char name[128];
+  	sprintf(name,"Grids_%d_.dg",Rank);
+	FILE * dFile;
+	dFile = fopen (name,"w");
 
+	for (int j=0; j<=GridY+1; j++)
+	{
+		for (int i=0; i<=GridX+1; i++)
+		{
+			Cell &c = GetCell(i,  j,  1);
+			fprintf(dFile, "%f ", c.dx);
+		}
+		fprintf(dFile, "\n");
+	}
+	fclose (dFile);
+*/
 
 	if (f)
     {
       rewind(f);
       read(f);
     }
-
 
     if(TpCellx == 0 || TpCelly == 0)
   	{
@@ -151,30 +208,43 @@ void Mesh::SeedTrajectory()
 
 	double ztime = p_domain()->Get_RunTime();
 
-	double SeedOffX;
-	double SeedOffY;
-
-	int TgridX;
-	int TgridY;
-
 	double xt;
 	double yt;
-	SeedOffX = Offset_X;
-	SeedOffY = Offset_Y;
-	TgridX= GridX;
-	TgridY= GridY;
+
+	double dxp;
+	double dyp;
+
 	
-	TrajNum = TgridX*TgridY*TpCellx*TpCelly;
+	TrajNum = GridX*GridY*TpCellx*TpCelly;
 
 	Trajectory *p =NULL;
 
-	for (int j=0; j<TgridY*TpCelly; j++)
+
+	//loop cell
+	for (int j=1; j<=GridY; j++)
 	{
-		for (int i=0; i<TgridX*TpCellx; i++)
+		for (int i=1; i<=GridX; i++)
 		{
-			xt = SeedOffX + double(i + 0.5)*dx/TpCellx;
-			yt = SeedOffY + double(j + 0.5)*dy/TpCelly;
-			p = new Trajectory(xt, yt, ztime, TpCellx, TpCelly);
+
+			//seed
+			for(int sj=0;sj<TpCelly;sj++)
+			{
+				for(int si=0;si<TpCellx;si++)
+				{
+					Cell &c = GetCell(i, j, 0); 
+
+					dxp = c.dx/TpCellx;
+					dyp = c.dy/TpCelly;
+					
+					xt = c.Xcord-c.dx*0.5 + double(si + 0.5)*dxp;
+					yt = c.Ycord-c.dy*0.5 + double(sj + 0.5)*dyp;
+					p = new Trajectory(xt, yt, ztime, TpCellx/c.dx, TpCelly/c.dy);
+				}
+
+			}
+
+			
+
 		}
 	}
 
@@ -186,21 +256,16 @@ void Mesh::SeedTrajectory()
 
 void Mesh::SetIonDensity()
 {
-
 	double ztime=p_domain()->Get_RunTime();
 
 	for (int k=0; k<GridZ; k++) 
 	{
 		for (int j=0; j<GridY+2; j++) 
 		{
-			double y = CellY(j);
-
 			for (int i=0; i<GridX+2; i++)
 			{
-				
-				double x = CellX(i);
 				Cell &c = GetCell(i, j, k);
-				c.W_Deni = ProfileLongi(x,y,ztime)*ProfileTrans(x,y,ztime);
+				c.W_Deni = ProfileLongi(c.Xcord,c.Ycord,ztime)*ProfileTrans(c.Xcord,c.Ycord,ztime);
 			}
 		}
 	}

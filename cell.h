@@ -68,6 +68,14 @@ private:
    double W_Chi;
    double W_Jz;
 
+   // Variable Grid Size.
+   double dx;
+   double dy;
+
+   double Xcord;
+   double Ycord;
+
+
    dcomplex *Acomx;
    dcomplex *Acomy;
    dcomplex *Acomxm;  //old value;
@@ -81,10 +89,8 @@ private:
 
 public:
 
-
    int InoState;
    double Z_shifted;
-
    
    void AddAComs(dcomplex acomx, dcomplex acomy, int NF)
    {

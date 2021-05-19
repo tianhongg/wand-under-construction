@@ -115,14 +115,13 @@ void Mesh::InitPulse(Pulse *pulse)
    for (int k=0; k<GridZ; k++) 
    {
       double z = CellZ(k);
+      
       for (int j=0; j<GridY+2; j++) 
       {
-         double y = CellY(j);
          for (int i=0; i<GridX+2; i++)
          {
-               double x = CellX(i);
                Cell &c = GetCell(i, j, k);
-               pulse->Put_AComplex(x,y,z,c, NF);
+               pulse->Put_AComplex(c.Xcord, c.Ycord, z, c, NF);
          }
       }
    }

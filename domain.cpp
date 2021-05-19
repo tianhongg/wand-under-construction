@@ -111,17 +111,7 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    XGridN = ceil(XGridN/2.0)*2; 
    YGridN = ceil(YGridN/2.0)*2; 
 
-   totalGrid=0;
-   lim=0;
-   while(totalGrid<XGridN*p_MPP->GetXpart()/2)
-   {
-      lim +=CustomGrid(lim);
-      totalGrid++;
-   }
 
-   //Resize the domain;
-   Xmax=lim*2;
-   Ymax=lim*2;
    Zmax=ZGridN*dz;
 
 
@@ -165,10 +155,11 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    }
 
    if (rank==0)  std::cout << "==== Domain: Creating Mesh.              ====\n";
+   
    p_Meshes = new Mesh(XGridN,YGridN,ZGridN,p_File);
+   
    if (rank==0)  std::cout << "==== Domain: Mesh Created.               ====\n";
  
-
 
    if (Npulse > 0) 
    {
@@ -198,11 +189,11 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
 
 
 
-
    //===============================================================
    //=======================Initiate Beam in the Domain  ===========
    //===============================================================
    NSpecie = 0;
+
    if(Nbeam>0)
    {
       SpecieType = new int[Nbeam];
@@ -214,7 +205,6 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
          pp_Species[i] = new Specie(name, p_File);
          AddSpecie(pp_Species[i]->P_type);
       }
-
       
       if (rank==0)  std::cout << "==== Domain: Beam Parameters Are Read.   ====\n";
 
@@ -259,19 +249,27 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    //=======================Seed Trajectory in the Domain===========
    //===============================================================
    if (rank==0)  std::cout << "==== Domain: Seed Trajectories in Mesh.  ====\n";
+   
    p_Meshes->SeedTrajectory();
+   
    if (rank==0)  std::cout << "==== Domain: Trajectories Are Seeded.    ====\n";
 
    trajorder=p_Meshes->GetPushOrder();
 
    if(trajorder==0 || trajorder==1 || trajorder==2)
-   {   
+   { 
+
    }
    else
    {
-   if (rank==0)  std::cout << "==== Domain: Wrong Traj Pushing Order.   ====\n";
-   exit(12);
+      if (rank==0)  std::cout << "==== Domain: Wrong Traj Pushing Order.   ====\n";
+      exit(12);
    }
+
+
+
+
+
 
    //===============================================================
    //=======================  Create Communication.      ===========
@@ -475,7 +473,7 @@ int Domain::Get_NSpecie(int SpecieType)
 }
 
 
-double domain::CustomGrid(double r)
+double Domain::CustomGrid(double r)
 {
 
    switch(MeshType)
@@ -483,7 +481,6 @@ double domain::CustomGrid(double r)
       case 0:
          return dx;
       break;
-
 
       case 1:
          if(order<0) order=0;
@@ -494,8 +491,10 @@ double domain::CustomGrid(double r)
 
    }
 
+   return 0;
 
 }
+
 
 //---------------------------- Domain::~Domain() -----------------------
 Domain::~Domain()

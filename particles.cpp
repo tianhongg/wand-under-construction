@@ -251,7 +251,7 @@ void Mesh::SeedParticles(Specie *specie)
 	double dyp = dy/(specie->PpCelly);
 	double dzp = dz/(specie->PpCellz);
 
-	double wtemp=(specie->PpCellx)*(specie->PpCelly)*(specie->PpCellz);;
+	double wtemp;
 
 	int GridXp = GridX*(specie->PpCellx);
 	int GridYp = GridY*(specie->PpCelly);
@@ -266,65 +266,83 @@ void Mesh::SeedParticles(Specie *specie)
 
 	Particle *p =NULL;
 
+	// loop cells
 	for(k=0; k<GridZp; k++)
 	{
-		for(j=0; j<GridYp; j++)
+		for(j=1; j<=GridY; j++)
 		{
-			for(i=0; i<GridXp; i++)
+			for(i=1; i<=GridX; i++)
 			{
 
-				switch(S_type)
+				// seed particles in cell
+				for(int sj=0;sj<specie->PpCelly;sj++)
 				{
-
-					case 0:
-						x0 = Offset_X + double(i + 0.5)*dxp;
-						y0 = Offset_Y + double(j + 0.5)*dyp;
-						z0 = 0		  + double(k + 0.5)*dzp;
-					break;
-
-					case 1:
-						double r1 = ((double) rand() / (RAND_MAX));
-						double r2 = ((double) rand() / (RAND_MAX));
-						double r3 = ((double) rand() / (RAND_MAX));
-
-						x0 = Offset_X + (i + r1)*dxp;
-						y0 = Offset_Y + (j + r2)*dyp;
-						z0 = 0		  + (k + r3)*dzp;
-					break;
-
-				}
-
-				Den = (specie->density)*specie->Density(x0, y0, z0);
-				if(Den>0) 
-				{
-					switch(P_type)
+					for(int si=0;si<specie->PpCellx;si++)
 					{
-						case ELECTRON:
-							q2m = specie->p_q2m;
-							weight = Den/wtemp;
-							px = specie->P_px0 + rand_gaussian (specie->pxspread);
-							py = specie->P_py0 + rand_gaussian (specie->pyspread);
-							pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
-							Ex0 = Ey0 = Ez0 = 0.0;
 
-							p = new Electron(x0, y0, z0, px, py, pz,
-											Ex0, Ey0, Ez0, q2m, weight);
-						break;
+						Cell &c = GetCell(i, j, 0); 
 
-						case ION:
-							q2m = specie->p_q2m;
-							weight = Den/wtemp;
-							px = specie->P_px0 + rand_gaussian (specie->pxspread);
-							py = specie->P_py0 + rand_gaussian (specie->pyspread);
-							pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
-							Ex0 = Ey0 = Ez0 = 0.0;
-							p = new Ion(x0, y0, z0, px, py, pz,
-											Ex0, Ey0, Ez0, q2m, weight);
-						break;
+						dxp = c.dx/(specie->PpCellx);
+						dyp = c.dy/(specie->PpCelly);
 
-					}
+						switch(S_type)
+						{
 
-				}
+							case 0:
+								x0 = c.Xcord-c.dx*0.5 + double(si + 0.5)*dxp;
+								y0 = c.Ycord-c.dy*0.5 + double(sj + 0.5)*dyp;
+								z0 = double(k + 0.5)*dzp;
+							break;
+
+							case 1:
+								double r1 = ((double) rand() / (RAND_MAX));
+								double r2 = ((double) rand() / (RAND_MAX));
+								double r3 = ((double) rand() / (RAND_MAX));
+
+								x0 = c.Xcord-c.dx*0.5 + (si + r1)*dxp;
+								y0 = c.Ycord-c.dy*0.5 + (sj + r2)*dyp;
+								z0 = 0		  + (k + r3)*dzp;
+							break;
+
+						}
+
+						Den = (specie->density)*specie->Density(x0, y0, z0);
+						
+						wtemp=c.dx*c.dy/(specie->PpCellx)/(specie->PpCelly)/(specie->PpCellz);
+
+						if(Den>0) 
+						{
+							switch(P_type)
+							{
+								case ELECTRON:
+									q2m = specie->p_q2m;
+									weight = Den*wtemp;
+									px = specie->P_px0 + rand_gaussian (specie->pxspread);
+									py = specie->P_py0 + rand_gaussian (specie->pyspread);
+									pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
+									Ex0 = Ey0 = Ez0 = 0.0;
+									p = new Electron(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
+								break;
+
+								case ION:
+									q2m = specie->p_q2m;
+									weight = Den*wtemp;
+									px = specie->P_px0 + rand_gaussian (specie->pxspread);
+									py = specie->P_py0 + rand_gaussian (specie->pyspread);
+									pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
+									Ex0 = Ey0 = Ez0 = 0.0;
+									p = new Ion(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
+								break;
+
+							}
+
+						}
+
+					}//si
+
+				}//sj
+
+				
 
 			}
 		}

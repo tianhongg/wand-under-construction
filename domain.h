@@ -120,6 +120,10 @@ class Domain : public NList{
 
     double Get_Xmax() {return Xmax;};
     double Get_Ymax() {return Ymax;};
+
+    double Set_Xmax(double x) {return Xmax=x;};
+    double Set_Ymax(double y) {return Ymax=y;};
+
     double Get_Zmax() {return Zmax;};
 
     double Get_RunTime() {return Time;};
@@ -157,8 +161,6 @@ class Domain : public NList{
     void AddSpecie(int P_type);
 
     int Get_NSpecie(int SpecieType);
-
-
     double CustomGrid(double r);
 
 
