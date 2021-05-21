@@ -286,6 +286,14 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    if (rank==0)  std::cout << "=============================================\n\n\n\n";
 
 
+
+
+  p_Meshes-> MacroSource(0);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  exit(0);
+  
+
 }
 
 
@@ -367,13 +375,10 @@ while(Time<Tmax)
    n++;
    //===========================
 
-
    //=====adpative time step====
    if(Nbeam&&Adap_dt) p_Meshes -> SetNewTimeStep();
 
    //===========================
-
-
 
 
    //===========================

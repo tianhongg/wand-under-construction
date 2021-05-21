@@ -266,6 +266,12 @@ void Mesh::SeedParticles(Specie *specie)
 
 	Particle *p =NULL;
 
+	// char name[128];
+ // 	sprintf(name,"Parts_%d_.dg",Rank);
+	// FILE * dFile;
+	// dFile = fopen (name,"w");
+
+
 	// loop cells
 	for(k=0; k<GridZp; k++)
 	{
@@ -292,6 +298,8 @@ void Mesh::SeedParticles(Specie *specie)
 								x0 = c.Xcord-c.dx*0.5 + double(si + 0.5)*dxp;
 								y0 = c.Ycord-c.dy*0.5 + double(sj + 0.5)*dyp;
 								z0 = double(k + 0.5)*dzp;
+
+								
 							break;
 
 							case 1:
@@ -312,6 +320,9 @@ void Mesh::SeedParticles(Specie *specie)
 
 						if(Den>0) 
 						{
+
+							// fprintf(dFile, "%f,%f,%f\n", x0,y0,z0);
+
 							switch(P_type)
 							{
 								case ELECTRON:
@@ -322,6 +333,8 @@ void Mesh::SeedParticles(Specie *specie)
 									pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
 									Ex0 = Ey0 = Ez0 = 0.0;
 									p = new Electron(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
+									p->idx_i=i;
+									p->idx_j=j;
 								break;
 
 								case ION:
@@ -332,6 +345,8 @@ void Mesh::SeedParticles(Specie *specie)
 									pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
 									Ex0 = Ey0 = Ez0 = 0.0;
 									p = new Ion(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
+									p->idx_i=i;
+									p->idx_j=j;
 								break;
 
 							}
@@ -349,6 +364,8 @@ void Mesh::SeedParticles(Specie *specie)
 
 	}
 
+
+	// fclose(dFile);
 
 	return;
 

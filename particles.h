@@ -52,6 +52,9 @@ public:
 
 	int type;
 
+	int idx_i;
+	int idx_j;
+
 	union
 	{
 		double P_Source[1];

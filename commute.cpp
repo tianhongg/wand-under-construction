@@ -31,6 +31,7 @@ Commute::Commute(int XGridN, int YGridN)
 
 	bufsize = ceil((p_domain()->Get_Buffersize())
 		*p_domain()->p_Partition()->GetXpart());
+
 	SendSourceXm = NULL;
 	SendSourceXp = NULL;
 	SendSourceYm = NULL;
@@ -55,6 +56,11 @@ Commute::Commute(int XGridN, int YGridN)
 	YmPE = p_domain()->p_Partition()->GetYmPE(); 
 	YpPE = p_domain()->p_Partition()->GetYpPE(); 
 
+	mmPE = p_domain()->p_Partition()->GetmmPE(); 
+	mpPE = p_domain()->p_Partition()->GetmpPE(); 
+	pmPE = p_domain()->p_Partition()->GetpmPE(); 
+	ppPE = p_domain()->p_Partition()->GetppPE(); 
+
 	GridX = XGridN;
 	GridY = YGridN;
 
@@ -62,24 +68,40 @@ Commute::Commute(int XGridN, int YGridN)
 
 	if( (p_domain()->Get_Nbeam()) > 0 )
 	{ 
-	SendSouSizeX = YGridN * (SOU_DIM +BEA_DIM ) * 2;   //send in X directions: left and right
-	SendSouSizeY = XGridN * (SOU_DIM +BEA_DIM ) * 2;   //send in Y directions: up   and down
+		SendSouSizeX = YGridN * (SOU_DIM +BEA_DIM ) * 2;   //send in X directions: left and right
+		SendSouSizeY = XGridN * (SOU_DIM +BEA_DIM ) * 2;   //send in Y directions: up   and down
 	}
 	else
-	{
-	SendSouSizeX = YGridN * SOU_DIM * 2;   //send in X directions: left and right
-	SendSouSizeY = XGridN * SOU_DIM * 2;   //send in Y directions: up   and down	
+	{ 
+		//SOU_DIM = denn jx jy jxx jyy jxy
+		SendSouSizeX = YGridN * SOU_DIM * 2;   //send in X directions: left and right
+		SendSouSizeY = XGridN * SOU_DIM * 2;   //send in Y directions: up   and down	
 	}
 
 	SendSourceXm = new double[SendSouSizeX*bufsize];
 	SendSourceXp = new double[SendSouSizeX*bufsize];
+
 	ReceSourceXm = new double[SendSouSizeX*bufsize];
 	ReceSourceXp = new double[SendSouSizeX*bufsize];
 
 	SendSourceYm = new double[SendSouSizeY*bufsize];
 	SendSourceYp = new double[SendSouSizeY*bufsize];
+
 	ReceSourceYm = new double[SendSouSizeY*bufsize];
 	ReceSourceYp = new double[SendSouSizeY*bufsize];
+
+	// diagonal direction
+	SendSourcemm = new double[SendSouSizeX/XGridN];
+	SendSourcemp = new double[SendSouSizeX/XGridN];
+
+	ReceSourcemm = new double[SendSouSizeX/XGridN];
+	ReceSourcemp = new double[SendSouSizeX/XGridN];
+
+	SendSourcepm = new double[SendSouSizeY/YGridN];
+	SendSourcepp = new double[SendSouSizeY/YGridN];
+
+	ReceSourcepm = new double[SendSouSizeY/YGridN];
+	ReceSourcepp = new double[SendSouSizeY/YGridN];
 
 
 };
@@ -96,6 +118,9 @@ void Commute::DoCommute(int what, int k)
 	int ssx;
 	int ssy;
 
+	int ssxd;
+	int ssyd;
+
 	MultiGrid *p_Multi = NULL;
 
 	switch(what)
@@ -103,35 +128,41 @@ void Commute::DoCommute(int what, int k)
 
 		case COMMU_S:
 		case COMMU_SO:
-		ssx = SendSouSizeX;
-		ssy = SendSouSizeY;
+			ssx = SendSouSizeX;
+			ssy = SendSouSizeY;
+			ssxd= ssx/GridY;
+			ssyd= ssy/GridX;
 		break;
 
 		case COMMU_F:
-		ssx = GridY * WAK_DIM2;
-		ssy = GridX * WAK_DIM2;
+			ssx = GridY * WAK_DIM2;
+			ssy = GridX * WAK_DIM2;
+			ssxd= WAK_DIM2;
+			ssyd= WAK_DIM2;
 		break;
 
 		case COMMU_A:
-		ssx = GridY * 4;
-		ssy = GridX * 4;
+			ssx = GridY * 4;
+			ssy = GridX * 4;
 		break;
 
 		case COMMU_MG_P:
 		case COMMU_MG_R:
-		p_Multi = p_domain()->p_MG();
-		ssx = p_Multi->GetLayerGridY(k);
-		ssy = p_Multi->GetLayerGridX(k);
+			p_Multi = p_domain()->p_MG();
+			ssx = p_Multi->GetLayerGridY(k);
+			ssy = p_Multi->GetLayerGridX(k);
+			ssxd= 1;
+			ssyd= 1;
 		break;
 
 		case COMMU_MG_P_C:
 		case COMMU_MG_R_C:
 		p_Multi = p_domain()->p_MG();
-		ssx = p_Multi->GetLayerGridY(k)*2;
-		ssy = p_Multi->GetLayerGridX(k)*2;
+			ssx = p_Multi->GetLayerGridY(k)*2;
+			ssy = p_Multi->GetLayerGridX(k)*2;
+			ssxd= 1;
+			ssyd= 1;
 		break;
-	
-
 
 	}
 
@@ -139,26 +170,37 @@ void Commute::DoCommute(int what, int k)
 		//===============================================================
 		//=====================   ISend and IRecev     ==================
 		//===============================================================
-    	MPI_Request Request[8];
-    	MPI_Status 	 Status[8];
- 		MPI_Irecv(ReceSourceXm, ssx, MPI_DOUBLE, XmPE, 0, MPI_COMM_WORLD, &Request[0]);
-		MPI_Irecv(ReceSourceXp, ssx, MPI_DOUBLE, XpPE, 1, MPI_COMM_WORLD, &Request[1]);
-		MPI_Irecv(ReceSourceYm, ssy, MPI_DOUBLE, YmPE, 2, MPI_COMM_WORLD, &Request[2]);
-		MPI_Irecv(ReceSourceYp, ssy, MPI_DOUBLE, YpPE, 3, MPI_COMM_WORLD, &Request[3]);
+    	MPI_Request Request[16];
+    	MPI_Status 	 Status[16];
 
-		MPI_Isend(SendSourceXp, ssx, MPI_DOUBLE, XpPE, 0, MPI_COMM_WORLD, &Request[4]);
-		MPI_Isend(SendSourceXm, ssx, MPI_DOUBLE, XmPE, 1, MPI_COMM_WORLD, &Request[5]);
- 		MPI_Isend(SendSourceYp, ssy, MPI_DOUBLE, YpPE, 2, MPI_COMM_WORLD, &Request[6]);
-		MPI_Isend(SendSourceYm, ssy, MPI_DOUBLE, YmPE, 3, MPI_COMM_WORLD, &Request[7]);
+ 		MPI_Irecv(ReceSourceXm, ssx,  MPI_DOUBLE, XmPE, 0, MPI_COMM_WORLD, &Request[0]);
+		MPI_Irecv(ReceSourceXp, ssx,  MPI_DOUBLE, XpPE, 1, MPI_COMM_WORLD, &Request[1]);
+		MPI_Irecv(ReceSourceYm, ssy,  MPI_DOUBLE, YmPE, 2, MPI_COMM_WORLD, &Request[2]);
+		MPI_Irecv(ReceSourceYp, ssy,  MPI_DOUBLE, YpPE, 3, MPI_COMM_WORLD, &Request[3]);
+
+		MPI_Irecv(ReceSourcemm, ssxd, MPI_DOUBLE, mmPE, 4, MPI_COMM_WORLD, &Request[4]);
+		MPI_Irecv(ReceSourcemp, ssxd, MPI_DOUBLE, mpPE, 5, MPI_COMM_WORLD, &Request[5]);
+		MPI_Irecv(ReceSourcepm, ssyd, MPI_DOUBLE, pmPE, 6, MPI_COMM_WORLD, &Request[6]);
+		MPI_Irecv(ReceSourcepp, ssyd, MPI_DOUBLE, ppPE, 7, MPI_COMM_WORLD, &Request[7]);
+
+		MPI_Isend(SendSourcepp, ssxd, MPI_DOUBLE, ppPE, 4, MPI_COMM_WORLD, &Request[8]);
+		MPI_Isend(SendSourcepm, ssxd, MPI_DOUBLE, pmPE, 5, MPI_COMM_WORLD, &Request[9]);
+ 		MPI_Isend(SendSourcemp, ssyd, MPI_DOUBLE, mpPE, 6, MPI_COMM_WORLD, &Request[10]);
+		MPI_Isend(SendSourcemm, ssyd, MPI_DOUBLE, mmPE, 7, MPI_COMM_WORLD, &Request[11]);
+
+		MPI_Isend(SendSourceXp, ssx,  MPI_DOUBLE, XpPE, 0, MPI_COMM_WORLD, &Request[12]);
+		MPI_Isend(SendSourceXm, ssx,  MPI_DOUBLE, XmPE, 1, MPI_COMM_WORLD, &Request[13]);
+ 		MPI_Isend(SendSourceYp, ssy,  MPI_DOUBLE, YpPE, 2, MPI_COMM_WORLD, &Request[14]);
+		MPI_Isend(SendSourceYm, ssy,  MPI_DOUBLE, YmPE, 3, MPI_COMM_WORLD, &Request[15]);
 
  		int ierr;
-		ierr = MPI_Waitall(8, Request,Status);
+		ierr = MPI_Waitall(16, Request,Status);
 
 		MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN);
 		if (ierr!=0) 
 		{
    			char errtxt[200];
-			for (int i=0; i<8; i++) 
+			for (int i=0; i<16; i++) 
 			{
 				int err = Status[i].MPI_ERROR; 
 				int len=200;
@@ -167,8 +209,6 @@ void Commute::DoCommute(int what, int k)
 			}
 		MPI_Abort(MPI_COMM_WORLD,0);
 		}
-
-
 
 	//===============================================================
 	//=============== For Conduction Boundary Condition =============
@@ -180,16 +220,28 @@ void Commute::DoCommute(int what, int k)
 
 		int i = 0;
 		if (RankIdx_X == 1) 
-		{ for (i = 0; i < ssx; i++) {ReceSourceXm[i] = 0.0;}};
+		{ 
+			for (i = 0; i < ssx; i++)  {ReceSourceXm[i] = 0.0;}
+			for (i = 0; i < ssxd; i++) {ReceSourcemm[i] = 0.0;}
+		};
 
 		if (RankIdx_X == Xpa) 
-		{ for (i = 0; i < ssx; i++) {ReceSourceXp[i] = 0.0;}};
+		{ 
+			for (i = 0; i < ssx; i++)  {ReceSourceXp[i] = 0.0;}
+			for (i = 0; i < ssxd; i++) {ReceSourcemp[i] = 0.0;}
+		};
 
 		if (RankIdx_Y == 1) 
-		{ for (i = 0; i < ssy; i++) {ReceSourceYm[i] = 0.0;}};
+		{ 
+			for (i = 0; i < ssy; i++)  {ReceSourceYm[i] = 0.0;}
+			for (i = 0; i < ssyd; i++) {ReceSourcepm[i] = 0.0;}
+		};
 
 		if (RankIdx_Y == Ypa) 
-		{ for (i = 0; i < ssy; i++) {ReceSourceYp[i] = 0.0;}};
+		{
+			for (i = 0; i < ssy; i++)  {ReceSourceYp[i] = 0.0;}
+			for (i = 0; i < ssyd; i++) {ReceSourcepp[i] = 0.0;}
+		};
 		break;
 
 	}
@@ -278,7 +330,14 @@ int &Sendxm, int &Sendxp, int &Sendym, int &Sendyp)
 	return;
 }
 
-
+		//      ___________
+		//     |mp | yp| pp|
+		//     |___|___|___|
+		//     |xm |   | xp|
+		//     |___|___|___|
+		//     |mm | ym| pm|
+		//     |___|___|___|
+		//
 
 void Commute::DoPack(int what, int k)
 
@@ -306,6 +365,10 @@ void Commute::DoPack(int what, int k)
 		// Send Direction: Y: up and down
 		for (m = 0 ; m<=1; m++)
 		{
+
+			Cell &mp = p_Meshs->GetCell(m,GridY+1-m,k);
+			Cell &pp = p_Meshs->GetCell(GridX+1-m,GridY+1-m,k);
+
 			for (i=0; i < GridX; i++)
 			{
 
@@ -316,6 +379,13 @@ void Commute::DoPack(int what, int k)
 				{
 					SendSourceYm[ (GridX*m+i)*NSource + n ] = cm.W_Source[n];
 					SendSourceYp[ (GridX*m+i)*NSource + n ] = cp.W_Source[n];
+
+					//diagonal
+					if(i==0)
+					{
+						SendSourcemp[ m*NSource + n ] = mp.W_Source[n];
+						SendSourcepp[ m*NSource + n ] = pp.W_Source[n];
+					}
 				}
 
 			}
@@ -324,6 +394,10 @@ void Commute::DoPack(int what, int k)
 		// Send Direction: X: left and right
 		for (m = 0 ; m<=1; m++)
 		{
+
+			Cell &mm = p_Meshs->GetCell(m,m,k);
+			Cell &pm = p_Meshs->GetCell(GridX+1-m,m,k);
+
 			for (j=0; j < GridY; j++)
 			{
 
@@ -333,6 +407,13 @@ void Commute::DoPack(int what, int k)
 				{
 					SendSourceXm[ (GridY*m+j)*NSource + n] = cm.W_Source[n];
 					SendSourceXp[ (GridY*m+j)*NSource + n] = cp.W_Source[n];
+
+					//diagonal
+					if(j==0)
+					{
+						SendSourcemm[ m*NSource + n ] = mm.W_Source[n];
+						SendSourcepm[ m*NSource + n ] = pm.W_Source[n];
+					}
 				}
 
 			}
@@ -346,17 +427,32 @@ void Commute::DoPack(int what, int k)
 		//===================== Pack Wakefields    ======================
 		//===============================================================
 		case COMMU_F:
+
+			Cell &mp = p_Meshs->GetCell(1,GridY,k);
+			Cell &pp = p_Meshs->GetCell(GridX,GridY,k);
+
 			for (i=1; i <= GridX; i++)
 			{
 				Cell &cm = p_Meshs->GetCell(i,	  1,k);
 				Cell &cp = p_Meshs->GetCell(i,GridY,k);
+
 				for (n = 0; n < WAK_DIM2; n++)
 				{
 					SendSourceYm[ (i-1)*WAK_DIM2 + n ] = cm.W_Fields[n+5];
 					SendSourceYp[ (i-1)*WAK_DIM2 + n ] = cp.W_Fields[n+5];
+
+					if(i==1)
+					{
+						SendSourcemp[n] = mp.W_Source[n];
+						SendSourcepp[n] = pp.W_Source[n];
+					}
+
 				}
 
 			}
+
+			Cell &mm = p_Meshs->GetCell(1,1,k);
+			Cell &pm = p_Meshs->GetCell(GridX,1,k);
 
 			for (j=1; j <= GridY; j++)
 			{
@@ -366,6 +462,12 @@ void Commute::DoPack(int what, int k)
 				{
 					SendSourceXm[ (j-1)*WAK_DIM2 + n ] = cm.W_Fields[n+5];
 					SendSourceXp[ (j-1)*WAK_DIM2 + n ] = cp.W_Fields[n+5];
+
+					if(j==1)
+					{
+						SendSourcemm[n] = mm.W_Source[n];
+						SendSourcepm[n] = pm.W_Source[n];
+					}
 				}
 
 			}
@@ -540,6 +642,10 @@ void Commute::UnPack(int what, int k)
 		// Receive Direction: Y
 		for (m = 0; m<=1; m++)
 		{
+
+			Cell &mm = p_Meshs->GetCell(1-m,1-m,k);
+			Cell &pm = p_Meshs->GetCell(GridX+m,1-m,k);
+
 			for (i = 0; i < GridX; i++)
 			{
 
@@ -549,6 +655,13 @@ void Commute::UnPack(int what, int k)
 				{
 					cm.W_Source[n] += ReceSourceYm[ (GridX*m+i)*NSource+ n ];
 					cp.W_Source[n] += ReceSourceYp[ (GridX*m+i)*NSource+ n ];
+				
+
+					if(i==0)
+					{
+						mm.W_Source[n] += ReceSourcemm[ m*NSource+ n ];
+						pm.W_Source[n] += ReceSourcepm[ m*NSource+ n ];
+					}
 				}
 
 			}
@@ -556,6 +669,11 @@ void Commute::UnPack(int what, int k)
 
 		for (m = 0; m<=1; m++)
 		{
+
+			Cell &mp = p_Meshs->GetCell(1-m,GridY+m,k);
+			Cell &pp = p_Meshs->GetCell(GridX+m,GridY+m,k);
+
+
 			for (j = 0; j < GridY; j++)
 			{
 
@@ -563,9 +681,17 @@ void Commute::UnPack(int what, int k)
 				Cell &cp = p_Meshs->GetCell(GridX+m,j+1,k);
 				for (n = 0; n < NSource; n++)
 				{
-				cm.W_Source[n] += ReceSourceXm[ (GridY*m+j)*NSource + n];
-				cp.W_Source[n] += ReceSourceXp[ (GridY*m+j)*NSource + n];
+					cm.W_Source[n] += ReceSourceXm[ (GridY*m+j)*NSource + n];
+					cp.W_Source[n] += ReceSourceXp[ (GridY*m+j)*NSource + n];
+
+					if(j==0)
+					{
+						mp.W_Source[n] += ReceSourcemp[ m*NSource+ n ];
+						pp.W_Source[n] += ReceSourcepp[ m*NSource+ n ];
+					}
 				}
+
+
 
 			}
 		}
@@ -576,7 +702,7 @@ void Commute::UnPack(int what, int k)
 			if (RankIdx_X == 1) 
 			{	
 				for (i=0; i<=GridY+1; i++)
-				{	Cell &c = p_Meshs->GetCell(1, i,k); c.W_Denn  = c.W_Deni;
+				{	Cell &c = p_Meshs->GetCell(0, i,k); c.W_Denn  = c.W_Deni;
 					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
 
 				}
@@ -585,7 +711,7 @@ void Commute::UnPack(int what, int k)
 			if (RankIdx_X == Xpa) 
 			{	
 				for (i=0; i<=GridY+1; i++)
-				{	Cell &c = p_Meshs->GetCell(GridX,i,k); c.W_Denn  = c.W_Deni;
+				{	Cell &c = p_Meshs->GetCell(GridX+1,i,k); c.W_Denn  = c.W_Deni;
 					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
 				}
 			
@@ -594,7 +720,7 @@ void Commute::UnPack(int what, int k)
 			if (RankIdx_Y == 1) 
 			{	
 				for (i=0; i<=GridX+1; i++)
-				{	Cell &c = p_Meshs->GetCell(i,1,k); c.W_Denn  = c.W_Deni;
+				{	Cell &c = p_Meshs->GetCell(i,0,k); c.W_Denn  = c.W_Deni;
 					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
 				}
 			}
@@ -602,13 +728,12 @@ void Commute::UnPack(int what, int k)
 			if (RankIdx_Y == Ypa) 
 			{	
 				for (i=0; i<=GridX+1; i++)
-				{	Cell &c = p_Meshs->GetCell(i,GridY,k); c.W_Denn  = c.W_Deni;
+				{	Cell &c = p_Meshs->GetCell(i,GridY+1,k); c.W_Denn  = c.W_Deni;
 					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
 				}
 			}
 
 		}
-
 
 		break;
 
@@ -617,6 +742,10 @@ void Commute::UnPack(int what, int k)
 		//===================== Unpack Wakefields     ===================
 		//===============================================================
 		case COMMU_F:
+
+			Cell &mm = p_Meshs->GetCell(0,0,k);
+			Cell &pm = p_Meshs->GetCell(GridX+1,0,k);
+
 			for (i=1; i <= GridX; i++)
 			{
 				Cell &cm = p_Meshs->GetCell(i,	    0,k);
@@ -625,9 +754,19 @@ void Commute::UnPack(int what, int k)
 				{
 					cm.W_Fields[n+5] = ReceSourceYm[ (i-1)*WAK_DIM2 + n ];
 					cp.W_Fields[n+5] = ReceSourceYp[ (i-1)*WAK_DIM2 + n ];
+
+					if(i==1)
+					{
+						mm.W_Fields[n+5] = ReceSourcemm[ n ];
+						pm.W_Fields[n+5] = ReceSourcepm[ n ];
+					}
+
 				}
 
 			}
+
+			Cell &mp = p_Meshs->GetCell(0,GridY+1,k);
+			Cell &pp = p_Meshs->GetCell(GridX+1,GridY+1,k);
 
 			for (j=1; j <= GridY; j++)
 			{
@@ -637,6 +776,12 @@ void Commute::UnPack(int what, int k)
 				{
 					cm.W_Fields[n+5] = ReceSourceXm[ (j-1)*WAK_DIM2 + n ];
 					cp.W_Fields[n+5] = ReceSourceXp[ (j-1)*WAK_DIM2 + n ];
+
+					if(j==1)
+					{
+						mp.W_Fields[n+5] = ReceSourcemp[ n ];
+						pp.W_Fields[n+5] = ReceSourcepp[ n ];
+					}
 				}
 
 			}
@@ -855,8 +1000,8 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 			x0 = ReceSourceXm[n*SDT_DIM + 2];
 			y0 = ReceSourceXm[n*SDT_DIM + 3];
 			z0 = ReceSourceXm[n*SDT_DIM + 4];
-
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly);
+ 
+			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1); //temp
 			p->x = ReceSourceXm[n*SDT_DIM + 0];
 			p->y = ReceSourceXm[n*SDT_DIM + 1];
 			p->Vx= ReceSourceXm[n*SDT_DIM + 5];
@@ -879,7 +1024,7 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 			y0 = ReceSourceXp[n*SDT_DIM + 3];
 			z0 = ReceSourceXp[n*SDT_DIM + 4];
 
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly);
+			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1);
 			p->x = ReceSourceXp[n*SDT_DIM + 0];
 			p->y = ReceSourceXp[n*SDT_DIM + 1];
 			p->Vx= ReceSourceXp[n*SDT_DIM + 5];
@@ -901,7 +1046,7 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 			y0 = ReceSourceYm[n*SDT_DIM + 3];
 			z0 = ReceSourceYm[n*SDT_DIM + 4];
 
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly);
+			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1);
 			p->x = ReceSourceYm[n*SDT_DIM + 0];
 			p->y = ReceSourceYm[n*SDT_DIM + 1];
 			p->Vx= ReceSourceYm[n*SDT_DIM + 5];
@@ -923,7 +1068,7 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 			y0 = ReceSourceYp[n*SDT_DIM + 3];
 			z0 = ReceSourceYp[n*SDT_DIM + 4];
 
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly);
+			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1);
 			p->x = ReceSourceYp[n*SDT_DIM + 0];
 			p->y = ReceSourceYp[n*SDT_DIM + 1];
 			p->Vx= ReceSourceYp[n*SDT_DIM + 5];

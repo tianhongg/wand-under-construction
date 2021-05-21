@@ -48,8 +48,20 @@ private:
    double *ReceSourceXp;  //Array for Rece 
    double *ReceSourceYp;  //Array for Rece 
 
-   //double *SendFields;  //Array to send for the fields;
 
+
+   // diagonal
+   double *SendSourcemm;  //Array to send for the sources;
+   double *SendSourcemp;  //Array to send for the sources;
+   double *SendSourcepm;  //Array to send for the sources;
+   double *SendSourcepp;  //Array to send for the sources;
+
+   double *ReceSourcemm;  //Array for Rece 
+   double *ReceSourcemp;  //Array for Rece 
+   double *ReceSourcepm;  //Array for Rece 
+   double *ReceSourcepp;  //Array for Rece 
+
+   //double *SendFields;  //Array to send for the fields;
 
    int SendSouSizeX;
    int SendSouSizeY;
@@ -67,6 +79,11 @@ private:
    int XpPE;
    int YmPE;
    int YpPE; 
+
+   int mmPE; 
+   int mpPE;
+   int pmPE;
+   int ppPE; 
 
    int GridX;
    int GridY;

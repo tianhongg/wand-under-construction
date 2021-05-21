@@ -67,11 +67,11 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 		GridsTmp[XGridN*N_Xpart/2+i+1] =dd;
 		ddxx+=dd;
 	}
+
 	for(int i=1;i<XGridN*N_Xpart+2;i++)
 	{
 		GridsAcc[i]=GridsAcc[i-1]+GridsTmp[i];
 	}
-
 
 	//set up the new size of the domain;
 	p_domain()->Set_Xmax(GridsAcc[XGridN*N_Xpart]);
@@ -128,8 +128,8 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 				c.dx=GridsTmp[(RankIdx_X-1)*(GridX)+i];
 				c.dy=GridsTmp[(RankIdx_Y-1)*(GridY)+j];
 				// coordinates of the center of cell...
-				c.Xcord = GridsAcc[(RankIdx_X-1)*(GridX)+i]+Offset_X-c.dx*0.5;
-				c.Ycord = GridsAcc[(RankIdx_Y-1)*(GridY)+j]+Offset_Y-c.dy*0.5;
+				c.Xcord = GridsAcc[(RankIdx_X-1)*(GridX)+i]- p_domain()->Get_Xmax()*0.5-c.dx*0.5;
+				c.Ycord = GridsAcc[(RankIdx_Y-1)*(GridY)+j]- p_domain()->Get_Xmax()*0.5-c.dy*0.5;
 				c.Z_shifted = CellZ(k);
 			}
 		}
@@ -168,12 +168,13 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 		for (int i=0; i<=GridX+1; i++)
 		{
 			Cell &c = GetCell(i,  j,  1);
-			fprintf(dFile, "%f ", c.dx);
+			fprintf(dFile, "%f ", c.Xcord);
 		}
 		fprintf(dFile, "\n");
 	}
 	fclose (dFile);
 */
+  	
 
 	if (f)
     {
@@ -220,12 +221,16 @@ void Mesh::SeedTrajectory()
 	Trajectory *p =NULL;
 
 
+	// char name[128];
+ 	// sprintf(name,"Trajs_%d_.dg",Rank);
+	// FILE * dFile;
+	// dFile = fopen (name,"w");
+
 	//loop cell
 	for (int j=1; j<=GridY; j++)
 	{
 		for (int i=1; i<=GridX; i++)
 		{
-
 			//seed
 			for(int sj=0;sj<TpCelly;sj++)
 			{
@@ -238,15 +243,20 @@ void Mesh::SeedTrajectory()
 					
 					xt = c.Xcord-c.dx*0.5 + double(si + 0.5)*dxp;
 					yt = c.Ycord-c.dy*0.5 + double(sj + 0.5)*dyp;
-					p = new Trajectory(xt, yt, ztime, TpCellx/c.dx, TpCelly/c.dy);
+
+					p = new Trajectory(xt, yt, ztime, TpCellx, TpCelly, dxp, dyp);
+					p->idx_i=i;
+					p->idx_j=j;
+					// fprintf(dFile, "%f,%f\n", xt,yt);
 				}
 
 			}
 
-			
-
 		}
 	}
+
+	// fclose (dFile);
+
 
 	Vlim=V_thresh*dx/dz;
 	Vmax=0.0;

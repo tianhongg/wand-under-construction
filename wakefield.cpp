@@ -27,20 +27,17 @@ void Mesh::MacroSource(int k)
 {
 
 	Trajectory *p = NULL;
-	double ddx;
-	double ddy;
 
-	double wmm, wmp, wpm, wpp;
+	double wmm,wmc,wmp;
+	double wcm,wcc,wcp;
+	double wpm,wpc,wpp;
 
-	double dxdy = dx*dy;
 	int i,j;
+	double dx; //cell size
+	double dy;
 
-
-	int Xpa  = p_domain()->p_Partition()->GetXpart();
-	int Ypa  = p_domain()->p_Partition()->GetYpart();
-
-	double Xmax = Offset_X+GridX*dx;
-	double Ymax = Offset_Y+GridY*dy;
+	double sx; // particle size;
+	double sy;
 
 
 	SetSourceZero(k);
@@ -50,56 +47,111 @@ void Mesh::MacroSource(int k)
 	{
 		double xt 		=  p->x;
 		double yt 		=  p->y;
-		double massweig = (p->mass)*(p->Weight);
+		double massweig = (p->Weight);
 
 		//------------------------------
-		//      _______
-		//     |mp | pp|
-		//     |___|___|
-		//     |mm | pm|
-		//     |___|___|
+		//      ___________
+		//     |mp | cp| pp|
+		//     |___|___|___|
+		//     |mc | cc| pc|
+		//     |___|___|___|
+		//     |mm | cm| pm|
+		//     |___|___|___|
 		//
 		//------------------------------
-		ddx = xt-(Offset_X-dx*0.5);
-		ddy = yt-(Offset_Y-dy*0.5);
-		// idex of the corner cell
-		i = floor(ddx/dx);
-		j = floor(ddy/dy);
 
+		// idex of the cell
+		i = p->idx_i;
+		j = p->idx_j;
 
 		//=================================================
 		//============Trajectory Outside Boundary =========
 		//=================================================
-		if(i < 0 || i > GridX || j < 0 || j > GridY)
+		// 0 - Grid+1
+		if(i < 1 || i > GridX || j < 1 || j > GridY)
 		{
 			p = p->p_PrevTraj;
 			continue;
 		}
 		//==================================================
 
-		
-		wmm = (i+1-ddx/dx)*(j+1-ddy/dy);
-		wmp = (i+1-ddx/dx)*(ddy/dy-j);
-		wpm = (ddx/dx-i)*(j+1-ddy/dy);
-		wpp = (ddx/dx-i)*(ddy/dy-j);
+		Cell &cmm = GetCell(i-1,j+1,k);
+		Cell &cmc = GetCell(i-1,j,k);
+		Cell &cmp = GetCell(i-1,j+1,k);
 
-		Cell &cmm = GetCell(i,j,k);
-		Cell &cmp = GetCell(i,j+1,k);
-		Cell &cpm = GetCell(i+1,j,k);
+		Cell &ccm = GetCell(i,j-1,k);
+		Cell &ccc = GetCell(i,j,k);
+		Cell &ccp = GetCell(i,j+1,k);
+		
+		Cell &cpm = GetCell(i+1,j-1,k);
+		Cell &cpc = GetCell(i+1,j,k);
 		Cell &cpp = GetCell(i+1,j+1,k);
+
+		dx=ccc.dx;
+		dy=ccc.dy;
+
+		sx=p->sx;
+		sy=p->sy;
+
+		double deltaxm=std::max(sx*0.5-(dx*0.5+xt-ccc.Xcord),0.0);
+		double deltaym=std::max(sy*0.5-(dy*0.5+yt-ccc.Ycord),0.0);
+
+		double deltaxp=std::max(sx*0.5-(dx*0.5-xt+ccc.Xcord),0.0);
+		double deltayp=std::max(sy*0.5-(dy*0.5-yt+ccc.Ycord),0.0);
+
+		double deltaxc=std::min(sx-deltaxm,sx-deltaxp);
+		double deltayc=std::min(sy-deltaym,sy-deltayp);
+		
+		wmm = deltaxm*deltaym/cmm.dx/cmm.dy;
+		wmc = deltaxm*deltayc/cmc.dx/cmc.dy;
+		wmp = deltaxm*deltayp/cmp.dx/cmp.dy;
+
+		wcm = deltaxc*deltaym/ccm.dx/ccm.dy;
+		wcc = deltaxc*deltayc/ccc.dx/ccc.dy;
+		wcp = deltaxc*deltayp/ccp.dx/ccp.dy;
+
+		wpm = deltaxp*deltaym/cpm.dx/cpm.dy;
+		wpc = deltaxp*deltayc/cpc.dx/cpc.dy;
+		wpp = deltaxp*deltayp/cpp.dx/cpp.dy;
 
 		for (int n=0; n<SOU_DIM; n++)
 		{
-		cmm.W_Source[n] += massweig * wmm * p->T_Source[n];
-		cmp.W_Source[n] += massweig * wmp * p->T_Source[n];
-		cpm.W_Source[n] += massweig * wpm * p->T_Source[n];
-		cpp.W_Source[n] += massweig * wpp * p->T_Source[n];
+			cmm.W_Source[n] += massweig * wmm * p->T_Source[n];
+			cmc.W_Source[n] += massweig * wmc * p->T_Source[n];
+			cmp.W_Source[n] += massweig * wmp * p->T_Source[n];
+
+			ccm.W_Source[n] += massweig * wcm * p->T_Source[n];
+			ccc.W_Source[n] += massweig * wcc * p->T_Source[n];
+			ccp.W_Source[n] += massweig * wcp * p->T_Source[n];
+
+			cpm.W_Source[n] += massweig * wpm * p->T_Source[n];
+			cpc.W_Source[n] += massweig * wpc * p->T_Source[n];
+			cpp.W_Source[n] += massweig * wpp * p->T_Source[n];
+
 		}
 		p = p->p_PrevTraj;
 
 	}
 	
-	AdjustSource(k);
+	// AdjustSource(k);
+
+	char name[128];
+ 	sprintf(name,"Denn_%d_.dg",Rank);
+	FILE * dFile;
+	dFile = fopen (name,"w");
+
+	for(int j=0; j<=GridY+1; j++)
+	{
+		for(int i=0; i<=GridX+1; i++)
+		{
+			Cell &ccc = GetCell(i,j,k);
+			fprintf(dFile, "%f ", ccc.W_Source[0]);
+		}
+		fprintf(dFile, "\n");
+
+	}	
+
+	fclose(dFile);
 
 	return;
 

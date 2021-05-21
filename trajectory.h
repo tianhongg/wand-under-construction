@@ -41,6 +41,13 @@ private:
   double Gamma;
   double Weight;
 
+  // cell index 
+  int idx_i;
+  int idx_j;
+  //shape
+  double sx; // shape sx;
+  double sy; // shape sy;
+
    union
    {
       double T_Source[1];
@@ -61,8 +68,8 @@ private:
   Trajectory *p_NextTraj;
 
 public:
-  
-  Trajectory(double xt, double yt, double ztime, double TpCellx, double TpCelly);
+
+  Trajectory(double xt, double yt, double ztime, int TpCellx, int TpCelly, double sxx, double syy);
   ~Trajectory();
 
 };
