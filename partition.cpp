@@ -72,6 +72,9 @@ Partition::Partition (FILE *f) : NList ("Partition")
   idx_mmPE=idx_YmPE-1;
   idx_pmPE=idx_YmPE+1;
 
+  idx_mpPE=idx_YpPE-1;
+  idx_ppPE=idx_YpPE+1;
+
  //tianhong May-18-2021
   if(idx_X==1)
   {
@@ -84,11 +87,12 @@ Partition::Partition (FILE *f) : NList ("Partition")
     idx_ppPE-=N_Xpart; 
   }
   
-  idx_mpPE=idx_YpPE-1;
-  idx_ppPE=idx_YpPE+1;
+
 
   // if(idx_Y==1) idx_pmPE+=N_Xpart*(N_Ypart);
   // if(idx_Y==N_Ypart) idx_ppPE-=N_Xpart*(N_Ypart);
+
+  printf("%d: %d-%d-%d-%d-%d-%d-%d-%d-\n", Rank,idx_XmPE,idx_XpPE,idx_YmPE,idx_YpPE,idx_mmPE,idx_pmPE,idx_mpPE,idx_ppPE);
   
 
 }

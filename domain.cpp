@@ -289,10 +289,29 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
 
 
   p_Meshes-> MacroSource(0);
+  p_Comm   -> DoCommute(COMMU_S, 0);
+
+  char name[128];
+   sprintf(name,"Denn_%d_.dg",Rank);
+   FILE * dFile;
+   dFile = fopen (name,"w");
+
+   for(int j=1; j<=XGridN; j++)
+   {
+      for(int i=1; i<=XGridN; i++)
+      {
+         Cell &ccc = p_Meshes->GetCell(i,j,0);
+         fprintf(dFile, "%f ", ccc.W_Source[0]);
+      }
+      fprintf(dFile, "\n");
+
+   }  
+
+   fclose(dFile);
 
   MPI_Barrier(MPI_COMM_WORLD);
   exit(0);
-  
+
 
 }
 

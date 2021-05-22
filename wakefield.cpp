@@ -135,23 +135,7 @@ void Mesh::MacroSource(int k)
 	
 	// AdjustSource(k);
 
-	char name[128];
- 	sprintf(name,"Denn_%d_.dg",Rank);
-	FILE * dFile;
-	dFile = fopen (name,"w");
-
-	for(int j=0; j<=GridY+1; j++)
-	{
-		for(int i=0; i<=GridX+1; i++)
-		{
-			Cell &ccc = GetCell(i,j,k);
-			fprintf(dFile, "%f ", ccc.W_Source[0]);
-		}
-		fprintf(dFile, "\n");
-
-	}	
-
-	fclose(dFile);
+	
 
 	return;
 
