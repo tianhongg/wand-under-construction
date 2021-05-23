@@ -1016,8 +1016,8 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 				y0 = *Re; Re++; 
 				z0 = *Re; Re++; 
 
-				Vx = *Re; Re++; 
-				Vy = *Re; Re++; 
+				vx = *Re; Re++; 
+				vy = *Re; Re++; 
 
 				old_x  = *Re; Re++; 
 				old_y  = *Re; Re++; 
@@ -1031,8 +1031,8 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 
 				p->x = xt;
 				p->y = yt;
-				p->Vx= Vx;
-				p->Vy= Vy;
+				p->Vx= vx;
+				p->Vy= vy;
 
 				p->old_x  = old_x;
 				p->old_y  = old_y;

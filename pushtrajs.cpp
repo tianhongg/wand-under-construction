@@ -25,154 +25,7 @@
 void Mesh::PushTrajectory(double k0, int k, int step)
 {
 
-	Trajectory *p = NULL;
-	double ddx;
-	double ddy;
-	double Ex, Ey, Ez, Psi, Bx, By, Bz, Pondx, Pondy, Asq;
-	double Fx, Fy, gamma;
-
-	double xt, yt, Vx, Vy, Vxp, Vyp, xtp, ytp;
-	double wmm, wmp, wpm, wpp;
-	double dxdy = dx*dy;
-	double dztmp;
-	int i,j;
-
-	int Xpa  = p_domain()->p_Partition()->GetXpart();
-	int Ypa  = p_domain()->p_Partition()->GetYpart();
-
-	double Xmax = Offset_X+GridX*dx;
-	double Ymax = Offset_Y+GridY*dy;
-
-	p = p_Trajectory;
-	//====== for adpative z step========
-	Vmax = 0.0;
-	while (p)
-	{
-
-		xt = p-> x;
-		yt = p-> y;
-		Vx = p-> Vx;
-		Vy = p-> Vy;
-
-		ddx = xt-(Offset_X-dx*0.5);
-		ddy = yt-(Offset_Y-dy*0.5);
-
-		i = floor(ddx/dx);
-		j = floor(ddy/dy);
-
-		//=================================================
-		//============Trajectory Outside Boundary =========
-		//=================================================
-		if(RankIdx_X ==1	& xt<=Offset_X)
-		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_X == Xpa & xt>=Xmax)
-		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == 1	& yt<=Offset_Y)
-		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == Ypa & yt>=Ymax)
-		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		//==================================================
-
-
-		if(i < 0 || i > GridX || j < 0 || j > GridY)
-		{
-			std::cout <<"Rank:"<<Rank<<"==== Mesh: Wrong Trajectory Position. ====\n";
-			std::cout <<"Rank:"<<Rank<<"==== Mesh: Check Trajs' Send & Rece.  ====\n";
-			std::cout <<"Rank:"<<Rank<<"==== Mesh: Check Fields' Resolutions. ====\n";
-			std::cout <<"Rank:"<<Rank<<"==== Mesh: Check Domain Resolutions.  ====\n";
-			exit(21);
-		}
-
-		wmm = (i+1-ddx/dx)*(j+1-ddy/dy);
-		wmp = (i+1-ddx/dx)*(ddy/dy-j);
-		wpm = (ddx/dx-i)*(j+1-ddy/dy);
-		wpp = (ddx/dx-i)*(ddy/dy-j);
-
-		Cell &cmm = GetCell(i,j,  	k);
-		Cell &cmp = GetCell(i,j+1,  k);
-		Cell &cpm = GetCell(i+1,j,  k);
-		Cell &cpp = GetCell(i+1,j+1,k);
-
-		Ex  = wmm*cmm.W_Ex  + wmp*cmp.W_Ex  + wpm*cpm.W_Ex  + wpp*cpp.W_Ex;
-		Ey  = wmm*cmm.W_Ey  + wmp*cmp.W_Ey  + wpm*cpm.W_Ey  + wpp*cpp.W_Ey;
-		Ez  = wmm*cmm.W_Ez  + wmp*cmp.W_Ez  + wpm*cpm.W_Ez  + wpp*cpp.W_Ez;
-
-		Bx  = wmm*cmm.W_Bx  + wmp*cmp.W_Bx  + wpm*cpm.W_Bx  + wpp*cpp.W_Bx;
-		By  = wmm*cmm.W_By  + wmp*cmp.W_By  + wpm*cpm.W_By  + wpp*cpp.W_By;
-		Bz  = wmm*cmm.W_Bz  + wmp*cmp.W_Bz  + wpm*cpm.W_Bz  + wpp*cpp.W_Bz;
-
-		Psi   = wmm*cmm.W_Psi  + wmp*cmp.W_Psi  + wpm*cpm.W_Psi  + wpp*cpp.W_Psi;
-		Pondx = wmm*cmm.W_Ponx + wmp*cmp.W_Ponx + wpm*cpm.W_Ponx + wpp*cpp.W_Ponx;
-		Pondy = wmm*cmm.W_Pony + wmp*cmp.W_Pony + wpm*cpm.W_Pony + wpp*cpp.W_Pony;
-		
-		Asq   = wmm*cmm.W_Asq  + wmp*cmp.W_Asq  + wpm*cpm.W_Asq  + wpp*cpp.W_Asq;
-
-		gamma = 0.5*(1+Psi)*(Vx*Vx+Vy*Vy+1)+0.5*(1.0+0.5*Asq)/(1+Psi);
-		
-		Fx = ((gamma*Ex-Pondx*0.25)/(1+Psi) - Vy*Bz - By - Vx*(Vx*Ex+Vy*Ey+Ez))/(1+Psi);
-		Fy = ((gamma*Ey-Pondy*0.25)/(1+Psi) + Vx*Bz + Bx - Vy*(Vx*Ex+Vy*Ey+Ez))/(1+Psi);
-
-		switch(step)
-		{
-		case 0:
-
-			dztmp=dzz;
-			Vxp = p-> old_vx + Fx*dztmp;
-			Vyp = p-> old_vy + Fy*dztmp;
-
-			xtp = p-> old_x  + Vx*dztmp;
-			ytp = p-> old_y  + Vy*dztmp;
-
-		break;
-		case 1:
-
-			dztmp=dzz*0.5;
-			Vxp = Vx + Fx*dztmp;
-			Vyp = Vy + Fy*dztmp;
-
-			xtp = xt + Vx*dztmp;
-			ytp = yt + Vy*dztmp;
-
-		break;
-		}
-
-		//==========================================
-		//=========== Adapteive Z Step =============
-		double Vr = sqrt(Vxp*Vxp+Vyp*Vyp);
-		if(AdaptiveStep>0 & Vr >=Vlim*AdaptiveStep)
-		{
-			Vxp = Vlim*AdaptiveStep*Vxp/Vr;
-			Vyp = Vlim*AdaptiveStep*Vyp/Vr;
-		}
-
-
-		p-> x = xtp;
-		p-> y = ytp;
-		p-> Vx = Vxp;
-		p-> Vy = Vyp;
-
-		if(step==0)
-		{
-		p-> old_x = xtp;
-		p-> old_y = ytp;
-		p-> old_vx = Vxp;
-		p-> old_vy = Vyp;
-		}
-		
-		p-> Vxx = Vxp*Vxp;
-		p-> Vxy = Vxp*Vyp;
-		p-> Vyy = Vyp*Vyp;
-
-		p = p->p_PrevTraj;
-
-		double Vrr=sqrt(Vxp*Vxp+Vyp*Vyp);
-		if(Vrr>Vmax) Vmax = Vrr;
-
-	}
-	//============================================
-	//=========== Exchange Particles =============
-	ExchangeT();
-	//============================================
+	// temporary remove
 	return;
 
 }
@@ -181,15 +34,12 @@ void Mesh::PushTrajectory_Half()
 {
 
 	Trajectory *p = NULL;
-	
-	double xt, yt, Vx, Vy, xtp, ytp;
-	double dztmp;
 
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
-
-	double Xmax = Offset_X+GridX*dx;
-	double Ymax = Offset_Y+GridY*dy;
+	
+	double xt, yt, Vx, Vy, xtp, ytp;
+	double dztmp;
 
 	p = p_Trajectory;
 
@@ -211,13 +61,13 @@ void Mesh::PushTrajectory_Half()
 		//=================================================
 		//============Trajectory Outside Boundary =========
 		//=================================================
-		if(RankIdx_X ==1	& i=0;)
+		if(RankIdx_X ==1	&& i==0)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_X == Xpa & i=GridX)
+		if(RankIdx_X == Xpa && i==GridX)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == 1	& j=0;)
+		if(RankIdx_Y == 1	&& j==0)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == Ypa & j=GridY)
+		if(RankIdx_Y == Ypa && j==GridY)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
 		//==================================================
 
@@ -232,12 +82,12 @@ void Mesh::PushTrajectory_Half()
 		p-> old_x = xtp;
 		p-> old_y = ytp;
 
-		
-		i=p->idx_i;
-		j=p->idx_j;
-
-
-
+		// update the cell index;
+		Cell &c=GetCell(i,j,0);
+		while(xtp>c.Xcord+c.dx*0.5&&i<GridX+1)  { p->idx_i++; i++; c=GetCell(i,j,0); }
+		while(xtp<c.Xcord-c.dx*0.5&&i>0) 		{ p->idx_i--; i--; c=GetCell(i,j,0); }
+		while(ytp>c.Ycord+c.dy*0.5&&j<GridY+1) 	{ p->idx_j++; j++; c=GetCell(i,j,0); }
+		while(ytp<c.Ycord-c.dy*0.5&&j>0) 		{ p->idx_j--; j--; c=GetCell(i,j,0); }
 		p = p->p_PrevTraj;
 
 	}
@@ -249,7 +99,7 @@ void Mesh::PushTrajectory_Half()
 
 }
 
-void Mesh::PushTrajectory_HalfE(int k)
+void Mesh::PushTrajectory_HalfE(int k) 
 {
 
 	Trajectory *p = NULL;
@@ -262,7 +112,7 @@ void Mesh::PushTrajectory_HalfE(int k)
 	double wmm, wmp, wpm, wpp;
 	double dxdy = dx*dy;
 	double dztmp;
-	int i,j;
+	int i,j, im, jm;
 
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
@@ -279,34 +129,40 @@ void Mesh::PushTrajectory_HalfE(int k)
 		Vx = p-> Vx;
 		Vy = p-> Vy;
 
+		i=p->idx_i;
+		j=p->idx_j;
+
+		im=i;
+		jm=j;
 		//=================================================
 		//============Trajectory Outside Boundary =========
 		//=================================================
-		if(RankIdx_X ==1	& xt<=Offset_X)
+		if(RankIdx_X ==1	&& i==0)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_X == Xpa & xt>=Xmax)
+		if(RankIdx_X == Xpa && i==GridX)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == 1	& yt<=Offset_Y)
+		if(RankIdx_Y == 1	&& j==0)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == Ypa & yt>=Ymax)
+		if(RankIdx_Y == Ypa && j==GridY)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
+		//==================================================
 
-		ddx = xt-(Offset_X-dx*0.5);
-		ddy = yt-(Offset_Y-dy*0.5);
+		Cell &c=GetCell(i,j,k);
+		if(xt<c.Xcord) im--;
+		if(yt<c.Ycord) jm--;
 
-		i = floor(ddx/dx);
-		j = floor(ddy/dy);
+		Cell &cmm = GetCell(im,  jm,  k);
+		Cell &cmp = GetCell(im,  jm+1,k);
+		Cell &cpm = GetCell(im+1,jm,  k);
+		Cell &cpp = GetCell(im+1,jm+1,k);
 
+		ddx= (xt-cmm.Xcord)/(cmm.dx*0.5+cpm.dx*0.5);
+		ddy= (yt-cmm.Ycord)/(cmm.dy*0.5+cmp.dy*0.5);
 
-		wmm = (i+1-ddx/dx)*(j+1-ddy/dy);
-		wmp = (i+1-ddx/dx)*(ddy/dy-j);
-		wpm = (ddx/dx-i)*(j+1-ddy/dy);
-		wpp = (ddx/dx-i)*(ddy/dy-j);
-
-		Cell &cmm = GetCell(i,j,  	k);
-		Cell &cmp = GetCell(i,j+1,  k);
-		Cell &cpm = GetCell(i+1,j,  k);
-		Cell &cpp = GetCell(i+1,j+1,k);
+		wmm = (1-ddx)*(1-ddy);
+		wmp = (1-ddx)*(ddy);
+		wpm = (ddx)*(1-ddy);
+		wpp = (ddx)*(ddy);
 
 		Ex  = wmm*cmm.W_Ex  + wmp*cmp.W_Ex  + wpm*cpm.W_Ex  + wpp*cpp.W_Ex;
 		Ey  = wmm*cmm.W_Ey  + wmp*cmp.W_Ey  + wpm*cpm.W_Ey  + wpp*cpp.W_Ey;
@@ -346,8 +202,9 @@ void Mesh::PushTrajectory_HalfE(int k)
 		p-> Vyy = Vyp*Vyp;
 
 		p = p->p_PrevTraj;
+
 		double Vrr=sqrt(Vxp*Vxp+Vyp*Vyp);
-		if(Vrr>Vmax) Vmax = Vrr;
+		Vmax = std::max(Vmax, Vrr*dz/sqrt(cmm.dx*cmm.dx+cmm.dy*cmm.dy)); // how many grids it can cross
 
 	}
 	return;
@@ -368,7 +225,7 @@ void Mesh::PushTrajectory_HalfB(int k)
 	double wmm, wmp, wpm, wpp;
 	double dxdy = dx*dy;
 	double dztmp;
-	int i,j;
+	int i,j, im, jm;
 
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
@@ -386,38 +243,45 @@ void Mesh::PushTrajectory_HalfB(int k)
 		Vx = p-> Vx;
 		Vy = p-> Vy;
 
+		i=p->idx_i;
+		j=p->idx_j;
+
+		im=i;
+		jm=j;
 		//=================================================
 		//============Trajectory Outside Boundary =========
 		//=================================================
-		if(RankIdx_X ==1	& xt<=Offset_X)
+		if(RankIdx_X ==1	&& i==0)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_X == Xpa & xt>=Xmax)
+		if(RankIdx_X == Xpa && i==GridX)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == 1	& yt<=Offset_Y)
+		if(RankIdx_Y == 1	&& j==0)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == Ypa & yt>=Ymax)
+		if(RankIdx_Y == Ypa && j==GridY)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
+		//==================================================
 
-		ddx = xt-(Offset_X-dx*0.5);
-		ddy = yt-(Offset_Y-dy*0.5);
+		Cell &c=GetCell(i,j,k);
+		if(xt<c.Xcord) im--;
+		if(yt<c.Ycord) jm--;
 
-		i = floor(ddx/dx);
-		j = floor(ddy/dy);
+		Cell &cmm = GetCell(im,  jm,  k);
+		Cell &cmp = GetCell(im,  jm+1,k);
+		Cell &cpm = GetCell(im+1,jm,  k);
+		Cell &cpp = GetCell(im+1,jm+1,k);
 
-		wmm = (i+1-ddx/dx)*(j+1-ddy/dy);
-		wmp = (i+1-ddx/dx)*(ddy/dy-j);
-		wpm = (ddx/dx-i)*(j+1-ddy/dy);
-		wpp = (ddx/dx-i)*(ddy/dy-j);
+		ddx= (xt-cmm.Xcord)/(cmm.dx*0.5+cpm.dx*0.5);
+		ddy= (yt-cmm.Ycord)/(cmm.dy*0.5+cmp.dy*0.5);
 
-		Cell &cmm = GetCell(i,j,  	k);
-		Cell &cmp = GetCell(i,j+1,  k);
-		Cell &cpm = GetCell(i+1,j,  k);
-		Cell &cpp = GetCell(i+1,j+1,k);
+		wmm = (1-ddx)*(1-ddy);
+		wmp = (1-ddx)*(ddy);
+		wpm = (ddx)*(1-ddy);
+		wpp = (ddx)*(ddy);
 
 		Bx  = wmm*cmm.W_Bx  + wmp*cmp.W_Bx  + wpm*cpm.W_Bx  + wpp*cpp.W_Bx;
 		By  = wmm*cmm.W_By  + wmp*cmp.W_By  + wpm*cpm.W_By  + wpp*cpp.W_By;
 		Bz  = wmm*cmm.W_Bz  + wmp*cmp.W_Bz  + wpm*cpm.W_Bz  + wpp*cpp.W_Bz;
-		Psi   = wmm*cmm.W_Psi  + wmp*cmp.W_Psi  + wpm*cpm.W_Psi  + wpp*cpp.W_Psi;
+		Psi = wmm*cmm.W_Psi + wmp*cmp.W_Psi + wpm*cpm.W_Psi + wpp*cpp.W_Psi;
 		
 		Fx = (- Vy*Bz - By )/(1+Psi);
 		Fy = (  Vx*Bz + Bx )/(1+Psi);
@@ -425,15 +289,6 @@ void Mesh::PushTrajectory_HalfB(int k)
 		dztmp=dzz;
 		Vxp = p-> old_vx + Fx*dztmp;
 		Vyp = p-> old_vy + Fy*dztmp;
-
-		//==========================================
-		//=========== Adapteive Z Step =============
-		double Vr = sqrt(Vxp*Vxp+Vyp*Vyp);
-		if(AdaptiveStep>0 & Vr >=Vlim*AdaptiveStep)
-		{
-			Vxp = Vlim*AdaptiveStep*Vxp/Vr;
-			Vyp = Vlim*AdaptiveStep*Vyp/Vr;
-		}
 
 		p-> old_vx = Vxp;
 		p-> old_vy = Vyp;
@@ -444,8 +299,6 @@ void Mesh::PushTrajectory_HalfB(int k)
 
 		p = p->p_PrevTraj;
 
-		double Vrr=sqrt(Vxp*Vxp+Vyp*Vyp);
-		if(Vrr>Vmax) Vmax = Vrr;
 
 	}
 
@@ -578,13 +431,10 @@ void Mesh::ExchangeT()
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
 
-	double Xmax = Offset_X+GridX*dx;
-	double Ymax = Offset_Y+GridY*dy;
-	double Xsize = GridX*dx*Xpa;
-	double Ysize = GridY*dy*Ypa;
-
 	int Sendxm, Sendxp, Sendym, Sendyp;
 	int S_SUM, A_SUM;
+	int i;
+	int j;
 
 	while(1)
 	{
@@ -596,28 +446,31 @@ void Mesh::ExchangeT()
 			xtp = p-> x;
 			ytp = p-> y;
 
+			i=p->idx_i;
+			j=p->idx_j;
+
 		//=================================================
 		//============Trajectory Outside Boundary =========
 		//=================================================
 		if(p_domain()->Get_BC()==1)
 		{
-		if(RankIdx_X ==1	&& xtp<=Offset_X)
+		if(RankIdx_X ==1	&& i==0)
 		{ p = p->p_PrevTraj; continue;}
-		if(RankIdx_X == Xpa && xtp>=Xmax)
+		if(RankIdx_X == Xpa && i==GridX+1)
 		{ p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == 1	&& ytp<=Offset_Y)
+		if(RankIdx_Y == 1	&& j==0)
 		{ p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == Ypa && ytp>=Ymax)
+		if(RankIdx_Y == Ypa && j==GridY+1)
 		{ p = p->p_PrevTraj; continue;}
 		}
 		//==================================================
 
+
 		//====================================
 		//====== Send to left Neighbor =======
 		//====================================
-		if(xtp < Offset_X)
+		if(i==0)
 		{
-			if(RankIdx_X ==1) 	p-> x = xtp + Xsize;
 			Sendxm +=1;
 			PackT(p, Sendxm, 0);
 			p = Reconnect(p);
@@ -625,9 +478,8 @@ void Mesh::ExchangeT()
 		//====================================
 		//====== Send to right Neighbor ======
 		//====================================
-		else if(xtp > Xmax)
+		else if(i==GridX+1)
 		{
-			if(RankIdx_X ==Xpa) p-> x = xtp - Xsize;
 			Sendxp +=1;
 			PackT(p, Sendxp, 1);
 			p = Reconnect(p);
@@ -635,9 +487,8 @@ void Mesh::ExchangeT()
 		//====================================
 		//====== Send to Neighbor Below ======
 		//====================================
-		else if(ytp < Offset_Y)
+		else if(j==0)
 		{
-			if(RankIdx_Y ==1) 	p-> y = ytp + Ysize;
 			Sendym +=1;
 			PackT(p, Sendym, 2);
 			p = Reconnect(p);
@@ -645,9 +496,8 @@ void Mesh::ExchangeT()
 		//====================================
 		//====== Send to Neighbor Above ======
 		//====================================
-		else if(ytp > Ymax)
+		else if(j==GridY+1)
 		{
-			if(RankIdx_Y ==Ypa) p-> y = ytp - Ysize;
 			Sendyp +=1;
 			PackT(p, Sendyp, 3);
 			p = Reconnect(p);
@@ -668,18 +518,13 @@ void Mesh::ExchangeT()
 			std::cout << "==== Mesh: Send Too Many Trajectoryies.  ====\n";
 			std::cout << "==== Mesh: May Cause Memory Problems.    ====\n";
 			std::cout << "==== Mesh: Try to Increase the Buf Size. ====\n";
-			
 		}
 
 		S_SUM = Sendxm+Sendxp+Sendym+Sendyp;
-
 		MPI_Allreduce(&S_SUM, &A_SUM, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 		if( A_SUM == 0 ) {break;};
-
 		p_domain()->p_Com()->DoCommuteT(COMMU_T, Sendxm, Sendxp, Sendym, Sendyp);
-
 	}
-
 	return;
 }
 
