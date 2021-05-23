@@ -91,17 +91,17 @@ Commute::Commute(int XGridN, int YGridN)
 	ReceSourceYp = new double[SendSouSizeY*bufsize];
 
 	// diagonal direction
-	SendSourcemm = new double[SendSouSizeX/XGridN];
-	SendSourcemp = new double[SendSouSizeX/XGridN];
+	SendSourcemm = new double[SendSouSizeX/YGridN];
+	SendSourcemp = new double[SendSouSizeX/YGridN];
 
-	ReceSourcemm = new double[SendSouSizeX/XGridN];
-	ReceSourcemp = new double[SendSouSizeX/XGridN];
+	ReceSourcemm = new double[SendSouSizeX/YGridN];
+	ReceSourcemp = new double[SendSouSizeX/YGridN];
 
-	SendSourcepm = new double[SendSouSizeY/YGridN];
-	SendSourcepp = new double[SendSouSizeY/YGridN];
+	SendSourcepm = new double[SendSouSizeY/XGridN];
+	SendSourcepp = new double[SendSouSizeY/XGridN];
 
-	ReceSourcepm = new double[SendSouSizeY/YGridN];
-	ReceSourcepp = new double[SendSouSizeY/YGridN];
+	ReceSourcepm = new double[SendSouSizeY/XGridN];
+	ReceSourcepp = new double[SendSouSizeY/XGridN];
 
 
 };
@@ -163,10 +163,7 @@ void Commute::DoCommute(int what, int k)
 			ssxd= 1;
 			ssyd= 1;
 		break;
-
 	}
-
-
 		//===============================================================
 		//=====================   ISend and IRecev     ==================
 		//===============================================================
@@ -222,25 +219,25 @@ void Commute::DoCommute(int what, int k)
 		if (RankIdx_X == 1) 
 		{ 
 			for (i = 0; i < ssx; i++)  {ReceSourceXm[i] = 0.0;}
-			for (i = 0; i < ssxd; i++) {ReceSourcemm[i] = 0.0;}
+			for (i = 0; i < ssxd; i++) {ReceSourcemm[i] = 0.0;ReceSourcemp[i] = 0.0;}
 		};
 
 		if (RankIdx_X == Xpa) 
 		{ 
 			for (i = 0; i < ssx; i++)  {ReceSourceXp[i] = 0.0;}
-			for (i = 0; i < ssxd; i++) {ReceSourcemp[i] = 0.0;}
+			for (i = 0; i < ssxd; i++) {ReceSourcepm[i] = 0.0;ReceSourcepm[i] = 0.0;}
 		};
 
 		if (RankIdx_Y == 1) 
 		{ 
 			for (i = 0; i < ssy; i++)  {ReceSourceYm[i] = 0.0;}
-			for (i = 0; i < ssyd; i++) {ReceSourcepm[i] = 0.0;}
+			for (i = 0; i < ssyd; i++) {ReceSourcemm[i] = 0.0;ReceSourcepm[i] = 0.0;}
 		};
 
 		if (RankIdx_Y == Ypa) 
 		{
 			for (i = 0; i < ssy; i++)  {ReceSourceYp[i] = 0.0;}
-			for (i = 0; i < ssyd; i++) {ReceSourcepp[i] = 0.0;}
+			for (i = 0; i < ssyd; i++) {ReceSourcemp[i] = 0.0;ReceSourcepp[i] = 0.0;}
 		};
 		break;
 
@@ -365,8 +362,7 @@ void Commute::DoPack(int what, int k)
 		// Send Direction: Y: up and down
 		for (m = 0 ; m<=1; m++)
 		{
-
-			Cell &mp = p_Meshs->GetCell(m,GridY+1-m,k);
+			Cell &mp = p_Meshs->GetCell(m,GridY+1-m,k); 
 			Cell &pp = p_Meshs->GetCell(GridX+1-m,GridY+1-m,k);
 
 			for (i=0; i < GridX; i++)
@@ -443,8 +439,8 @@ void Commute::DoPack(int what, int k)
 
 					if(i==1)
 					{
-						SendSourcemp[n] = mp.W_Source[n];
-						SendSourcepp[n] = pp.W_Source[n];
+						SendSourcemp[n] = mp.W_Source[n+5];
+						SendSourcepp[n] = pp.W_Source[n+5];
 					}
 
 				}
@@ -465,8 +461,8 @@ void Commute::DoPack(int what, int k)
 
 					if(j==1)
 					{
-						SendSourcemm[n] = mm.W_Source[n];
-						SendSourcepm[n] = pm.W_Source[n];
+						SendSourcemm[n] = mm.W_Source[n+5];
+						SendSourcepm[n] = pm.W_Source[n+5];
 					}
 				}
 
@@ -656,7 +652,6 @@ void Commute::UnPack(int what, int k)
 					cm.W_Source[n] += ReceSourceYm[ (GridX*m+i)*NSource+ n ];
 					cp.W_Source[n] += ReceSourceYp[ (GridX*m+i)*NSource+ n ];
 				
-
 					if(i==0)
 					{
 						mm.W_Source[n] += ReceSourcemm[ m*NSource+ n ];
@@ -790,7 +785,6 @@ void Commute::UnPack(int what, int k)
 		//===============================================================
 		//===================== Unpack Vector Potential   ===============
 		//===============================================================
-
 
 
 
@@ -979,6 +973,8 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 
 	int n;
 	double x0,y0,z0,px,py,pz;
+	double xt,yt, sx, sy;
+	double vx,vy,old_x,old_y,old_vx,old_vy; 
 	double q2m, weight;
 	double Ex0,Ey0,Ez0;
 	int type;
@@ -993,100 +989,63 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 
 	switch(what)
 	{
-		case COMMU_T:
 		
-		for(n=0; n<Recexm; n++)
+		case COMMU_T: // 
+		
+		int ReceN[4];
+		ReceN[0]=Recexm;
+		ReceN[1]=Recexp;
+		ReceN[2]=Receym;
+		ReceN[3]=Receyp;
+
+		for(int dir=0; dir<4; dir++)
 		{
-			x0 = ReceSourceXm[n*SDT_DIM + 2];
-			y0 = ReceSourceXm[n*SDT_DIM + 3];
-			z0 = ReceSourceXm[n*SDT_DIM + 4];
- 
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1); //temp
-			p->x = ReceSourceXm[n*SDT_DIM + 0];
-			p->y = ReceSourceXm[n*SDT_DIM + 1];
-			p->Vx= ReceSourceXm[n*SDT_DIM + 5];
-			p->Vy= ReceSourceXm[n*SDT_DIM + 6];
+			double* Re=NULL;
 
-			p->old_x  = ReceSourceXm[n*SDT_DIM + 7];
-			p->old_y  = ReceSourceXm[n*SDT_DIM + 8];
-			p->old_vx = ReceSourceXm[n*SDT_DIM + 9];
-			p->old_vy = ReceSourceXm[n*SDT_DIM + 10];
+			if(dir==0) Re=ReceSourceXm;
+			if(dir==1) Re=ReceSourceXp;
+			if(dir==2) Re=ReceSourceYm;
+			if(dir==3) Re=ReceSourceYp;
 
-			p->Vxx = (p->Vx)*(p->Vx);
-			p->Vyy = (p->Vy)*(p->Vy);
-			p->Vxy = (p->Vx)*(p->Vy);
+			for(n=0; n<ReceN[dir]; n++)
+			{
+				xt = *Re; Re++; 
+				yt = *Re; Re++;
+
+				x0 = *Re; Re++; 
+				y0 = *Re; Re++; 
+				z0 = *Re; Re++; 
+
+				Vx = *Re; Re++; 
+				Vy = *Re; Re++; 
+
+				old_x  = *Re; Re++; 
+				old_y  = *Re; Re++; 
+				old_vx = *Re; Re++; 
+				old_vy = *Re; Re++; 
+
+				sx = *Re; Re++; 
+				sy = *Re; Re++; 
+
+				p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,sx,sy);
+
+				p->x = xt;
+				p->y = yt;
+				p->Vx= Vx;
+				p->Vy= Vy;
+
+				p->old_x  = old_x;
+				p->old_y  = old_y;
+				p->old_vx = old_vx;
+				p->old_vy = old_vy;
+
+				p->Vxx = (p->Vx)*(p->Vx);
+				p->Vyy = (p->Vy)*(p->Vy);
+				p->Vxy = (p->Vx)*(p->Vy);
+			}
+
 		}
-
-
-		for(n=0; n<Recexp; n++)
-		{
-			x0 = ReceSourceXp[n*SDT_DIM + 2];
-			y0 = ReceSourceXp[n*SDT_DIM + 3];
-			z0 = ReceSourceXp[n*SDT_DIM + 4];
-
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1);
-			p->x = ReceSourceXp[n*SDT_DIM + 0];
-			p->y = ReceSourceXp[n*SDT_DIM + 1];
-			p->Vx= ReceSourceXp[n*SDT_DIM + 5];
-			p->Vy= ReceSourceXp[n*SDT_DIM + 6];
-
-			p->old_x  = ReceSourceXp[n*SDT_DIM + 7];
-			p->old_y  = ReceSourceXp[n*SDT_DIM + 8];
-			p->old_vx = ReceSourceXp[n*SDT_DIM + 9];
-			p->old_vy = ReceSourceXp[n*SDT_DIM + 10];
-
-			p->Vxx = (p->Vx)*(p->Vx);
-			p->Vyy = (p->Vy)*(p->Vy);
-			p->Vxy = (p->Vx)*(p->Vy);
-		}
-
-		for(n=0; n<Receym; n++)
-		{
-			x0 = ReceSourceYm[n*SDT_DIM + 2];
-			y0 = ReceSourceYm[n*SDT_DIM + 3];
-			z0 = ReceSourceYm[n*SDT_DIM + 4];
-
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1);
-			p->x = ReceSourceYm[n*SDT_DIM + 0];
-			p->y = ReceSourceYm[n*SDT_DIM + 1];
-			p->Vx= ReceSourceYm[n*SDT_DIM + 5];
-			p->Vy= ReceSourceYm[n*SDT_DIM + 6];
-
-			p->old_x  = ReceSourceYm[n*SDT_DIM + 7];
-			p->old_y  = ReceSourceYm[n*SDT_DIM + 8];
-			p->old_vx = ReceSourceYm[n*SDT_DIM + 9];
-			p->old_vy = ReceSourceYm[n*SDT_DIM + 10];
-
-			p->Vxx = (p->Vx)*(p->Vx);
-			p->Vyy = (p->Vy)*(p->Vy);
-			p->Vxy = (p->Vx)*(p->Vy);
-		}
-
-		for(n=0; n<Receyp; n++)
-		{
-			x0 = ReceSourceYp[n*SDT_DIM + 2];
-			y0 = ReceSourceYp[n*SDT_DIM + 3];
-			z0 = ReceSourceYp[n*SDT_DIM + 4];
-
-			p = new Trajectory(x0, y0, z0, TpCellx, TpCelly,1,1);
-			p->x = ReceSourceYp[n*SDT_DIM + 0];
-			p->y = ReceSourceYp[n*SDT_DIM + 1];
-			p->Vx= ReceSourceYp[n*SDT_DIM + 5];
-			p->Vy= ReceSourceYp[n*SDT_DIM + 6];
-
-			p->old_x  = ReceSourceYp[n*SDT_DIM + 7];
-			p->old_y  = ReceSourceYp[n*SDT_DIM + 8];
-			p->old_vx = ReceSourceYp[n*SDT_DIM + 9];
-			p->old_vy = ReceSourceYp[n*SDT_DIM + 10];
-
-			p->Vxx = (p->Vx)*(p->Vx);
-			p->Vyy = (p->Vy)*(p->Vy);
-			p->Vxy = (p->Vx)*(p->Vy);
-		}
-
-
-
-		break;
+		break; //COMMU_T: // 
 
 
 

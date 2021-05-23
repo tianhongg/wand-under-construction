@@ -49,6 +49,10 @@ void Mesh::MacroSource(int k)
 		double yt 		=  p->y;
 		double massweig = (p->Weight);
 
+
+
+
+
 		//------------------------------
 		//      ___________
 		//     |mp | cp| pp|

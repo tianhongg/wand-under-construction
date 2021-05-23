@@ -193,6 +193,9 @@ void Mesh::PushTrajectory_Half()
 
 	p = p_Trajectory;
 
+	int i;
+	int j;
+
 	while (p)
 	{
 
@@ -201,16 +204,20 @@ void Mesh::PushTrajectory_Half()
 
 		Vx = p-> Vx;
 		Vy = p-> Vy;
+
+		i=p->idx_i;
+		j=p->idx_j;
+
 		//=================================================
 		//============Trajectory Outside Boundary =========
 		//=================================================
-		if(RankIdx_X ==1	& xt<=Offset_X)
+		if(RankIdx_X ==1	& i=0;)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_X == Xpa & xt>=Xmax)
+		if(RankIdx_X == Xpa & i=GridX)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == 1	& yt<=Offset_Y)
+		if(RankIdx_Y == 1	& j=0;)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
-		if(RankIdx_Y == Ypa & yt>=Ymax)
+		if(RankIdx_Y == Ypa & j=GridY)
 		{ p->Vx = p->Vy = p->Vxx = p->Vyy = p->Vxy=0; p = p->p_PrevTraj; continue;}
 		//==================================================
 
@@ -224,6 +231,12 @@ void Mesh::PushTrajectory_Half()
 
 		p-> old_x = xtp;
 		p-> old_y = ytp;
+
+		
+		i=p->idx_i;
+		j=p->idx_j;
+
+
 
 		p = p->p_PrevTraj;
 
@@ -492,6 +505,8 @@ void Mesh::PackT(Trajectory* p_Traj, int Sendn, int where)
 		p_COMM->SendSourceXm[(Sendn-1)*SDT_DIM + 8] = p_Traj-> old_y;
 		p_COMM->SendSourceXm[(Sendn-1)*SDT_DIM + 9] = p_Traj-> old_vx;
 		p_COMM->SendSourceXm[(Sendn-1)*SDT_DIM +10] = p_Traj-> old_vy;
+		p_COMM->SendSourceXm[(Sendn-1)*SDT_DIM +11] = p_Traj-> sx;
+		p_COMM->SendSourceXm[(Sendn-1)*SDT_DIM +12] = p_Traj-> sy;
 
 		break;
 	
@@ -507,6 +522,8 @@ void Mesh::PackT(Trajectory* p_Traj, int Sendn, int where)
 		p_COMM->SendSourceXp[(Sendn-1)*SDT_DIM + 8] = p_Traj-> old_y;
 		p_COMM->SendSourceXp[(Sendn-1)*SDT_DIM + 9] = p_Traj-> old_vx;
 		p_COMM->SendSourceXp[(Sendn-1)*SDT_DIM +10] = p_Traj-> old_vy;
+		p_COMM->SendSourceXp[(Sendn-1)*SDT_DIM +11] = p_Traj-> sx;
+		p_COMM->SendSourceXp[(Sendn-1)*SDT_DIM +12] = p_Traj-> sy;
 		break;
 
 		case 2:
@@ -521,6 +538,8 @@ void Mesh::PackT(Trajectory* p_Traj, int Sendn, int where)
 		p_COMM->SendSourceYm[(Sendn-1)*SDT_DIM + 8] = p_Traj-> old_y;
 		p_COMM->SendSourceYm[(Sendn-1)*SDT_DIM + 9] = p_Traj-> old_vx;
 		p_COMM->SendSourceYm[(Sendn-1)*SDT_DIM +10] = p_Traj-> old_vy;
+		p_COMM->SendSourceYm[(Sendn-1)*SDT_DIM +11] = p_Traj-> sx;
+		p_COMM->SendSourceYm[(Sendn-1)*SDT_DIM +12] = p_Traj-> sy;
 		break;
 
 		case 3:
@@ -535,6 +554,8 @@ void Mesh::PackT(Trajectory* p_Traj, int Sendn, int where)
 		p_COMM->SendSourceYp[(Sendn-1)*SDT_DIM + 8] = p_Traj-> old_y;
 		p_COMM->SendSourceYp[(Sendn-1)*SDT_DIM + 9] = p_Traj-> old_vx;
 		p_COMM->SendSourceYp[(Sendn-1)*SDT_DIM +10] = p_Traj-> old_vy;	
+		p_COMM->SendSourceYp[(Sendn-1)*SDT_DIM +11] = p_Traj-> sx;
+		p_COMM->SendSourceYp[(Sendn-1)*SDT_DIM +12] = p_Traj-> sy;
 		break;
 	}
 
