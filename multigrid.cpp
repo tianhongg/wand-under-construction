@@ -406,7 +406,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 				}
 
 				//type 0 prolongation
-				if(findx==1 &findy == 1)
+				if(findx==1 &&findy == 1)
 				{
 					mgc.Protype = 0;
 					mgc.p_Pro_xm = &GetMGCell(ii,jj,n+1);
@@ -414,21 +414,21 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 				}
 
 				//type 1 prolongation
-				if(findx==0 &findy == 1)
+				if(findx==0 &&findy == 1)
 				{
 					mgc.Protype = 1;
 					mgc.p_Pro_xm = &GetMGCell(ii,  jj,n+1);
 					mgc.p_Pro_xp = &GetMGCell(ii+1,jj,n+1);
 				}
 				//type 2 prolongation
-				if(findx==1 &findy == 0)
+				if(findx==1 &&findy == 0)
 				{
 					mgc.Protype = 2;
 					mgc.p_Pro_ym = &GetMGCell(ii,  jj,n+1);
 					mgc.p_Pro_yp = &GetMGCell(ii,jj+1,n+1);
 				}
 				//type 3 prolongation
-				if(findx==0 &findy == 0)
+				if(findx==0 &&findy == 0)
 				{
 					mgc.Protype = 3;
 					mgc.p_Pro_xm = &GetMGCell(ii,    jj,n+1);
@@ -742,10 +742,14 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 
 // Full Weight Restriction
 // Don't forget to take care the corner values at exchange();
-void MultiGrid::Restriction(int send, int rece, int tolayer, int where)
+void MultiGrid::Restriction(int send, int rece, int tolayer, int where) //v
 {
 
 	int i,j;
+	double wmm, wxm, wmp;
+	double wym, wcc, wyp;
+	double wpm, wxp, wpp;
+	double wa;
 
 switch(where)
 {
@@ -757,17 +761,33 @@ switch(where)
 
 			MG_Cell &mgc = GetMGCell(i,j,tolayer);
 
-			mgc.M_value[rece] = 			(mgc.p_Res_cc)->M_value[send]*0.25
-			+((mgc.p_Res_xm)->M_value[send]+(mgc.p_Res_xp)->M_value[send]
-			 +(mgc.p_Res_ym)->M_value[send]+(mgc.p_Res_yp)->M_value[send])*0.125
-			+((mgc.p_Res_mm)->M_value[send]+(mgc.p_Res_mp)->M_value[send]
-			 +(mgc.p_Res_pm)->M_value[send]+(mgc.p_Res_pp)->M_value[send])*0.0625;
+			wmm=mgc.p_Res_mm->dx*mgc.p_Res_mm->dy/4;
+			wxm=mgc.p_Res_xm->dx*mgc.p_Res_xm->dy/2;
+			wmp=mgc.p_Res_mp->dx*mgc.p_Res_mp->dy/4;
+
+			wym=mgc.p_Res_ym->dx*mgc.p_Res_ym->dy/2;
+			wcc=mgc.p_Res_cc->dx*mgc.p_Res_cc->dy;
+			wyp=mgc.p_Res_yp->dx*mgc.p_Res_yp->dy/2;
+
+			wpm=mgc.p_Res_pm->dx*mgc.p_Res_pm->dy/4;
+			wxp=mgc.p_Res_xp->dx*mgc.p_Res_xp->dy/2;
+			wpp=mgc.p_Res_pp->dx*mgc.p_Res_pp->dy/4;
+
+			wa=wmm+wxm+wmp + wym+wcc+wyp + wpm+wxp+wpp;
+
+			mgc.M_value[rece] = (
+				mgc.p_Res_mm->M_value[send]*wmm + mgc.p_Res_xm->M_value[send]*wxm + mgc.p_Res_mp->M_value[send]*wmp
+			  + mgc.p_Res_ym->M_value[send]*wym + mgc.p_Res_cc->M_value[send]*wcc + mgc.p_Res_yp->M_value[send]*wyp	
+			  + mgc.p_Res_pm->M_value[send]*wpm + mgc.p_Res_xp->M_value[send]*wxp + mgc.p_Res_pp->M_value[send]*wpp
+			)/wa;
+
 		}
 
 	}
 	break;
 
 	case 1:
+	/*
 	for(j=1; j<=BLayerGrid[tolayer]; j++)
 	{
 		for(i=1; i<=BLayerGrid[tolayer]; i++)
@@ -784,6 +804,7 @@ switch(where)
 		}
 
 	}
+	*/
 	break;
 
 }
@@ -793,7 +814,7 @@ switch(where)
 
 
 
-void MultiGrid::RestrictionB(int send, int rece, int tolayer, int where)
+void MultiGrid::RestrictionB(int send, int rece, int tolayer, int where)//?
 {
 
 int i,j;
@@ -839,7 +860,7 @@ switch(where)
 
 
 // Four type prolongation
-void MultiGrid::Prolongation(int send, int rece, int tolayer, int where)
+void MultiGrid::Prolongation(int send, int rece, int tolayer, int where) //?
 {
 
 	int i,j;
@@ -888,6 +909,7 @@ switch(where)
 
 
 	case 1:
+	/*
 	for(j=1; j<=BLayerGrid[tolayer]; j++)
 	{
 		for(i=1; i<=BLayerGrid[tolayer]; i++)
@@ -923,6 +945,7 @@ switch(where)
 		}
 
 	}
+	*/
 
 
 	break;
@@ -936,7 +959,7 @@ switch(where)
 }
 
 
-
+//deprecated//May-25-tianhong
 void MultiGrid::SendtoBottom(int what)
 {
 	int i, j, n;
@@ -1017,7 +1040,7 @@ void MultiGrid::SendtoBottom(int what)
 }
 
 
-
+//deprecated//May-25-tianhong
 void MultiGrid::BottomSendBack(int what)
 {
 	int i, j, n;
@@ -1105,7 +1128,7 @@ void MultiGrid::BottomSendBack(int what)
 
 
 
-
+//deprecated//May-25-tianhong
 void MultiGrid::MG_BottomLayer(int field)
 {
 
@@ -1194,11 +1217,13 @@ void MultiGrid::MG_BottomLayer(int field)
 }
 
 
-void MultiGrid::Relaxation(int field, int layer, int where)
+void MultiGrid::Relaxation(int field, int layer, int where) //v 
 {
 
 	int i,j;
 	int nx,ny, amp;
+	double hxp,hxm,hxa;
+	double hyp,hym,hya;
 
 
 	switch(RelaxType)
@@ -1211,7 +1236,7 @@ void MultiGrid::Relaxation(int field, int layer, int where)
 		default:
 		nx=LayerGridX[layer];
 		ny=LayerGridY[layer];
-		amp=MeshAmplif[layer];
+		// amp=MeshAmplif[layer];
 
 			//Exchange boundary conditions;
 			
@@ -1227,8 +1252,17 @@ void MultiGrid::Relaxation(int field, int layer, int where)
 					MG_Cell &cym = GetMGCell(i, j-1, layer);
 					MG_Cell &cyp = GetMGCell(i, j+1, layer);
 
-					ccc.M_value[0]=(1-omega)*ccc.M_value[0]+omega*(cxm.M_value[0]+cxp.M_value[0]
-					+cym.M_value[0]+cyp.M_value[0]-ccc.M_value[1]*amp)/(4.0+ccc.M_value[4]*amp);
+					hxp=(cxp.dx+ccc.dx)*0.5;
+					hxm=(ccc.dx+cxm.dx)*0.5;
+					hxa=hxp+hxm;
+
+					hyp=(cyp.dy+ccc.dy)*0.5;
+					hym=(ccc.dy+cym.dy)*0.5;
+					hya=hyp+hym;
+
+					ccc.M_value[0]=(1-omega)*ccc.M_value[0]+omega*(
+						(cxm.M_value[0]/hxm/hxa+cxp.M_value[0]/hxp/hxa+cym.M_value[0]/hym/hya+cyp.M_value[0]/hyp/hya)*2
+						-ccc.M_value[1])/(2.0/hxm/hxp+2.0/hym/hyp+ccc.M_value[4]);
 				}
 
 			}
@@ -1277,7 +1311,7 @@ void MultiGrid::Residual(int field, int layer, int where)
 // 	case 0:
 	nx=LayerGridX[layer];
 	ny=LayerGridY[layer];
-	amp=MeshAmplif[layer];
+	// amp=MeshAmplif[layer];
 
 	for (j=1; j<=ny; j++)
 	{
@@ -1330,7 +1364,6 @@ void MultiGrid::SetZero(int what, int layer, int where)
 	int i,j;
 	int nx,ny;
 
-
 // switch(where)
 // {
 
@@ -1349,7 +1382,7 @@ void MultiGrid::SetZero(int what, int layer, int where)
 		{
 
 			MG_Cell &ccc = GetMGCell(i, j, layer);
-			ccc.M_value[what] = 0;
+			ccc.M_value[what] = 0.0;
 
 		}
 
@@ -1479,7 +1512,7 @@ void MultiGrid::AddCorrection(int layer, int where)
 }
 
 
-double MultiGrid::FindError(double &maxall)
+double MultiGrid::FindError(double &maxall) //v
 {
 
 	int i,j;
@@ -1490,7 +1523,6 @@ double MultiGrid::FindError(double &maxall)
 // {
 
 // 	case 0:
-
 	nx=LayerGridX[1];
 	ny=LayerGridY[1];
 
@@ -1503,7 +1535,6 @@ double MultiGrid::FindError(double &maxall)
 	epsp = 0.0;
 	maxp=0;
 
-
 	for (j=1; j<=ny; j++)
 	{
 		for (i=1; i<=nx; i++)
@@ -1511,8 +1542,7 @@ double MultiGrid::FindError(double &maxall)
 			MG_Cell &ccc = GetMGCell(i, j, 1);
 			epsn = (ccc.M_value[0] -ccc.M_value[3]);
 			epsp += epsn*epsn;
-
-			if(abs(ccc.M_value[0])>maxp) maxp=abs(ccc.M_value[0]);
+			maxp=std::max(maxp,abs(ccc.M_value[0]));
 		
 		}
 
@@ -1524,7 +1554,7 @@ double MultiGrid::FindError(double &maxall)
 	return eps;
 }
 
-void MultiGrid::Put_Source(int field, double k0, int k)
+void MultiGrid::Put_Source(int field, double k0, int k) //v
 {
 
 	int i,j;
@@ -1565,28 +1595,28 @@ void MultiGrid::Put_Source(int field, double k0, int k)
 			{
 				//===Psi==================================
 				case 0:
-				mgc.M_value[1] = (c.W_Denn-c.W_Deni + c.B_Den - c.B_Jz)*dxdy;
+				mgc.M_value[1] = (c.W_Denn-c.W_Deni + c.B_Den - c.B_Jz);
 				mgc.M_value[4] = 0.0;
 				break;
 				//===Ez==================================
 				case 1:
-				mgc.M_value[1] = -p_Meshs->Dive_J(i, j, k0, k)*dxdy;
+				mgc.M_value[1] = -p_Meshs->Dive_J(i, j, k0, k);
 				mgc.M_value[4] = 0.0;
 				break;
 				//===Bz==================================
 				case 2:
-				mgc.M_value[1] =  p_Meshs->Curl_J(i, j, k0, k)*dxdy;
+				mgc.M_value[1] =  p_Meshs->Curl_J(i, j, k0, k);
 				mgc.M_value[4] = 0.0;
 				break;
 				//===Bx==================================
 				case 3:
-				mgc.M_value[1] =  p_Meshs->SourceY(i, j, k0, k)*dxdy;
-				mgc.M_value[4] =  c.W_Chi*dxdy;
+				mgc.M_value[1] =  p_Meshs->SourceY(i, j, k0, k);
+				mgc.M_value[4] =  c.W_Chi;
 				break;
 				//===By==================================
 				case 4:
-				mgc.M_value[1] = -p_Meshs->SourceX(i, j, k0, k)*dxdy;
-				mgc.M_value[4] =  c.W_Chi*dxdy;
+				mgc.M_value[1] = -p_Meshs->SourceX(i, j, k0, k);
+				mgc.M_value[4] =  c.W_Chi;
 				break;
 
 			}
