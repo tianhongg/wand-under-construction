@@ -24,7 +24,7 @@
 #ifndef H_COMM
 #define H_COMM
 
-
+#include<vector>
 
 //---------------------------- Mesh class -----------------------
 class Commute
@@ -90,16 +90,14 @@ private:
 
    int kold;
 
-
-
-
+   std::vector<double> CellAccX; 
+   std::vector<double> CellAccY; 
 
 public:
 
-
    
-   void DoCommuteT(int what, int &Sendxm, int &Sendxp, int &Sendym, int &Sendyp);
-   void    UnPackT(int what, int  Recexm, int  Recexp, int  Receym, int  Receyp);
+   void DoCommuteT(int what, std::vector<int> SendN);
+   void    UnPackT(int what, std::vector<int> ReceN);
 
    void DoCommute(int what, int k);
    void    DoPack(int what, int k);

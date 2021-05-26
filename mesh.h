@@ -25,7 +25,7 @@
 #define H_MESH
 
 #include <stdlib.h>
-
+#include<vector>
 class Detector;
 //---------------------------- Mesh class -----------------------
 class Mesh : public NList {
@@ -92,7 +92,7 @@ public:
    double PlateauEnd; 
    double PlasmaEnd; 
    double PlasRadius;  
-
+   std::vector<double> GridsTmp;
 
    int GetRankIdx_X() {return RankIdx_X;};
    int GetRankIdx_Y() {return RankIdx_Y;};
@@ -196,7 +196,7 @@ public:
    void AdjustZstep(double k0, int k, double &dz2dz);
    void ExchangeT();
    void ExchangeP();
-   void PackT(Trajectory* p_Traj, int Sendn, int where);
+   void PackT(Trajectory* p_Traj, double* &Se);
    void PackP(Particle*   p_Part, int Sendn, int where);
    Trajectory* Reconnect(Trajectory* p_Traj);
    Particle*   Reconnect(Particle*   p_Part);

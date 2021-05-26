@@ -28,7 +28,7 @@
 Pulse::Pulse (char *name, FILE *f) : NList (name)
 {
 
-   AddEntry("a0", &a0, 1.0);
+   AddEntry("a0",   &a0, 1.0);
    AddEntry("Xpol", &Xpol, 0.);
    AddEntry("Ypol", &Ypol, 1.);
 

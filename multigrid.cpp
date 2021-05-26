@@ -63,15 +63,14 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 	AddEntry((char*)"SOR_Omega", 	&omega, 1.5);
 	AddEntry((char*)"ErrorLimit", 	&EpsLim, 1e-6);
 	
+	BottomType=0; //May-25-2021; Tianhong.
 
-	  if (f)
-    {
+	if (f)
+   	{
       rewind(f);
       read(f);
-    }
+   	}
 
-
-   
     Rank = rank;
 
 	int i,j,n;
@@ -83,18 +82,18 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 	Xpa = p_domain()->p_Partition()->GetXpart();
 	Ypa = p_domain()->p_Partition()->GetYpart();
 
-	dxdy = (p_domain()-> Get_dx())*(p_domain()-> Get_dy());
-
 	GridXY = XGridN*YGridN*Xpa*Ypa;
+
+
 
 	// initialize
 	for (i=0; i<Layer_buf; i++)
 	{
-    LayerGridX[i] = 0;
-    LayerGridY[i] = 0;
+    	LayerGridX[i] = 0;
+    	LayerGridY[i] = 0;
 	}
-	// Layer index starts from 1;
 
+	// Layer index starts from 1;
 	LayerGridX[1] = XGridN;
 	LayerGridY[1] = YGridN;
 
@@ -109,149 +108,163 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 	// define layer and grid number at each layer//
 // ---------------------------------------------------------
 
-//==========================================================//
-//================= X Direction ============================//
-	int gridmin = 2;
-	MPI_Layer = 1;
 
+	//May-25-2021- Tianhong updates; 
+	std::vector< std::vector< std::pair<double,int> > > Dx;
+	std::vector< std::pair<double,int> > tmp;
+
+	for(i=0;i<p_Meshs->GridsTmp.size();i++)
+	{
+		tmp.push_back({p_Meshs->GridsTmp[i],i}); // cell size and grand index
+	}
+	Dx.push_back(tmp);
+
+	int gridmin=2;
+
+	MPI_Layer = 1;
+	n=1;
 	while(gridmin>1)
 	{
-    	i = 1;
-    	MPI_Layer += 1;
-    	while(i<=XGridN*Xpa)
+		tmp.clear();
+		tmp.push_back({0.0,0}); //left ghost
+
+		MPI_Layer++;
+		n++;
+		for(int i=1;i<Dx[n-2].size()-1;i+=2)
+		{
+			double nextsize=Dx[n-2][i].first+(Dx[n-2][i-1].first+Dx[n-2][i+1].first)*0.5;
+
+			tmp.push_back( {nextsize, Dx[n-2][i].second} );
+
+
+			if(Dx[n-2][i].second >= ((RankIdx_X-1)*XGridN+1) && Dx[n-2][i].second<= (RankIdx_X)*XGridN )
     		{
-    			if(i >= ((RankIdx_X-1)*XGridN+1) & i<= (RankIdx_X)*XGridN )
-    			{
-					LayerGridX[MPI_Layer] += 1;
-        		}
-				i += pow(2,(MPI_Layer-1));
-			}
+				LayerGridX[MPI_Layer] += 1;
+        	}
 
-			MPI_Allreduce(&LayerGridX[MPI_Layer], &gridmin, 1, MPI_INT, MPI_MIN,MPI_COMM_WORLD);
-	}
-//================= X Direction ============================//
-//==========================================================//
-
-
-
-
-//==========================================================//
-//================= Y Direction ============================//
-
-	gridmin = 2;
-	MPI_Layer = 1;
-
-	while(gridmin>1)
-	{
-    	i = 1;
-    	MPI_Layer += 1;
-    	while(i<=YGridN*Ypa)
+        	if(Dx[n-2][i].second  >= ((RankIdx_Y-1)*YGridN+1) && Dx[n-2][i].second <= (RankIdx_Y)*YGridN )
     		{
-    			if(i >= ((RankIdx_Y-1)*YGridN+1) & i<= (RankIdx_Y)*YGridN )
-    			{
-					LayerGridY[MPI_Layer] += 1;
-        		}
-				i += pow(2,(MPI_Layer-1));
-			}
+				LayerGridY[MPI_Layer] += 1;
+        	}
 
-			MPI_Allreduce(&LayerGridY[MPI_Layer], &gridmin, 1, MPI_INT, MPI_MIN,MPI_COMM_WORLD);
+		}
+
+		tmp[0].first=tmp[1].first;
+		tmp.push_back( { tmp[tmp.size()-1].first, p_Meshs->GridsTmp.size()-1} ); //right ghost
+		Dx.push_back(tmp);
+
+		int minGrid=std::min(LayerGridY[MPI_Layer],LayerGridX[MPI_Layer]);
+		MPI_Allreduce(&minGrid, &gridmin, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
 	}
-//================= Y Direction ============================//
-//==========================================================//
+
+
+	// //=====
+	// if(Rank==0)
+	
+	// {FILE * dFile;
+	// char name[128];
+ //  	sprintf(name,"AllLayers_%d_.dg",Rank);
+	// dFile = fopen (name,"w");
+
+	// for (n=1; n<=MPI_Layer; n++)
+	// {
+	// 	for (j=0; j<Dx[n-1].size(); j++)
+	// 	{
+		
+	// 		fprintf(dFile, "[%d] ", Dx[n-1][j].second);
+	// 	}
+	// 	fprintf(dFile, "\n");
+	// }
+	// //====
+	// fclose (dFile);
+	// }
 
 
 	int Tot_GridX = 0;
 	int Tot_GridY = 0;
 
-	for (i=1; i<MPI_Layer+1; i++)
-	{
-    	Tot_GridX += LayerGridX[i];
-    	Tot_GridY += LayerGridY[i];
-	}
-	Tot_GridX += MPI_Layer*2;
-	Tot_GridY += MPI_Layer*2;
 
-
-// ---------------------------------------------------------
-	// Find the 2D Cells Sum of all Layers above this Layer
-// ---------------------------------------------------------
 	Layer_Sum[1] =0;
-	for (i=2; i<MPI_Layer+1; i++)
+	for (i=1; i<=MPI_Layer; i++) //layer starts with 1
 	{
-		Layer_Sum[i] =Layer_Sum[i-1]+(LayerGridX[i-1]+2)*(LayerGridY[i-1]+2);
-	}
-
-// ---------------------------------------------------------
-	// Find the 1D Cell Sum of all Layers above this Layer
-// ---------------------------------------------------------
-	int LayerSum1dX[MPI_Layer+1];
-	int LayerSum1dY[MPI_Layer+1];
-
-	LayerSum1dX[1] =0;
-	LayerSum1dY[1] =0;
-
-	for (i=2; i<=MPI_Layer; i++)
-	{
-		LayerSum1dX[i] =LayerSum1dX[i-1]+(LayerGridX[i-1]+2);
-		LayerSum1dY[i] =LayerSum1dY[i-1]+(LayerGridY[i-1]+2);
+    	Tot_GridX += LayerGridX[i]+2;
+    	Tot_GridY += LayerGridX[i]+2;
+    	
+    	if(i>1)
+    	{
+    		// Find the 2D Cells Sum of all Layers above this Layer
+    		Layer_Sum[i]   = Layer_Sum[i-1]+(LayerGridX[i-1]+2)*(LayerGridY[i-1]+2);
+    	}
 	}
 
 
 // ----------------------------------------------------------------
 	// Find the Cell Grand_Index in X(or Y) direction at each layer
 // ----------------------------------------------------------------
-	int Cellidx_i[Tot_GridX];
-	int Cellidx_j[Tot_GridY];
+	
+	std::vector< std::vector<int> >    Cellidx_i(MPI_Layer,std::vector<int>() );
+	std::vector< std::vector<int> >    Cellidx_j(MPI_Layer,std::vector<int>() );
 
-	int Celln = XGridN+2;
+	std::vector< std::vector<double> > Celldx(MPI_Layer,std::vector<double>() );
+	std::vector< std::vector<double> > Celldy(MPI_Layer,std::vector<double>() );
 
-	for (i=0; i<Celln; i++) 
+
+	for (n=1; n<=MPI_Layer; n++)
 	{
-		Cellidx_i[i] = i+((RankIdx_X-1)*XGridN);
-		Cellidx_j[i] = i+((RankIdx_Y-1)*YGridN);
-	}
-
-
-	for(n=2;n<=MPI_Layer;n++)
-	{
-		i = 1;
-		while(i<=XGridN*Xpa)
+    	int iflag=0;
+    	int jflag=0;
+		for(i=0;i<Dx[n-1].size();i++)
 		{
-			if(i >= ((RankIdx_X-1)*XGridN+1) & i<= (RankIdx_X)*XGridN )
+			double ddx = Dx[n-1][i].first;
+			int    idx = Dx[n-1][i].second;
+
+			//x-dir
+			if(idx >= ((RankIdx_X-1)*XGridN+1) && idx<= (RankIdx_X)*XGridN )
+    		{
+				if(iflag==0)
+				{	
+					Celldx[n-1].push_back(Dx[n-1][i-1].first);
+					Cellidx_i[n-1].push_back(Dx[n-1][i-1].second);
+					iflag=1;
+				}
+
+				Celldx[n-1].push_back(ddx);
+				Cellidx_i[n-1].push_back(idx);
+        	}
+        	else if(iflag)
+        	{	iflag=0;
+        		Celldx[n-1].push_back(ddx);
+				Cellidx_i[n-1].push_back(idx);
+        	}
+
+
+    		//y-dir
+        	if(idx >= ((RankIdx_Y-1)*YGridN+1) && idx<= (RankIdx_Y)*YGridN )
+    		{
+				if(jflag==0)
+				{	
+					Celldy[n-1].push_back(Dx[n-1][i-1].first);
+					Cellidx_j[n-1].push_back(Dx[n-1][i-1].second);
+					jflag=1;
+				}
+
+				Celldy[n-1].push_back(ddx);
+				Cellidx_j[n-1].push_back(idx);
+				
+				
+        	}
+        	else if(jflag)
 			{
-				Celln += 1;
-				Cellidx_i[Celln] = i;
+				jflag=0;
+				Celldy[n-1].push_back(ddx);
+				Cellidx_j[n-1].push_back(idx);
 			}
-		i += pow(2,(n-1));
+
+
 		}
 
-		Cellidx_i[Celln+1] = Cellidx_i[Celln]+pow(2,(n-1));
-		Cellidx_i[Celln-LayerGridX[n]] = Cellidx_i[Celln-LayerGridX[n]+1]-pow(2,(n-1));
-		Celln += 2;
 
 	}
-
-	Celln = YGridN+2;
-
-	for(n=2;n<=MPI_Layer;n++)
-	{
-		i = 1;
-		while(i<=YGridN*Ypa)
-		{
-			if(i >= ((RankIdx_Y-1)*YGridN+1) & i<= (RankIdx_Y)*YGridN )
-			{
-				Celln += 1;
-				Cellidx_j[Celln] = i;
-			}
-		i += pow(2,(n-1));
-		}
-
-
-		Cellidx_j[Celln+1] = Cellidx_j[Celln]+pow(2,(n-1));
-		Cellidx_j[Celln-LayerGridY[n]] = Cellidx_j[Celln-LayerGridY[n]+1]-pow(2,(n-1));
-		Celln += 2;
-	}
-
 
 
 
@@ -275,18 +288,40 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 			for (i=0; i<=LayerGridX[n]+1; i++)
 			{
 				MG_Cell &mgc = GetMGCell(i,j,n);
-				mgc.Grandidx_X = Cellidx_i[LayerSum1dX[n]+i];
-				mgc.Grandidx_Y = Cellidx_j[LayerSum1dY[n]+j];
+				mgc.Grandidx_X = Cellidx_i[n-1][i];
+				mgc.Grandidx_Y = Cellidx_j[n-1][j];
+
+				mgc.dx = Celldx[n-1][i];
+				mgc.dy = Celldy[n-1][j];
+
 			}
 		}
 	}
+
+	// //=====
+	// FILE * dFile;
+	// char name[128];
+ //  	sprintf(name,"MultiGrids_%d_.dg",Rank);
+	// dFile = fopen (name,"w");
+
+	// for (n=1; n<=MPI_Layer; n++)
+	// {
+	// 	for (j=0; j<=LayerGridY[n]+1; j++)
+	// 	{
+
+	// 		MG_Cell &mgc = GetMGCell(0,j,n);
+	// 		fprintf(dFile, "[%f] ", mgc.dy);
+	// 	}
+	// 	fprintf(dFile, "\n");
+	// }
+	// //====
+	// fclose (dFile);
 
 
 // ----------------------------------------------------------------
 	// Relate Cells at different layers
 	// Find	restriction rules and prolongation rules
 // ----------------------------------------------------------------
-
 	int ii, jj;
 
 	// Restriction starts at the second layer//
@@ -302,12 +337,13 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 				ii = 1;
 				jj = 1;
 
-				while (Cellidx_i[LayerSum1dX[n-1]+ii]<Cellidx_i[LayerSum1dX[n]+i])
+				while (Cellidx_i[n-2][ii]<Cellidx_i[n-1][i])
 				{ ii++; }
-				while (Cellidx_j[LayerSum1dY[n-1]+jj]<Cellidx_j[LayerSum1dY[n]+j])
+				while (Cellidx_j[n-2][jj]<Cellidx_j[n-1][j])
 				{ jj++; }
 
 				mgc.p_Res_cc = &GetMGCell(ii,  jj,n-1);
+
 				mgc.p_Res_xm = &GetMGCell(ii-1,jj,n-1);
 				mgc.p_Res_xp = &GetMGCell(ii+1,jj,n-1);
 				mgc.p_Res_ym = &GetMGCell(ii,jj-1,n-1);
@@ -317,6 +353,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 				mgc.p_Res_mp = &GetMGCell(ii-1,jj+1,n-1);
 				mgc.p_Res_pm = &GetMGCell(ii+1,jj-1,n-1);
 				mgc.p_Res_pp = &GetMGCell(ii+1,jj+1,n-1);
+
 			}
 		}
 	}
@@ -340,33 +377,28 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 
 				for (ii = 0; ii<=LayerGridX[n+1]+1; ii++)
 				{
-					if(Cellidx_i[LayerSum1dX[n+1]+ii]==Cellidx_i[LayerSum1dX[n]+i])
+					if(Cellidx_i[n][ii]==Cellidx_i[n-1][i])
 					{
 						findx = 1;
 						break;
 					}
-					
 
-					if(Cellidx_i[LayerSum1dX[n+1]+ii]<Cellidx_i[LayerSum1dX[n]+i]&
-					 Cellidx_i[LayerSum1dX[n+1]+ii+1]>Cellidx_i[LayerSum1dX[n]+i])
+					if(Cellidx_i[n][ii]<Cellidx_i[n-1][i]&&Cellidx_i[n][ii+1]>Cellidx_i[n-1][i])
 					{
 						break;
 					}
-
-
 				} 
 
 
 				for (jj = 0; jj<=LayerGridY[n+1]+1; jj++)
 				{
-					if(Cellidx_j[LayerSum1dY[n+1]+jj]==Cellidx_j[LayerSum1dY[n]+j])
+					if(Cellidx_j[n][jj]==Cellidx_j[n-1][j])
 					{
 						findy = 1;
 						break;
 					}
 
-					if(Cellidx_j[LayerSum1dY[n+1]+jj]<Cellidx_j[LayerSum1dY[n]+j]&
-					 Cellidx_j[LayerSum1dY[n+1]+jj+1]>Cellidx_j[LayerSum1dY[n]+j])
+					if(Cellidx_j[n][jj]<Cellidx_j[n-1][j]&&Cellidx_j[n][jj+1]>Cellidx_j[n-1][j])
 					{
 						break;
 					}
@@ -405,12 +437,9 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 					mgc.p_Pro_yp = &GetMGCell(ii+1,jj+1,n+1);
 				}
 
-			
 			}
 		}
 	}
-
-
 
 
 
@@ -443,7 +472,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 
 
 
-
+/*  removed by Tianhong; May-25
     // MPI_GatherV receive displacement for each sending processor;
     if(Rank == Worker)
 	{	
@@ -561,6 +590,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 			}
 
 
+
 // ----------------------------------------------------------------
 	// Relate Cells at different layers
 	// Find	restriction rules and prolongation rules
@@ -630,7 +660,6 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 								break;
 							}
 
-
 						} 
 
 
@@ -694,6 +723,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 
 	}
 
+*/
 	//==== end worker rank=====//
 
 	for (i=1; i<=MPI_Layer+SER_Layer; i++)
@@ -711,7 +741,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 
 
 // Full Weight Restriction
-// Don't forget take care the corner values at exchange();
+// Don't forget to take care the corner values at exchange();
 void MultiGrid::Restriction(int send, int rece, int tolayer, int where)
 {
 
@@ -732,7 +762,6 @@ switch(where)
 			 +(mgc.p_Res_ym)->M_value[send]+(mgc.p_Res_yp)->M_value[send])*0.125
 			+((mgc.p_Res_mm)->M_value[send]+(mgc.p_Res_mp)->M_value[send]
 			 +(mgc.p_Res_pm)->M_value[send]+(mgc.p_Res_pp)->M_value[send])*0.0625;
-
 		}
 
 	}

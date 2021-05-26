@@ -22,7 +22,7 @@
 
 #include "wand_PIC.h"
 #include <exception>
-#include<vector>
+
 
 
 //---------------------------- Mesh::Mesh --------------------
@@ -55,7 +55,7 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 	int N_Ypart=p_domain()->p_Partition()->GetYpart();
 
 	//
-	std::vector<double> GridsTmp(XGridN*N_Xpart+2,0);
+	GridsTmp=std::vector<double>(XGridN*N_Xpart+2,0);
 	std::vector<double> GridsAcc(XGridN*N_Xpart+2,0);
 
 	double ddxx=0;
@@ -85,9 +85,6 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 	Offset_X = GridsAcc[(RankIdx_X-1)*(GridX)] - p_domain()->Get_Xmax()*0.5;
 	Offset_Y = GridsAcc[(RankIdx_Y-1)*(GridY)] - p_domain()->Get_Ymax()*0.5;
 
-	//Seed Cells
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// printf("Rank %d,%f,%f\n", Rank,Offset_X,Offset_Y);
 
 	if(Rank==0)
 	{
@@ -129,7 +126,7 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 				c.dy=GridsTmp[(RankIdx_Y-1)*(GridY)+j];
 				// coordinates of the center of cell...
 				c.Xcord = GridsAcc[(RankIdx_X-1)*(GridX)+i]- p_domain()->Get_Xmax()*0.5-c.dx*0.5;
-				c.Ycord = GridsAcc[(RankIdx_Y-1)*(GridY)+j]- p_domain()->Get_Xmax()*0.5-c.dy*0.5;
+				c.Ycord = GridsAcc[(RankIdx_Y-1)*(GridY)+j]- p_domain()->Get_Ymax()*0.5-c.dy*0.5;
 				c.Z_shifted = CellZ(k);
 			}
 		}

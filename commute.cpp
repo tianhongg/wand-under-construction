@@ -91,17 +91,38 @@ Commute::Commute(int XGridN, int YGridN)
 	ReceSourceYp = new double[SendSouSizeY*bufsize];
 
 	// diagonal direction
-	SendSourcemm = new double[SendSouSizeX/YGridN];
-	SendSourcemp = new double[SendSouSizeX/YGridN];
+	SendSourcemm = new double[SendSouSizeX/YGridN*bufsize];
+	SendSourcemp = new double[SendSouSizeX/YGridN*bufsize];
 
-	ReceSourcemm = new double[SendSouSizeX/YGridN];
-	ReceSourcemp = new double[SendSouSizeX/YGridN];
+	ReceSourcemm = new double[SendSouSizeX/YGridN*bufsize];
+	ReceSourcemp = new double[SendSouSizeX/YGridN*bufsize];
 
-	SendSourcepm = new double[SendSouSizeY/XGridN];
-	SendSourcepp = new double[SendSouSizeY/XGridN];
+	SendSourcepm = new double[SendSouSizeY/XGridN*bufsize];
+	SendSourcepp = new double[SendSouSizeY/XGridN*bufsize];
 
-	ReceSourcepm = new double[SendSouSizeY/XGridN];
-	ReceSourcepp = new double[SendSouSizeY/XGridN];
+	ReceSourcepm = new double[SendSouSizeY/XGridN*bufsize];
+	ReceSourcepp = new double[SendSouSizeY/XGridN*bufsize];
+
+
+	//Cell Position Accumulative
+	CellAccX = std::vector<double> (XGridN+3,0.0);
+	CellAccY = std::vector<double> (YGridN+3,0.0);
+
+	for(int i=0;i<XGridN+2;i++)
+	{	
+		Cell &ccc = p_domain()->p_Mesh()->GetCell(i,0,0);
+		CellAccX[i]= ccc.Xcord-ccc.dx*0.5;
+	}
+	Cell &c1 = p_domain()->p_Mesh()->GetCell(XGridN+1,0,0);
+	CellAccX[XGridN+2]=c1.Xcord+c1.dx*0.5;
+
+	for(int i=0;i<YGridN+2;i++)
+	{	
+		Cell &ccc = p_domain()->p_Mesh()->GetCell(0,i,0);
+		CellAccY[i]= ccc.Ycord-ccc.dy*0.5;
+	}
+	Cell &c2 = p_domain()->p_Mesh()->GetCell(0,YGridN+1,0);
+	CellAccY[YGridN+2]=c2.Ycord+c2.dy*0.5;
 
 
 };
@@ -256,36 +277,50 @@ void Commute::DoCommute(int what, int k)
 }
 
 
-void Commute::DoCommuteT(int what,
-int &Sendxm, int &Sendxp, int &Sendym, int &Sendyp)
+void Commute::DoCommuteT(int what, std::vector<int> SendN)
 {
 
 	//===============================================================
 	//=====================   ISend and IRecev     ==================
 	//===============================================================
 	int SendDIM;
-	int Recexm, Receym, Recexp, Receyp;
-    MPI_Request Request[8];
-    MPI_Status 	 Status[8];
- 	MPI_Irecv(&Recexm, 1, MPI_INT, XmPE, 0, MPI_COMM_WORLD, &Request[0]);
-	MPI_Irecv(&Recexp, 1, MPI_INT, XpPE, 1, MPI_COMM_WORLD, &Request[1]);
-	MPI_Irecv(&Receym, 1, MPI_INT, YmPE, 2, MPI_COMM_WORLD, &Request[2]);
-	MPI_Irecv(&Receyp, 1, MPI_INT, YpPE, 3, MPI_COMM_WORLD, &Request[3]);
 
-	MPI_Isend(&Sendxp, 1, MPI_INT, XpPE, 0, MPI_COMM_WORLD, &Request[4]);
-	MPI_Isend(&Sendxm, 1, MPI_INT, XmPE, 1, MPI_COMM_WORLD, &Request[5]);
- 	MPI_Isend(&Sendyp, 1, MPI_INT, YpPE, 2, MPI_COMM_WORLD, &Request[6]);
-	MPI_Isend(&Sendym, 1, MPI_INT, YmPE, 3, MPI_COMM_WORLD, &Request[7]);
+	std::vector<int> ReceN(8,0);
+
+    MPI_Request Request[16];
+    MPI_Status 	 Status[16];
+
+ 	MPI_Irecv(&(*(ReceN.begin()+0)), 1, MPI_INT, mmPE, 0, MPI_COMM_WORLD, &Request[0]);
+	MPI_Irecv(&(*(ReceN.begin()+1)), 1, MPI_INT, mpPE, 1, MPI_COMM_WORLD, &Request[1]);
+	MPI_Irecv(&(*(ReceN.begin()+2)), 1, MPI_INT, pmPE, 2, MPI_COMM_WORLD, &Request[2]);
+	MPI_Irecv(&(*(ReceN.begin()+3)), 1, MPI_INT, ppPE, 3, MPI_COMM_WORLD, &Request[3]);
+
+	MPI_Irecv(&(*(ReceN.begin()+4)), 1, MPI_INT, XmPE, 4, MPI_COMM_WORLD, &Request[4]);
+	MPI_Irecv(&(*(ReceN.begin()+5)), 1, MPI_INT, XpPE, 5, MPI_COMM_WORLD, &Request[5]);
+	MPI_Irecv(&(*(ReceN.begin()+6)), 1, MPI_INT, YmPE, 6, MPI_COMM_WORLD, &Request[6]);
+	MPI_Irecv(&(*(ReceN.begin()+7)), 1, MPI_INT, YpPE, 7, MPI_COMM_WORLD, &Request[7]);
+	//-------
+	MPI_Isend(&(*(SendN.begin()+3)), 1, MPI_INT, ppPE, 0, MPI_COMM_WORLD, &Request[8]);
+	MPI_Isend(&(*(SendN.begin()+2)), 1, MPI_INT, pmPE, 1, MPI_COMM_WORLD, &Request[9]);
+ 	MPI_Isend(&(*(SendN.begin()+1)), 1, MPI_INT, mpPE, 2, MPI_COMM_WORLD, &Request[10]);
+	MPI_Isend(&(*(SendN.begin()+0)), 1, MPI_INT, mmPE, 3, MPI_COMM_WORLD, &Request[11]);
+
+	MPI_Isend(&(*(SendN.begin()+5)), 1, MPI_INT, XpPE, 4, MPI_COMM_WORLD, &Request[12]);
+	MPI_Isend(&(*(SendN.begin()+4)), 1, MPI_INT, XmPE, 5, MPI_COMM_WORLD, &Request[13]);
+ 	MPI_Isend(&(*(SendN.begin()+7)), 1, MPI_INT, YpPE, 6, MPI_COMM_WORLD, &Request[14]);
+	MPI_Isend(&(*(SendN.begin()+6)), 1, MPI_INT, YmPE, 7, MPI_COMM_WORLD, &Request[15]);
+
+
  	int ierr;
-	ierr = MPI_Waitall(8, Request,Status);
+	ierr = MPI_Waitall(16, Request,Status);
 
 	//==========test=========================
 	//if(Rank == 9) printf("%d=%d\n",Rank,Sendym);
 	//if(Rank == 5) printf("%d=%d\n",Rank,Receyp);
 	//==========test=========================
 
-    MPI_Request Request2[8];
-    MPI_Status 	 Status2[8];
+    MPI_Request Request2[16];
+    MPI_Status 	 Status2[16];
 
     switch(what)
     {
@@ -297,22 +332,33 @@ int &Sendxm, int &Sendxp, int &Sendym, int &Sendyp)
     	break;
     }
 
- 	MPI_Irecv(ReceSourceXm, Recexm*SendDIM, MPI_DOUBLE, XmPE, 0, MPI_COMM_WORLD, &Request2[0]);
-	MPI_Irecv(ReceSourceXp, Recexp*SendDIM, MPI_DOUBLE, XpPE, 1, MPI_COMM_WORLD, &Request2[1]);
-	MPI_Irecv(ReceSourceYm, Receym*SendDIM, MPI_DOUBLE, YmPE, 2, MPI_COMM_WORLD, &Request2[2]);
-	MPI_Irecv(ReceSourceYp, Receyp*SendDIM, MPI_DOUBLE, YpPE, 3, MPI_COMM_WORLD, &Request2[3]);
+    MPI_Irecv(ReceSourcemm, ReceN[0]*SendDIM, MPI_DOUBLE, mmPE, 0, MPI_COMM_WORLD, &Request2[0]);
+	MPI_Irecv(ReceSourcemp, ReceN[1]*SendDIM, MPI_DOUBLE, mpPE, 1, MPI_COMM_WORLD, &Request2[1]);
+	MPI_Irecv(ReceSourcepm, ReceN[2]*SendDIM, MPI_DOUBLE, pmPE, 2, MPI_COMM_WORLD, &Request2[2]);
+	MPI_Irecv(ReceSourcepp, ReceN[3]*SendDIM, MPI_DOUBLE, ppPE, 3, MPI_COMM_WORLD, &Request2[3]);
+ 	
+ 	MPI_Irecv(ReceSourceXm, ReceN[4]*SendDIM, MPI_DOUBLE, XmPE, 4, MPI_COMM_WORLD, &Request2[4]);
+	MPI_Irecv(ReceSourceXp, ReceN[5]*SendDIM, MPI_DOUBLE, XpPE, 5, MPI_COMM_WORLD, &Request2[5]);
+	MPI_Irecv(ReceSourceYm, ReceN[6]*SendDIM, MPI_DOUBLE, YmPE, 6, MPI_COMM_WORLD, &Request2[6]);
+	MPI_Irecv(ReceSourceYp, ReceN[7]*SendDIM, MPI_DOUBLE, YpPE, 7, MPI_COMM_WORLD, &Request2[7]);
 
-	MPI_Isend(SendSourceXp, Sendxp*SendDIM, MPI_DOUBLE, XpPE, 0, MPI_COMM_WORLD, &Request2[4]);
-	MPI_Isend(SendSourceXm, Sendxm*SendDIM, MPI_DOUBLE, XmPE, 1, MPI_COMM_WORLD, &Request2[5]);
- 	MPI_Isend(SendSourceYp, Sendyp*SendDIM, MPI_DOUBLE, YpPE, 2, MPI_COMM_WORLD, &Request2[6]);
-	MPI_Isend(SendSourceYm, Sendym*SendDIM, MPI_DOUBLE, YmPE, 3, MPI_COMM_WORLD, &Request2[7]);
-	ierr = MPI_Waitall(8, Request2,Status2);
+	MPI_Isend(SendSourcepp, SendN[3]*SendDIM, MPI_DOUBLE, ppPE, 0, MPI_COMM_WORLD, &Request2[8]);
+	MPI_Isend(SendSourcepm, SendN[2]*SendDIM, MPI_DOUBLE, pmPE, 1, MPI_COMM_WORLD, &Request2[9]);
+ 	MPI_Isend(SendSourcemp, SendN[1]*SendDIM, MPI_DOUBLE, mpPE, 2, MPI_COMM_WORLD, &Request2[10]);
+	MPI_Isend(SendSourcemm, SendN[0]*SendDIM, MPI_DOUBLE, mmPE, 3, MPI_COMM_WORLD, &Request2[11]);
+	
+	MPI_Isend(SendSourceXp, SendN[5]*SendDIM, MPI_DOUBLE, XpPE, 4, MPI_COMM_WORLD, &Request2[12]);
+	MPI_Isend(SendSourceXm, SendN[4]*SendDIM, MPI_DOUBLE, XmPE, 5, MPI_COMM_WORLD, &Request2[13]);
+ 	MPI_Isend(SendSourceYp, SendN[7]*SendDIM, MPI_DOUBLE, YpPE, 6, MPI_COMM_WORLD, &Request2[14]);
+	MPI_Isend(SendSourceYm, SendN[6]*SendDIM, MPI_DOUBLE, YmPE, 7, MPI_COMM_WORLD, &Request2[15]);
+
+	ierr = MPI_Waitall(16, Request2,Status2);
 
 	if (ierr!=0) 
 	{
 		MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN);
    		char errtxt[200];
-		for (int i=0; i<8; i++) 
+		for (int i=0; i<16; i++) 
 		{
 			int err = Status2[i].MPI_ERROR; 
 			int len=200;
@@ -323,7 +369,7 @@ int &Sendxm, int &Sendxp, int &Sendym, int &Sendyp)
 	}
 
 
-	UnPackT(what, Recexm, Recexp, Receym, Receyp);
+	UnPackT(what, ReceN);
 	return;
 }
 
@@ -968,7 +1014,7 @@ void Commute::UnPack(int what, int k)
 
 
 
-void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
+void Commute::UnPackT(int what, std::vector<int> ReceN)
 {
 
 	int n;
@@ -992,20 +1038,19 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 		
 		case COMMU_T: // 
 		
-		int ReceN[4];
-		ReceN[0]=Recexm;
-		ReceN[1]=Recexp;
-		ReceN[2]=Receym;
-		ReceN[3]=Receyp;
 
-		for(int dir=0; dir<4; dir++)
+		for(int dir=0; dir<8; dir++)
 		{
 			double* Re=NULL;
 
-			if(dir==0) Re=ReceSourceXm;
-			if(dir==1) Re=ReceSourceXp;
-			if(dir==2) Re=ReceSourceYm;
-			if(dir==3) Re=ReceSourceYp;
+			if(dir==0) Re=ReceSourcemm;
+			if(dir==1) Re=ReceSourcemp;
+			if(dir==2) Re=ReceSourcepm;
+			if(dir==3) Re=ReceSourcepp;
+			if(dir==4) Re=ReceSourceXm;
+			if(dir==5) Re=ReceSourceXp;
+			if(dir==6) Re=ReceSourceYm;
+			if(dir==7) Re=ReceSourceYp;
 
 			for(n=0; n<ReceN[dir]; n++)
 			{
@@ -1042,6 +1087,11 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 				p->Vxx = (p->Vx)*(p->Vx);
 				p->Vyy = (p->Vy)*(p->Vy);
 				p->Vxy = (p->Vx)*(p->Vy);
+
+				auto upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),xt);
+				p->idx_i= (upper-CellAccX.begin()-1);
+				upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),yt);
+				p->idx_j=(upper-CellAccY.begin()-1);
 			}
 
 		}
@@ -1051,171 +1101,170 @@ void Commute::UnPackT(int what, int Recexm, int Recexp, int Receym, int Receyp)
 
 		case COMMU_P:
 		
+		// for(n=0; n<Recexm; n++)
+		// {
+		// 	x0 = ReceSourceXm[n*SDP_DIM + 3];
+		// 	y0 = ReceSourceXm[n*SDP_DIM + 4];
+		// 	z0 = ReceSourceXm[n*SDP_DIM + 5];
+		// 	px = ReceSourceXm[n*SDP_DIM + 6];
+		// 	py = ReceSourceXm[n*SDP_DIM + 7];
+		// 	pz = ReceSourceXm[n*SDP_DIM + 8];
+		// 	Ex0= ReceSourceXm[n*SDP_DIM + 9];
+		// 	Ey0= ReceSourceXm[n*SDP_DIM +10];
+		// 	Ez0= ReceSourceXm[n*SDP_DIM +11];
 
-		for(n=0; n<Recexm; n++)
-		{
-			x0 = ReceSourceXm[n*SDP_DIM + 3];
-			y0 = ReceSourceXm[n*SDP_DIM + 4];
-			z0 = ReceSourceXm[n*SDP_DIM + 5];
-			px = ReceSourceXm[n*SDP_DIM + 6];
-			py = ReceSourceXm[n*SDP_DIM + 7];
-			pz = ReceSourceXm[n*SDP_DIM + 8];
-			Ex0= ReceSourceXm[n*SDP_DIM + 9];
-			Ey0= ReceSourceXm[n*SDP_DIM +10];
-			Ez0= ReceSourceXm[n*SDP_DIM +11];
+		// 	type=(int)ReceSourceXm[n*SDP_DIM +12];
+		// 	q2m    =  ReceSourceXm[n*SDP_DIM +13];
+		// 	weight =  ReceSourceXm[n*SDP_DIM +14];
 
-			type=(int)ReceSourceXm[n*SDP_DIM +12];
-			q2m    =  ReceSourceXm[n*SDP_DIM +13];
-			weight =  ReceSourceXm[n*SDP_DIM +14];
+		// 	switch(type)
+		// 	{
+		// 	case ELECTRON:
+		// 	pp = new Electron(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
 
-			switch(type)
-			{
-			case ELECTRON:
-			pp = new Electron(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
+		// 	case ION:
+		// 	pp = new Ion(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
+		// 	}
 
-			case ION:
-			pp = new Ion(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
-			}
+		// 	pp->x = ReceSourceXm[n*SDP_DIM + 0];
+		// 	pp->y = ReceSourceXm[n*SDP_DIM + 1];
+		// 	pp->z = ReceSourceXm[n*SDP_DIM + 2];
 
-			pp->x = ReceSourceXm[n*SDP_DIM + 0];
-			pp->y = ReceSourceXm[n*SDP_DIM + 1];
-			pp->z = ReceSourceXm[n*SDP_DIM + 2];
-
-			pp->Wxw = ReceSourceXm[n*SDP_DIM + 15];
-			pp->Wyw = ReceSourceXm[n*SDP_DIM + 16];
-			pp->Wzw = ReceSourceXm[n*SDP_DIM + 17];
-			pp->Wxl = ReceSourceXm[n*SDP_DIM + 18];
-			pp->Wyl = ReceSourceXm[n*SDP_DIM + 19];
-			pp->Wzl = ReceSourceXm[n*SDP_DIM + 20];
-
-
-		}
+		// 	pp->Wxw = ReceSourceXm[n*SDP_DIM + 15];
+		// 	pp->Wyw = ReceSourceXm[n*SDP_DIM + 16];
+		// 	pp->Wzw = ReceSourceXm[n*SDP_DIM + 17];
+		// 	pp->Wxl = ReceSourceXm[n*SDP_DIM + 18];
+		// 	pp->Wyl = ReceSourceXm[n*SDP_DIM + 19];
+		// 	pp->Wzl = ReceSourceXm[n*SDP_DIM + 20];
 
 
-		for(n=0; n<Recexp; n++)
-		{
-			x0 = ReceSourceXp[n*SDP_DIM + 3];
-			y0 = ReceSourceXp[n*SDP_DIM + 4];
-			z0 = ReceSourceXp[n*SDP_DIM + 5];
-			px = ReceSourceXp[n*SDP_DIM + 6];
-			py = ReceSourceXp[n*SDP_DIM + 7];
-			pz = ReceSourceXp[n*SDP_DIM + 8];
-			Ex0= ReceSourceXp[n*SDP_DIM + 9];
-			Ey0= ReceSourceXp[n*SDP_DIM +10];
-			Ez0= ReceSourceXp[n*SDP_DIM +11];
+		// }
 
-			type=(int)ReceSourceXp[n*SDP_DIM +12];
-			q2m=      ReceSourceXp[n*SDP_DIM +13];
-			weight =  ReceSourceXp[n*SDP_DIM +14];
-			switch(type)
-			{
-			case ELECTRON:
-			pp = new Electron(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
 
-			case ION:
-			pp = new Ion(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
-			}
+		// for(n=0; n<Recexp; n++)
+		// {
+		// 	x0 = ReceSourceXp[n*SDP_DIM + 3];
+		// 	y0 = ReceSourceXp[n*SDP_DIM + 4];
+		// 	z0 = ReceSourceXp[n*SDP_DIM + 5];
+		// 	px = ReceSourceXp[n*SDP_DIM + 6];
+		// 	py = ReceSourceXp[n*SDP_DIM + 7];
+		// 	pz = ReceSourceXp[n*SDP_DIM + 8];
+		// 	Ex0= ReceSourceXp[n*SDP_DIM + 9];
+		// 	Ey0= ReceSourceXp[n*SDP_DIM +10];
+		// 	Ez0= ReceSourceXp[n*SDP_DIM +11];
 
-			pp->x = ReceSourceXp[n*SDP_DIM + 0];
-			pp->y = ReceSourceXp[n*SDP_DIM + 1];
-			pp->z = ReceSourceXp[n*SDP_DIM + 2];
+		// 	type=(int)ReceSourceXp[n*SDP_DIM +12];
+		// 	q2m=      ReceSourceXp[n*SDP_DIM +13];
+		// 	weight =  ReceSourceXp[n*SDP_DIM +14];
+		// 	switch(type)
+		// 	{
+		// 	case ELECTRON:
+		// 	pp = new Electron(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
 
-			pp->Wxw = ReceSourceXp[n*SDP_DIM + 15];
-			pp->Wyw = ReceSourceXp[n*SDP_DIM + 16];
-			pp->Wzw = ReceSourceXp[n*SDP_DIM + 17];
-			pp->Wxl = ReceSourceXp[n*SDP_DIM + 18];
-			pp->Wyl = ReceSourceXp[n*SDP_DIM + 19];
-			pp->Wzl = ReceSourceXp[n*SDP_DIM + 20];
-		}
+		// 	case ION:
+		// 	pp = new Ion(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
+		// 	}
 
-		for(n=0; n<Receym; n++)
-		{
-			x0 = ReceSourceYm[n*SDP_DIM + 3];
-			y0 = ReceSourceYm[n*SDP_DIM + 4];
-			z0 = ReceSourceYm[n*SDP_DIM + 5];
-			px = ReceSourceYm[n*SDP_DIM + 6];
-			py = ReceSourceYm[n*SDP_DIM + 7];
-			pz = ReceSourceYm[n*SDP_DIM + 8];
-			Ex0= ReceSourceYm[n*SDP_DIM + 9];
-			Ey0= ReceSourceYm[n*SDP_DIM +10];
-			Ez0= ReceSourceYm[n*SDP_DIM +11];
+		// 	pp->x = ReceSourceXp[n*SDP_DIM + 0];
+		// 	pp->y = ReceSourceXp[n*SDP_DIM + 1];
+		// 	pp->z = ReceSourceXp[n*SDP_DIM + 2];
 
-			type=(int)ReceSourceYm[n*SDP_DIM +12];
-			q2m =     ReceSourceYm[n*SDP_DIM +13];
-			weight =  ReceSourceYm[n*SDP_DIM +14];
-			switch(type)
-			{
-			case ELECTRON:
-			pp = new Electron(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
+		// 	pp->Wxw = ReceSourceXp[n*SDP_DIM + 15];
+		// 	pp->Wyw = ReceSourceXp[n*SDP_DIM + 16];
+		// 	pp->Wzw = ReceSourceXp[n*SDP_DIM + 17];
+		// 	pp->Wxl = ReceSourceXp[n*SDP_DIM + 18];
+		// 	pp->Wyl = ReceSourceXp[n*SDP_DIM + 19];
+		// 	pp->Wzl = ReceSourceXp[n*SDP_DIM + 20];
+		// }
 
-			case ION:
-			pp = new Ion(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
-			}
+		// for(n=0; n<Receym; n++)
+		// {
+		// 	x0 = ReceSourceYm[n*SDP_DIM + 3];
+		// 	y0 = ReceSourceYm[n*SDP_DIM + 4];
+		// 	z0 = ReceSourceYm[n*SDP_DIM + 5];
+		// 	px = ReceSourceYm[n*SDP_DIM + 6];
+		// 	py = ReceSourceYm[n*SDP_DIM + 7];
+		// 	pz = ReceSourceYm[n*SDP_DIM + 8];
+		// 	Ex0= ReceSourceYm[n*SDP_DIM + 9];
+		// 	Ey0= ReceSourceYm[n*SDP_DIM +10];
+		// 	Ez0= ReceSourceYm[n*SDP_DIM +11];
 
-			pp->x = ReceSourceYm[n*SDP_DIM + 0];
-			pp->y = ReceSourceYm[n*SDP_DIM + 1];
-			pp->z = ReceSourceYm[n*SDP_DIM + 2];
+		// 	type=(int)ReceSourceYm[n*SDP_DIM +12];
+		// 	q2m =     ReceSourceYm[n*SDP_DIM +13];
+		// 	weight =  ReceSourceYm[n*SDP_DIM +14];
+		// 	switch(type)
+		// 	{
+		// 	case ELECTRON:
+		// 	pp = new Electron(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
 
-			pp->Wxw = ReceSourceYm[n*SDP_DIM + 15];
-			pp->Wyw = ReceSourceYm[n*SDP_DIM + 16];
-			pp->Wzw = ReceSourceYm[n*SDP_DIM + 17];
-			pp->Wxl = ReceSourceYm[n*SDP_DIM + 18];
-			pp->Wyl = ReceSourceYm[n*SDP_DIM + 19];
-			pp->Wzl = ReceSourceYm[n*SDP_DIM + 20];
-		}
+		// 	case ION:
+		// 	pp = new Ion(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
+		// 	}
 
-		for(n=0; n<Receyp; n++)
-		{
-			x0 = ReceSourceYp[n*SDP_DIM + 3];
-			y0 = ReceSourceYp[n*SDP_DIM + 4];
-			z0 = ReceSourceYp[n*SDP_DIM + 5];
-			px = ReceSourceYp[n*SDP_DIM + 6];
-			py = ReceSourceYp[n*SDP_DIM + 7];
-			pz = ReceSourceYp[n*SDP_DIM + 8];
-			Ex0= ReceSourceYp[n*SDP_DIM + 9];
-			Ey0= ReceSourceYp[n*SDP_DIM +10];
-			Ez0= ReceSourceYp[n*SDP_DIM +11];
+		// 	pp->x = ReceSourceYm[n*SDP_DIM + 0];
+		// 	pp->y = ReceSourceYm[n*SDP_DIM + 1];
+		// 	pp->z = ReceSourceYm[n*SDP_DIM + 2];
 
-			type=(int)ReceSourceYp[n*SDP_DIM +12];
-			q2m=      ReceSourceYp[n*SDP_DIM +13];
-			weight =  ReceSourceYp[n*SDP_DIM +14];
+		// 	pp->Wxw = ReceSourceYm[n*SDP_DIM + 15];
+		// 	pp->Wyw = ReceSourceYm[n*SDP_DIM + 16];
+		// 	pp->Wzw = ReceSourceYm[n*SDP_DIM + 17];
+		// 	pp->Wxl = ReceSourceYm[n*SDP_DIM + 18];
+		// 	pp->Wyl = ReceSourceYm[n*SDP_DIM + 19];
+		// 	pp->Wzl = ReceSourceYm[n*SDP_DIM + 20];
+		// }
+
+		// for(n=0; n<Receyp; n++)
+		// {
+		// 	x0 = ReceSourceYp[n*SDP_DIM + 3];
+		// 	y0 = ReceSourceYp[n*SDP_DIM + 4];
+		// 	z0 = ReceSourceYp[n*SDP_DIM + 5];
+		// 	px = ReceSourceYp[n*SDP_DIM + 6];
+		// 	py = ReceSourceYp[n*SDP_DIM + 7];
+		// 	pz = ReceSourceYp[n*SDP_DIM + 8];
+		// 	Ex0= ReceSourceYp[n*SDP_DIM + 9];
+		// 	Ey0= ReceSourceYp[n*SDP_DIM +10];
+		// 	Ez0= ReceSourceYp[n*SDP_DIM +11];
+
+		// 	type=(int)ReceSourceYp[n*SDP_DIM +12];
+		// 	q2m=      ReceSourceYp[n*SDP_DIM +13];
+		// 	weight =  ReceSourceYp[n*SDP_DIM +14];
 			
-			switch(type)
-			{
-			case ELECTRON:
-			pp = new Electron(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
+		// 	switch(type)
+		// 	{
+		// 	case ELECTRON:
+		// 	pp = new Electron(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
 
-			case ION:
-			pp = new Ion(x0, y0, z0, px, py, pz,
-							Ex0, Ey0, Ez0, q2m, weight);
-			break;
-			}
+		// 	case ION:
+		// 	pp = new Ion(x0, y0, z0, px, py, pz,
+		// 					Ex0, Ey0, Ez0, q2m, weight);
+		// 	break;
+		// 	}
 
-			pp->x = ReceSourceYp[n*SDP_DIM + 0];
-			pp->y = ReceSourceYp[n*SDP_DIM + 1];
-			pp->z = ReceSourceYp[n*SDP_DIM + 2];
+		// 	pp->x = ReceSourceYp[n*SDP_DIM + 0];
+		// 	pp->y = ReceSourceYp[n*SDP_DIM + 1];
+		// 	pp->z = ReceSourceYp[n*SDP_DIM + 2];
 
-			pp->Wxw = ReceSourceYp[n*SDP_DIM + 15];
-			pp->Wyw = ReceSourceYp[n*SDP_DIM + 16];
-			pp->Wzw = ReceSourceYp[n*SDP_DIM + 17];
-			pp->Wxl = ReceSourceYp[n*SDP_DIM + 18];
-			pp->Wyl = ReceSourceYp[n*SDP_DIM + 19];
-			pp->Wzl = ReceSourceYp[n*SDP_DIM + 20];
-		}
+		// 	pp->Wxw = ReceSourceYp[n*SDP_DIM + 15];
+		// 	pp->Wyw = ReceSourceYp[n*SDP_DIM + 16];
+		// 	pp->Wzw = ReceSourceYp[n*SDP_DIM + 17];
+		// 	pp->Wxl = ReceSourceYp[n*SDP_DIM + 18];
+		// 	pp->Wyl = ReceSourceYp[n*SDP_DIM + 19];
+		// 	pp->Wzl = ReceSourceYp[n*SDP_DIM + 20];
+		// }
 
 		break;
 

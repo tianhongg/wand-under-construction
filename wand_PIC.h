@@ -66,6 +66,7 @@
 #include <mpi.h>
 #include <complex>
 #include <cmath>
+#include <vector>
 #include "namelist.h"
 #include "domain.h"
 #include "cell.h"

@@ -37,12 +37,11 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    AddEntry((char*)"XStep",		&dx,	1.0);
    AddEntry((char*)"YStep",		&dy,	1.0);
    AddEntry((char*)"ZStep",		&dz,	1.0);
-
+   
    AddEntry((char*)"MeshType",    &MeshType,  0);
    AddEntry((char*)"dxRefine",    &dxRefine,  2);
    AddEntry((char*)"order",       &order,  4);
    AddEntry((char*)"delta",       &delta,  1);
-
 
    AddEntry((char*)"TStep",		&dt,	1.0);
    AddEntry((char*)"AdaptiveDt", &Adap_dt,  0);
@@ -113,7 +112,6 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
 
 
    Zmax=ZGridN*dz;
-
 
    //===============================================================
    //=======================Initiate Laser Pulse in the Domain======
@@ -288,28 +286,6 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
 
 
 
-
-  p_Meshes-> MacroSource(0);
-  p_Comm   -> DoCommute(COMMU_S, 0);
-
-  char name[128];
-   sprintf(name,"Denn_%d_.dg",Rank);
-   FILE * dFile;
-   dFile = fopen (name,"w");
-
-   for(int j=0; j<=XGridN+1; j++)
-   {
-      for(int i=0; i<=XGridN+1; i++)
-      {
-         Cell &ccc = p_Meshes->GetCell(i,j,0);
-         fprintf(dFile, "%f ", ccc.W_Source[0]);
-      }
-      fprintf(dFile, "\n");
-   }  
-  fclose(dFile);
-  MPI_Barrier(MPI_COMM_WORLD);
-  exit(0);
-
 }
 
 
@@ -360,15 +336,11 @@ while(Time<Tmax)
    if(ierr == 0)  p_Meshes -> SetFieldZeroAfter(k);
    //===================================
 
-
    //===================================
    //======get laser field =============
    if(NFreqs && Nbeam) p_Meshes -> LaserFields();
    //===================================
 
-
-
-   
    //===================================
    //=== here do ionization block ======
    if(p_Meshes->Ifioniz() && Time>p_Meshes->DopeBegin() 
@@ -508,6 +480,14 @@ double Domain::CustomGrid(double r)
          if(dxRefine<1) dxRefine=1;
          if(delta<=0) delta=1;
          return dx/( (dxRefine-1.0)/(pow(r/delta,order)+1.0)+1.0);
+      break;
+
+
+      case 2:
+         if(order<0) order=0;
+         if(dxRefine<1) dxRefine=1;
+         if(delta<=0) delta=1;
+         return dx/( (dxRefine-1.0)*exp(-pow(r/delta,order))+1.0);
       break;
 
    }

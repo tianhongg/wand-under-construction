@@ -29,7 +29,8 @@
 #ifndef H_MULTI
 #define H_MULTI
 
-
+#include<vector>
+#include<utility> 
 
 
 class MG_Cell
@@ -63,7 +64,6 @@ private:
 		dcomplex C_Chi;  //4
 
 
-
 	//point to the four cells we need to restrict from
 	MG_Cell *p_Res_cc;
 	MG_Cell *p_Res_xm;
@@ -85,6 +85,9 @@ private:
 	int Protype;  // four types of prolongation from 0 to 3;
 	int Grandidx_X;
 	int Grandidx_Y;
+
+	double dx;
+	double dy;
 
 public:
 

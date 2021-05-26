@@ -108,7 +108,7 @@ int Domain::Boris(double &k0, int &k)
    double dz2dz;
 
 
-   p_Meshes ->AdjustZstep(k0, k, dz2dz);
+   p_Meshes ->AdjustZstep(k0, k, dz2dz);  
    //================================
    //======== Push Trajectory by E ======
    if((ierr = PushWakeFieldsE(k0, k))) return 0;
@@ -138,7 +138,6 @@ int Domain::Boris(double &k0, int &k)
       }
    }
    //================================
-
    return 1;
 
 }
@@ -249,6 +248,7 @@ int Domain:: PushWakeFieldsE(double k0, int k)
    //======== Exchange Wakefield  ===
    //======== Ex Ey Ponx Pony =======
    p_Comm   -> DoCommute(COMMU_F, k);
+   
    p_Meshes ->AdjustFields(k);
    return 0;
 }

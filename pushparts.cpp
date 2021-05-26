@@ -553,7 +553,7 @@ void Mesh::ExchangeP()
 		S_SUM = Sendxm+Sendxp+Sendym+Sendyp;
 		MPI_Allreduce(&S_SUM, &A_SUM, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 		if( A_SUM == 0 ) {break;};
-		p_domain()->p_Com()->DoCommuteT(COMMU_P, Sendxm, Sendxp, Sendym, Sendyp);
+		//p_domain()->p_Com()->DoCommuteT(COMMU_P, Sendxm, Sendxp, Sendym, Sendyp);
 
 	}
 
