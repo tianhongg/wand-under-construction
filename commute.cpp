@@ -181,8 +181,8 @@ void Commute::DoCommute(int what, int k)
 		p_Multi = p_domain()->p_MG();
 			ssx = p_Multi->GetLayerGridY(k)*2;
 			ssy = p_Multi->GetLayerGridX(k)*2;
-			ssxd= 1;
-			ssyd= 1;
+			ssxd= 2;
+			ssyd= 2;
 		break;
 	}
 		//===============================================================
@@ -529,9 +529,12 @@ void Commute::DoPack(int what, int k)
 		//===============================================================
 		//Exchange multigrid potential
 		case COMMU_MG_P:
+		case COMMU_MG_R:
+
+		int field=0;
+		if(what==COMMU_MG_R) field=2;
 
 		p_Multi = p_domain()->p_MG();
-
 		LayerGridX = p_Multi->GetLayerGridX(k);
 		LayerGridY = p_Multi->GetLayerGridY(k);
 
@@ -539,8 +542,9 @@ void Commute::DoPack(int what, int k)
 		{
 			MG_Cell &cxm = p_Multi->GetMGCell(1,		  j, k);
 			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX, j, k);
-			SendSourceXm[j-1] = cxm.M_value[0];
-			SendSourceXp[j-1] = cxp.M_value[0];
+
+			SendSourceXm[j-1] = cxm.M_value[field];
+			SendSourceXp[j-1] = cxp.M_value[field];
 		}
 
 		for (i = 1; i<= LayerGridX; i++)
@@ -549,78 +553,31 @@ void Commute::DoPack(int what, int k)
 			MG_Cell &cyp = p_Multi->GetMGCell(i, LayerGridY, k);
 
 
-			SendSourceYm[i-1] = cym.M_value[0];
-			SendSourceYp[i-1] = cyp.M_value[0];
+			SendSourceYm[i-1] = cym.M_value[field];
+			SendSourceYp[i-1] = cyp.M_value[field];
 		}
+
+		MG_Cell &cmm = p_Multi->GetMGCell(1,		  1, k);
+		MG_Cell &cmp = p_Multi->GetMGCell(1, LayerGridY, k);
+		MG_Cell &cpm = p_Multi->GetMGCell(LayerGridX, 1, k);
+		MG_Cell &cpp = p_Multi->GetMGCell(LayerGridX, LayerGridY, k);
+
+		SendSourcemm[0] = cmm.M_value[field];
+		SendSourcemp[0] = cmp.M_value[field];
+		SendSourcepm[0] = cpm.M_value[field];
+		SendSourcepp[0] = cpp.M_value[field];
+
 		break;
+
 
 
 		case COMMU_MG_P_C:
-
-		p_Multi = p_domain()->p_MG();
-
-		LayerGridX = p_Multi->GetLayerGridX(k);
-		LayerGridY = p_Multi->GetLayerGridY(k);
-
-		for (j = 1; j<= LayerGridY; j++)
-		{
-			MG_Cell &cxm = p_Multi->GetMGCell(1,		  j, k);
-			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX, j, k);
-
-			SendSourceXm[(j-1)*2+0] = (cxm.C_value[0]).real();
-			SendSourceXm[(j-1)*2+1] = (cxm.C_value[0]).imag();
-
-			SendSourceXp[(j-1)*2+0] = (cxp.C_value[0]).real();
-			SendSourceXp[(j-1)*2+1] = (cxp.C_value[0]).imag();
-		}
-
-		for (i = 1; i<= LayerGridX; i++)
-		{
-			MG_Cell &cym = p_Multi->GetMGCell(i,		  1, k);
-			MG_Cell &cyp = p_Multi->GetMGCell(i, LayerGridY, k);
-
-			SendSourceYm[(i-1)*2+0] = (cym.C_value[0]).real();
-			SendSourceYm[(i-1)*2+1] = (cym.C_value[0]).imag();
-			SendSourceYp[(i-1)*2+0] = (cyp.C_value[0]).real();
-			SendSourceYp[(i-1)*2+1] = (cyp.C_value[0]).imag();
-		}
-		break;
-
-
-		//===============================================================
-		//===================== Pack Multigrid Source  ==================
-		//===============================================================
-		//Exchange multigrid residual
-		case COMMU_MG_R:
-
-		p_Multi = p_domain()->p_MG();
-
-		LayerGridX = p_Multi->GetLayerGridX(k);
-		LayerGridY = p_Multi->GetLayerGridY(k);
-
-		for (j = 1; j<= LayerGridY; j++)
-		{
-			MG_Cell &cxm = p_Multi->GetMGCell(1,		  j, k);
-			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX, j, k);
-			SendSourceXm[j-1] = cxm.M_value[2];
-			SendSourceXp[j-1] = cxp.M_value[2];
-		}
-
-		for (i = 1; i<= LayerGridX; i++)
-		{
-			MG_Cell &cym = p_Multi->GetMGCell(i,		  1, k);
-			MG_Cell &cyp = p_Multi->GetMGCell(i, LayerGridY, k);
-
-
-			SendSourceYm[i-1] = cym.M_value[2];
-			SendSourceYp[i-1] = cyp.M_value[2];
-		}
-		break;
-
-
-
 		case COMMU_MG_R_C:
 
+		field=0;
+		if(what==COMMU_MG_R_C) field=2;
+
+
 		p_Multi = p_domain()->p_MG();
 
 		LayerGridX = p_Multi->GetLayerGridX(k);
@@ -631,10 +588,11 @@ void Commute::DoPack(int what, int k)
 			MG_Cell &cxm = p_Multi->GetMGCell(1,		  j, k);
 			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX, j, k);
 
-			SendSourceXm[(j-1)*2+0] = (cxm.C_value[2]).real();
-			SendSourceXm[(j-1)*2+1] = (cxm.C_value[2]).imag();
-			SendSourceXp[(j-1)*2+0] = (cxp.C_value[2]).real();
-			SendSourceXp[(j-1)*2+1] = (cxp.C_value[2]).imag();
+			SendSourceXm[(j-1)*2+0] = (cxm.C_value[field]).real();
+			SendSourceXm[(j-1)*2+1] = (cxm.C_value[field]).imag();
+
+			SendSourceXp[(j-1)*2+0] = (cxp.C_value[field]).real();
+			SendSourceXp[(j-1)*2+1] = (cxp.C_value[field]).imag();
 		}
 
 		for (i = 1; i<= LayerGridX; i++)
@@ -642,11 +600,22 @@ void Commute::DoPack(int what, int k)
 			MG_Cell &cym = p_Multi->GetMGCell(i,		  1, k);
 			MG_Cell &cyp = p_Multi->GetMGCell(i, LayerGridY, k);
 
-			SendSourceYm[(i-1)*2+0] = (cym.C_value[2]).real();
-			SendSourceYm[(i-1)*2+1] = (cym.C_value[2]).imag();
-			SendSourceYp[(i-1)*2+0] = (cyp.C_value[2]).real();
-			SendSourceYp[(i-1)*2+1] = (cyp.C_value[2]).imag();
+			SendSourceYm[(i-1)*2+0] = (cym.C_value[field]).real();
+			SendSourceYm[(i-1)*2+1] = (cym.C_value[field]).imag();
+			SendSourceYp[(i-1)*2+0] = (cyp.C_value[field]).real();
+			SendSourceYp[(i-1)*2+1] = (cyp.C_value[field]).imag();
 		}
+
+		MG_Cell &Cmm = p_Multi->GetMGCell(1,		  1, k);
+		MG_Cell &Cmp = p_Multi->GetMGCell(1, LayerGridY, k);
+		MG_Cell &Cpm = p_Multi->GetMGCell(LayerGridX, 1, k);
+		MG_Cell &Cpp = p_Multi->GetMGCell(LayerGridX, LayerGridY, k);
+
+		SendSourcemm[0] = Cmm.C_value[field].real();SendSourcemm[1] = Cmm.C_value[field].imag();
+		SendSourcemp[0] = Cmp.C_value[field].real();SendSourcemp[1] = Cmp.C_value[field].imag();
+		SendSourcepm[0] = Cpm.C_value[field].real();SendSourcepm[1] = Cpm.C_value[field].imag();
+		SendSourcepp[0] = Cpp.C_value[field].real();SendSourcepp[1] = Cpp.C_value[field].imag();
+
 		break;
 
 
@@ -838,6 +807,13 @@ void Commute::UnPack(int what, int k)
 		//===================== Unpack Multigird Field ==================
 		//===============================================================
 		case COMMU_MG_P:
+		case COMMU_MG_R:
+
+		int field=0;
+		if(what==COMMU_MG_R) field=2;
+
+		int mu=0;
+		if(what==COMMU_MG_R_C) mu=1;
 
 		p_Multi = p_domain()->p_MG();
 
@@ -848,120 +824,55 @@ void Commute::UnPack(int what, int k)
 		{
 			MG_Cell &cxm = p_Multi->GetMGCell(0,			 j, k);
 			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX+1,  j, k);
-			cxm.M_value[0] = ReceSourceXm[j-1];
-			cxp.M_value[0] = ReceSourceXp[j-1];
+			cxm.M_value[field] = ReceSourceXm[j-1];
+			cxp.M_value[field] = ReceSourceXp[j-1];
 		}
 
 		for (i = 1; i<= LayerGridX; i++)
 		{
 			MG_Cell &cym = p_Multi->GetMGCell(i,			 0, k);
 			MG_Cell &cyp = p_Multi->GetMGCell(i,  LayerGridY+1, k);
-			cym.M_value[0] = ReceSourceYm[i-1];
-			cyp.M_value[0] = ReceSourceYp[i-1];
+			cym.M_value[field] = ReceSourceYm[i-1];
+			cyp.M_value[field] = ReceSourceYp[i-1];
 		}
 
+		MG_Cell &cmm = p_Multi->GetMGCell(0,		  0, k);
+		MG_Cell &cmp = p_Multi->GetMGCell(0, LayerGridY+1, k);
+		MG_Cell &cpm = p_Multi->GetMGCell(LayerGridX+1, 0, k);
+		MG_Cell &cpp = p_Multi->GetMGCell(LayerGridX+1, LayerGridY+1, k);
+
+		cmm.M_value[field]=SendSourcemm[0];
+		cmp.M_value[field]=SendSourcemp[0];
+		cpm.M_value[field]=SendSourcepm[0];
+		cpp.M_value[field]=SendSourcepp[0];
 
 		if (RankIdx_X == 1) 
-		{ for (i = 0; i <= LayerGridY+1; i++) { (p_Multi->GetMGCell(0, 			  i, k)).M_value[0] = 0.0; } };
+		{ for (i = 0; i <= LayerGridY+1; i++) 
+		{ (p_Multi->GetMGCell(0, i, k)).M_value[field]			  = mu*(p_Multi->GetMGCell(1, i, k)).M_value[field]; } };
 
 		if (RankIdx_X == Xpa) 
-		{ for (i = 0; i <= LayerGridY+1; i++) { (p_Multi->GetMGCell(LayerGridX+1, i, k)).M_value[0] = 0.0; } };
+		{ for (i = 0; i <= LayerGridY+1; i++) 
+		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).M_value[field] = mu*(p_Multi->GetMGCell(LayerGridX, i, k)).M_value[field]; } };
 
 		if (RankIdx_Y == 1) 
-		{ for (i = 0; i <= LayerGridX+1; i++) { (p_Multi->GetMGCell(i, 			  0, k)).M_value[0] = 0.0; } };
+		{ for (i = 0; i <= LayerGridX+1; i++) 
+		{ (p_Multi->GetMGCell(i, 0, k)).M_value[field] 			  = mu*(p_Multi->GetMGCell(i, 1, k)).M_value[field]; } };
 
 		if (RankIdx_Y == Ypa) 
-		{ for (i = 0; i <= LayerGridX+1; i++) { (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[0] = 0.0; } };
+		{ for (i = 0; i <= LayerGridX+1; i++)
+		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[field] = mu*(p_Multi->GetMGCell(i, LayerGridY, k)).M_value[field]; } };
 
 		break;
 
 
 		case COMMU_MG_P_C:
-
-		p_Multi = p_domain()->p_MG();
-
-		LayerGridX = p_Multi->GetLayerGridX(k);
-		LayerGridY = p_Multi->GetLayerGridY(k);
-
-		for (j = 1; j<= LayerGridY; j++)
-		{
-			MG_Cell &cxm = p_Multi->GetMGCell(0,			 j, k);
-			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX+1,  j, k);
-			cxm.C_value[0] = ReceSourceXm[(j-1)*2+0]+ci*ReceSourceXm[(j-1)*2+1];
-			cxp.C_value[0] = ReceSourceXp[(j-1)*2+0]+ci*ReceSourceXp[(j-1)*2+1];
-		}
-
-		for (i = 1; i<= LayerGridX; i++)
-		{
-			MG_Cell &cym = p_Multi->GetMGCell(i,			 0, k);
-			MG_Cell &cyp = p_Multi->GetMGCell(i,  LayerGridY+1, k);
-			cym.C_value[0] = ReceSourceYm[(i-1)*2+0]+ci*ReceSourceYm[(i-1)*2+1];
-			cyp.C_value[0] = ReceSourceYp[(i-1)*2+0]+ci*ReceSourceYp[(i-1)*2+1];
-		}
-
-		if (RankIdx_X == 1) 
-		{ for (i = 0; i <= LayerGridY+1; i++) { (p_Multi->GetMGCell(0, 			  i, k)).C_value[0] = 0.0; } };
-
-		if (RankIdx_X == Xpa) 
-		{ for (i = 0; i <= LayerGridY+1; i++) { (p_Multi->GetMGCell(LayerGridX+1, i, k)).C_value[0] = 0.0; } };
-
-		if (RankIdx_Y == 1) 
-		{ for (i = 0; i <= LayerGridX+1; i++) { (p_Multi->GetMGCell(i, 			  0, k)).C_value[0] = 0.0; } };
-
-		if (RankIdx_Y == Ypa) 
-		{ for (i = 0; i <= LayerGridX+1; i++) { (p_Multi->GetMGCell(i, LayerGridY+1, k)).C_value[0] = 0.0; } };
-
-		break;
-
-		//===============================================================
-		//===================== Unpack Multigird Source =================
-		//===============================================================
-		case COMMU_MG_R:
-
-		p_Multi = p_domain()->p_MG();
-
-		LayerGridX = p_Multi->GetLayerGridX(k);
-		LayerGridY = p_Multi->GetLayerGridY(k);
-
-		for (j = 1; j<= LayerGridY; j++)
-		{
-			MG_Cell &cxm = p_Multi->GetMGCell(0,			 j, k);
-			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX+1,  j, k);
-			cxm.M_value[2] = ReceSourceXm[j-1];
-			cxp.M_value[2] = ReceSourceXp[j-1];
-		}
-
-		for (i = 1; i<= LayerGridX; i++)
-		{
-			MG_Cell &cym = p_Multi->GetMGCell(i,			 0, k);
-			MG_Cell &cyp = p_Multi->GetMGCell(i,  LayerGridY+1, k);
-			cym.M_value[2] = ReceSourceYm[i-1];
-			cyp.M_value[2] = ReceSourceYp[i-1];
-		}
-
-
-
-		if (RankIdx_X == 1) 
-		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(0, i, k)).M_value[2]			  = (p_Multi->GetMGCell(1, i, k)).M_value[2]; } };
-
-		if (RankIdx_X == Xpa) 
-		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).M_value[2] = (p_Multi->GetMGCell(LayerGridX, i, k)).M_value[2]; } };
-
-		if (RankIdx_Y == 1) 
-		{ for (i = 0; i <= LayerGridX+1; i++) 
-		{ (p_Multi->GetMGCell(i, 0, k)).M_value[2] 			  = (p_Multi->GetMGCell(i, 1, k)).M_value[2]; } };
-
-		if (RankIdx_Y == Ypa) 
-		{ for (i = 0; i <= LayerGridX+1; i++)
-		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[2] = (p_Multi->GetMGCell(i, LayerGridY, k)).M_value[2]; } };
-
-		break;
-
-
 		case COMMU_MG_R_C:
 
+		field=0;
+		if(what==COMMU_MG_R_C) field=2;
+		mu=0;
+		if(what==COMMU_MG_R_C) mu=1;
+
 		p_Multi = p_domain()->p_MG();
 
 		LayerGridX = p_Multi->GetLayerGridX(k);
@@ -971,39 +882,46 @@ void Commute::UnPack(int what, int k)
 		{
 			MG_Cell &cxm = p_Multi->GetMGCell(0,			 j, k);
 			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX+1,  j, k);
-			cxm.C_value[2] = ReceSourceXm[(j-1)*2+0]+ci*ReceSourceXm[(j-1)*2+1];
-			cxp.C_value[2] = ReceSourceXp[(j-1)*2+0]+ci*ReceSourceXp[(j-1)*2+1];
+			cxm.C_value[field] = ReceSourceXm[(j-1)*2+0]+ci*ReceSourceXm[(j-1)*2+1];
+			cxp.C_value[field] = ReceSourceXp[(j-1)*2+0]+ci*ReceSourceXp[(j-1)*2+1];
 		}
 
 		for (i = 1; i<= LayerGridX; i++)
 		{
 			MG_Cell &cym = p_Multi->GetMGCell(i,			 0, k);
 			MG_Cell &cyp = p_Multi->GetMGCell(i,  LayerGridY+1, k);
-			cym.C_value[2] = ReceSourceYm[(i-1)*2+0]+ci*ReceSourceYm[(i-1)*2+1];
-			cyp.C_value[2] = ReceSourceYp[(i-1)*2+0]+ci*ReceSourceYp[(i-1)*2+1];
+			cym.C_value[field] = ReceSourceYm[(i-1)*2+0]+ci*ReceSourceYm[(i-1)*2+1];
+			cyp.C_value[field] = ReceSourceYp[(i-1)*2+0]+ci*ReceSourceYp[(i-1)*2+1];
 		}
 
+		MG_Cell &Cmm = p_Multi->GetMGCell(0,		  0, k);
+		MG_Cell &Cmp = p_Multi->GetMGCell(0, LayerGridY+1, k);
+		MG_Cell &Cpm = p_Multi->GetMGCell(LayerGridX+1, 0, k);
+		MG_Cell &Cpp = p_Multi->GetMGCell(LayerGridX+1, LayerGridY+1, k);
 
+		Cmm.C_value[field]=SendSourcemm[0]+ci*SendSourcemm[1];
+		Cmp.C_value[field]=SendSourcemp[0]+ci*SendSourcemp[1];
+		Cpm.C_value[field]=SendSourcepm[0]+ci*SendSourcepm[1];
+		Cpp.C_value[field]=SendSourcepp[0]+ci*SendSourcepp[1];
 
 		if (RankIdx_X == 1) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(0, i, k)).C_value[2]			  = (p_Multi->GetMGCell(1, i, k)).C_value[2]; } };
+		{ (p_Multi->GetMGCell(0, i, k)).C_value[field]			  = mu*(p_Multi->GetMGCell(1, i, k)).C_value[field]; } };
 
 		if (RankIdx_X == Xpa) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).C_value[2] = (p_Multi->GetMGCell(LayerGridX, i, k)).C_value[2]; } };
+		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).C_value[field] = mu*(p_Multi->GetMGCell(LayerGridX, i, k)).C_value[field]; } };
 
 		if (RankIdx_Y == 1) 
 		{ for (i = 0; i <= LayerGridX+1; i++) 
-		{ (p_Multi->GetMGCell(i, 0, k)).C_value[2] 			  = (p_Multi->GetMGCell(i, 1, k)).C_value[2]; } };
+		{ (p_Multi->GetMGCell(i, 0, k)).C_value[field] 			  = mu*(p_Multi->GetMGCell(i, 1, k)).C_value[field]; } };
 
 		if (RankIdx_Y == Ypa) 
 		{ for (i = 0; i <= LayerGridX+1; i++)
-		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).C_value[2] = (p_Multi->GetMGCell(i, LayerGridY, k)).C_value[2]; } };
-
+		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).C_value[field] = mu*(p_Multi->GetMGCell(i, LayerGridY, k)).C_value[field]; } };
 		break;
 
-
+	
 	}
 
 

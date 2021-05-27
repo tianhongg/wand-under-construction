@@ -860,7 +860,7 @@ switch(where)
 
 
 // Four type prolongation
-void MultiGrid::Prolongation(int send, int rece, int tolayer, int where) //?
+void MultiGrid::Prolongation(int send, int rece, int tolayer, int where) //v
 {
 
 	int i,j;
@@ -1298,12 +1298,15 @@ void MultiGrid::Relaxation(int field, int layer, int where) //v
 
 
 
-void MultiGrid::Residual(int field, int layer, int where)
+void MultiGrid::Residual(int field, int layer, int where) //v
 {
 
 	int i,j;
 	int nx,ny, amp;
 
+
+	double hxp,hxm,hxa;
+	double hyp,hym,hya;
 
 // switch(where)
 // {
@@ -1323,14 +1326,23 @@ void MultiGrid::Residual(int field, int layer, int where)
 			MG_Cell &cym = GetMGCell(i, j-1, layer);
 			MG_Cell &cyp = GetMGCell(i, j+1, layer);
 
-			ccc.M_value[2]=ccc.M_value[1]-(cxm.field+cxp.field
-			+cym.field+cyp.field-(4+ccc.M_value[4]*amp)*ccc.field)/amp;
+			hxp=(cxp.dx+ccc.dx)*0.5;
+			hxm=(ccc.dx+cxm.dx)*0.5;
+			hxa=hxp+hxm;
+
+			hyp=(cyp.dy+ccc.dy)*0.5;
+			hym=(ccc.dy+cym.dy)*0.5;
+			hya=hyp+hym;
+
+			ccc.M_value[2]=ccc.M_value[1]-
+			( 
+				(cxm.M_value[0]/hxm/hxa+cxp.M_value[0]/hxp/hxa+cym.M_value[0]/hym/hya+cyp.M_value[0]/hyp/hya)*2
+				-(2.0/hxm/hxp+2.0/hym/hyp+ccc.M_value[4])*ccc.M_value[0]
+			);
 		}
 
 	}
 	// break;
-
-
 // 	case 1:
 
 // 	for (j=1; j<=BLayerGrid[layer]; j++)
@@ -1432,37 +1444,12 @@ void MultiGrid::Exchange(int what, int layer)
 			break;
 
 	}
-
-
-	//adjust corner cell;
-	if(what == 2)
-	{
-
-		MG_Cell &cmm = GetMGCell(0, 0, layer);
-		cmm.M_value[what] = (GetMGCell(0, 1, layer).M_value[what] 
-							+GetMGCell(1, 0, layer).M_value[what])*0.5;
-
-		MG_Cell &cpm = GetMGCell(LayerGridX[layer]+1, 0, layer);
-		cpm.M_value[what] = (GetMGCell(LayerGridX[layer]+1, 1, layer).M_value[what] 
-							+GetMGCell(LayerGridX[layer],   0, layer).M_value[what])*0.5;
-
-		MG_Cell &cmp = GetMGCell(0, LayerGridY[layer]+1, layer);
-		cmp.M_value[what] = (GetMGCell(0, LayerGridY[layer],   layer).M_value[what] 
-							+GetMGCell(1, LayerGridY[layer]+1, layer).M_value[what])*0.5;
-
-		MG_Cell &cpp = GetMGCell(LayerGridX[layer]+1, LayerGridY[layer]+1, layer);
-		cpp.M_value[what] = (GetMGCell(LayerGridX[layer],   LayerGridY[layer]+1, layer).M_value[what] 
-							+GetMGCell(LayerGridX[layer]+1, LayerGridY[layer],   layer).M_value[what])*0.5;
-	}
-
-	
-
 	return;
 }
 
 
 
-void MultiGrid::AddCorrection(int layer, int where)
+void MultiGrid::AddCorrection(int layer, int where)//v
 {	
 
 	int i,j;
@@ -1486,9 +1473,7 @@ void MultiGrid::AddCorrection(int layer, int where)
 		}
 
 	}
-
 	// break;
-
 	// case 1:
 
 	// for (j=1; j<=BLayerGrid[layer]; j++)
@@ -1629,7 +1614,7 @@ void MultiGrid::Put_Source(int field, double k0, int k) //v
 
 
 
-void MultiGrid::Put_Fields(int field, int k)
+void MultiGrid::Put_Fields(int field, int k)//v
 {
 
 	int i,j;
@@ -1812,9 +1797,7 @@ while(eps > EpsLim*maxall)
 		if (Rank==0)  std::cout <<"==== Multigrid: Equation Type: "<<field<< " Failed To Converge at k(z) ="<<k<<'\n';
 		return 1;
 	}
-
 }
-
 
 //============================================================
 //==============   Put Solution Back to Cell         =========

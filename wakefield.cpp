@@ -532,7 +532,7 @@ void Mesh::Pondermotive(int k)//v
 
 	for (j=0; j<=GridY+1; j+=GridY+1)
 	{
-		for (i=0; i<=GridX+1; i+=GridX+1)
+		for (i=0; i<=GridX+1; i+=1)
 		{
 			Cell &c = GetCell(i, j, k);
 			c.W_Asq = 0.0;
@@ -544,6 +544,20 @@ void Mesh::Pondermotive(int k)//v
 
 	}
 
+
+	for (j=0; j<=GridY+1; j+=1)
+	{
+		for (i=0; i<=GridX+1; i+=GridX+1)
+		{
+			Cell &c = GetCell(i, j, k);
+			c.W_Asq = 0.0;
+			for (NF=0; NF<NFreqs; NF++)
+			{
+ 				c.W_Asq += abs(c.Acomx[NF])*abs(c.Acomx[NF]) + abs(c.Acomy[NF])*abs(c.Acomy[NF]);
+			}		
+		}
+
+	}
 
 			
 
@@ -563,8 +577,8 @@ void Mesh::AdjustFields(int k) //?
 		Cell &c1 = GetCell( 1,0,k);
 		Cell &c2 = GetCell( 0,1,k);
 		Cell &c3 = GetCell( 1,1,k);
-		for (i=0; i<WAK_DIM-WAK_DIM2; i++)
-		{ c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
+		// for (i=0; i<WAK_DIM-WAK_DIM2; i++)
+		// { c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
 		  c.W_Asq=c1.W_Asq*0.4+c2.W_Asq*0.4+c3.W_Asq*0.2;
 	}
 
@@ -576,8 +590,8 @@ void Mesh::AdjustFields(int k) //?
 		Cell c1 = GetCell( 1,GridY+1,k);
 		Cell c2 = GetCell( 0,GridY,k);
 		Cell c3 = GetCell( 1,GridY,k);
-		for (i=0; i<WAK_DIM-WAK_DIM2; i++)
-		{ c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
+		// for (i=0; i<WAK_DIM-WAK_DIM2; i++)
+		// { c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
 		  c.W_Asq=c1.W_Asq*0.4+c2.W_Asq*0.4+c3.W_Asq*0.2;
 	}
 
@@ -589,8 +603,8 @@ void Mesh::AdjustFields(int k) //?
 		Cell c1 = GetCell( GridX,  0,k);
 		Cell c2 = GetCell( GridX+1,1,k);
 		Cell c3 = GetCell( GridX,  1,k);
-		for (i=0; i<WAK_DIM-WAK_DIM2; i++)
-		{ c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
+		// for (i=0; i<WAK_DIM-WAK_DIM2; i++)
+		// { c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
 		  c.W_Asq=c1.W_Asq*0.4+c2.W_Asq*0.4+c3.W_Asq*0.2;
 	}
 
@@ -601,8 +615,8 @@ void Mesh::AdjustFields(int k) //?
 		Cell c1 = GetCell( GridX,  GridY+1,k);
 		Cell c2 = GetCell( GridX+1,GridY,k);
 		Cell c3 = GetCell( GridX,  GridY,k);
-		for (i=0; i<WAK_DIM-WAK_DIM2; i++)
-		{ c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
+		// for (i=0; i<WAK_DIM-WAK_DIM2; i++)
+		// { c.W_Fields[i] = c1.W_Fields[i]*0.4+c2.W_Fields[i]*0.4+c3.W_Fields[i]*0.2 ; }
 		  c.W_Asq=c1.W_Asq*0.4+c2.W_Asq*0.4+c3.W_Asq*0.2;
 	}
 	return;

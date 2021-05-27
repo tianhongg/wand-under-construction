@@ -234,7 +234,7 @@ void Mesh::PushTrajectory_HalfE(int k)
 		//==========================================
 		//=========== Adapteive Z Step =============
 		double Vr = sqrt(Vxp*Vxp+Vyp*Vyp);
-		if(AdaptiveStep>0 & Vr >=Vlim*AdaptiveStep)
+		if(AdaptiveStep>0 && Vr >=Vlim*AdaptiveStep)
 		{
 			Vxp = Vlim*AdaptiveStep*Vxp/Vr;
 			Vyp = Vlim*AdaptiveStep*Vyp/Vr;
@@ -252,8 +252,8 @@ void Mesh::PushTrajectory_HalfE(int k)
 
 		p = p->p_PrevTraj;
 
-		double Vrr=sqrt(Vxp*Vxp+Vyp*Vyp);
-		Vmax = std::max(Vmax, Vrr*dz/sqrt(ccc.dx*ccc.dx+ccc.dy*ccc.dy)); // how many grids it can cross
+		double Vrr=std::max(abs(Vxp)*dz/ccc.dx,abs(Vyp)*dz/ccc.dy);
+		Vmax = std::max(Vmax, Vrr); // how many grids it can cross
 
 	}
 	return;

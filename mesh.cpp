@@ -36,8 +36,8 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 
 	Rank = p_domain()->p_Partition()->Get_Rank();
 
-	// dx = p_domain()->Get_dx();
-	// dy = p_domain()->Get_dy();
+	dx = p_domain()->Get_dx();
+	dy = p_domain()->Get_dy();
 
 	dz = p_domain()->Get_dz();
 	dt = p_domain()->Get_dt();
@@ -253,8 +253,6 @@ void Mesh::SeedTrajectory()
 	}
 
 	// fclose (dFile);
-
-
 	Vlim=V_thresh*dx/dz;
 	Vmax=0.0;
 	SetIonDensity();

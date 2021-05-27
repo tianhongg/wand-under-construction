@@ -267,7 +267,7 @@ int Domain:: PushWakeFieldsEz(double k0, int k)
    if( (ierr = p_Multi  -> MG_V_cycle(1, k0, k)) )  return 1;
    //==== Ez Exchanged After MG======
    //================================
-   p_Meshes ->AdjustFields(k);
+   // p_Meshes ->AdjustFields(k);
    return 0;
 }
 
@@ -296,7 +296,7 @@ int Domain:: PushWakeFieldsB(double k0, int k)
    //==== By Exchanged After MG======
 
    //======== Exchange Wakefield  ===
-   p_Meshes ->AdjustFields(k);
+   // p_Meshes ->AdjustFields(k);
 
    return 0;
 }

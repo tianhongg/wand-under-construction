@@ -490,6 +490,18 @@ double Domain::CustomGrid(double r)
          return dx/( (dxRefine-1.0)*exp(-pow(r/delta,order))+1.0);
       break;
 
+
+      case 3:
+         if(order<0) order=0;
+         if(dxRefine<1) dxRefine=1;
+         if(delta<=0) delta=1;
+         if(r>Xmax/2) return dx;
+
+         return (dx-dx/dxRefine)*r/(Xmax/2)+dx/dxRefine;
+
+      break;
+
+
    }
 
    return 0;
