@@ -34,7 +34,7 @@
 #define BEA_DIM 5
 #define SOU_DIM 6
 #define SDT_DIM 13  // x-y-z-x0-y0-z0-vx-vy-old_x-old_y-old_vx-old_vy-sx-sy
-#define SDP_DIM 21
+#define SDP_DIM 23
 #define WAK_DIM2 4
 
 

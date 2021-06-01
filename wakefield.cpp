@@ -90,8 +90,8 @@ void Mesh::MacroSource(int k) //v
 		ddx=ccc.dx;
 		ddy=ccc.dy;
 
-		sx=ddx/TpCellx;  //- re-size
-		sy=ddy/TpCelly;  //- re-size
+		sx=ddx;  //- re-size to make the results more smooth
+		sy=ddy;  //- re-size
 
 		massweig *= (p->sx)*(p->sy)/sx/sy; // re-weight
 

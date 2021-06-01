@@ -38,9 +38,7 @@ Particle::Particle(double x0p,  double y0p,  double z0p,
 	unitm = 1.0;	gamma=sqrt(1+px*px+py*py+pz*pz);
 	
 	Wxw = Wyw = Wzw = Wxl = Wyl = Wzl=0.0;
-
 	p_PrevPart = p_NextPart = NULL;
-
 	p_domain()->p_Mesh()->AddParticle(this);
 }
 
@@ -316,7 +314,7 @@ void Mesh::SeedParticles(Specie *specie)
 
 						Den = (specie->density)*specie->Density(x0, y0, z0);
 						
-						wtemp=c.dx*c.dy/(specie->PpCellx)/(specie->PpCelly)/(specie->PpCellz);
+						// wtemp=c.dx*c.dy/(specie->PpCellx)/(specie->PpCelly)/(specie->PpCellz);
 
 						if(Den>0) 
 						{
@@ -327,7 +325,7 @@ void Mesh::SeedParticles(Specie *specie)
 							{
 								case ELECTRON:
 									q2m = specie->p_q2m;
-									weight = Den*wtemp;
+									weight = Den/(specie->PpCellz);
 									px = specie->P_px0 + rand_gaussian (specie->pxspread);
 									py = specie->P_py0 + rand_gaussian (specie->pyspread);
 									pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
@@ -335,11 +333,13 @@ void Mesh::SeedParticles(Specie *specie)
 									p = new Electron(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
 									p->idx_i=i;
 									p->idx_j=j;
+									p->sx=dxp;
+									p->sy=dyp;
 								break;
 
 								case ION:
 									q2m = specie->p_q2m;
-									weight = Den*wtemp;
+									weight = Den/(specie->PpCellz);
 									px = specie->P_px0 + rand_gaussian (specie->pxspread);
 									py = specie->P_py0 + rand_gaussian (specie->pyspread);
 									pz = specie->P_pz0 + rand_gaussian (specie->pzspread);
@@ -347,6 +347,8 @@ void Mesh::SeedParticles(Specie *specie)
 									p = new Ion(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
 									p->idx_i=i;
 									p->idx_j=j;
+									p->sx=dxp;
+									p->sy=dyp;
 								break;
 
 							}
@@ -373,7 +375,7 @@ void Mesh::SeedParticles(Specie *specie)
 
 
 
-void Mesh::BeamSource()
+void Mesh::BeamSource()//v
 {
 
 	Particle *p = NULL;
@@ -382,22 +384,18 @@ void Mesh::BeamSource()
 	double ddy;
 	double ddz;
 
+	double sx,sy;
+
 	double xt;
 	double yt;
 	double zt;
 
 	double q2m, massweig, Q;
 
-	double weight[8];
-	Cell  *ccc = NULL;
+	Cell  **c = new Cell*[18];
+	double weight[18];
 
-	double dxdy = dx*dy;
 	int i,j,k;
-	int Xpa  = p_domain()->p_Partition()->GetXpart();
-	int Ypa  = p_domain()->p_Partition()->GetYpart();
-
-	double Xmax = Offset_X+GridX*dx;
-	double Ymax = Offset_Y+GridY*dy;
 
 	SetBSourceZero();
 	
@@ -413,102 +411,91 @@ void Mesh::BeamSource()
 		Q   = p->Q;
 		massweig = p->weight;
 
-		ddx = xt-(Offset_X-dx*0.5);
-		ddy = yt-(Offset_Y-dy*0.5);
 		ddz = zt;
-
-		// idex of the corner cell
-		i = floor(ddx/dx);
-		j = floor(ddy/dy);
+		i = p->idx_i;
+		j = p->idx_j;
 		k = floor(ddz/dz);
 
 		//=================================================
 		//============Trajectory Outside Boundary =========
 		//=================================================
-		if(i < 0 || i > GridX || j < 0 || j > GridY || k < 0 || k > GridZ-2 )
+		if(i < 1 || i > GridX || j < 1 || j > GridY || k < 0 || k > GridZ-2 )
 		{
 			p = p->p_PrevPart;
 			continue;
 		}
-		//==================================================
 
-		weight[0] = (i+1-ddx/dx) *(j+1-ddy/dy) *(k+1-ddz/dz);
-		weight[1] = (i+1-ddx/dx) *(ddy/dy-j)   *(k+1-ddz/dz);
-		weight[2] = (ddx/dx-i)   *(j+1-ddy/dy) *(k+1-ddz/dz);
-		weight[3] = (ddx/dx-i)   *(ddy/dy-j)   *(k+1-ddz/dz);
+		c[0] = &GetCell(i-1,j-1,k); c[9] =  &GetCell(i-1,j-1,k+1);
+		c[1] = &GetCell(i-1,j  ,k); c[10] = &GetCell(i-1,j  ,k+1);
+		c[2] = &GetCell(i-1,j+1,k); c[11] = &GetCell(i-1,j+1,k+1);
 
-		weight[4] = (i+1-ddx/dx) *(j+1-ddy/dy) *(ddz/dz-k);
-		weight[5] = (i+1-ddx/dx) *(ddy/dy-j)   *(ddz/dz-k);
-		weight[6] = (ddx/dx-i)   *(j+1-ddy/dy) *(ddz/dz-k);
-		weight[7] = (ddx/dx-i)   *(ddy/dy-j)   *(ddz/dz-k);
+		c[3] = &GetCell(i,  j-1,k); c[12] = &GetCell(i,  j-1,k+1);
+		c[4] = &GetCell(i,  j  ,k); c[13] = &GetCell(i,  j  ,k+1);
+		c[5] = &GetCell(i,  j+1,k); c[14] = &GetCell(i,  j+1,k+1);
 		
-		for (int n=0; n<8; n++)
-		{
-			switch(n)
-			{
-				case 0:  ccc = &GetCell(i,   j,   k);   break;//cmmm
-				case 1:  ccc = &GetCell(i,   j+1, k);   break;//cmpm
-				case 2:  ccc = &GetCell(i+1, j,   k);   break;//cpmm
-				case 3:  ccc = &GetCell(i+1, j+1, k);   break;//cppm
-				case 4:  ccc = &GetCell(i,   j,   k+1); break;//cmmp
-				case 5:  ccc = &GetCell(i,   j+1, k+1); break;//cmpp
-				case 6:  ccc = &GetCell(i+1, j,   k+1); break;//cpmp
-				case 7:  ccc = &GetCell(i+1, j+1, k+1); break;//cppp
-			}
+		c[6] = &GetCell(i+1,j-1,k); c[15] = &GetCell(i+1,j-1,k+1);
+		c[7] = &GetCell(i+1,j  ,k); c[16] = &GetCell(i+1,j  ,k+1);
+		c[8] = &GetCell(i+1,j+1,k); c[17] = &GetCell(i+1,j+1,k+1);
 
-			ccc -> W_Source[6]  += massweig * weight[n] * Q; //density
-			ccc -> W_Source[7]  += massweig * weight[n] * Q * (p->px)/(p->gamma); //jx
-			ccc -> W_Source[8]  += massweig * weight[n] * Q * (p->py)/(p->gamma); //jy
-			ccc -> W_Source[9]  += massweig * weight[n] * Q * (p->pz)/(p->gamma); //jz
-			ccc -> W_Source[10] += massweig * weight[n] * abs(Q*q2m) /(p->gamma); //chi
+		Cell &ccc= *c[4];
+
+		ddx=ccc.dx;
+		ddy=ccc.dy;
+
+		sx=ddx;  //- re-size
+		sy=ddy;  //- re-size
+
+		massweig *= (p->sx)*(p->sy)/sx/sy; // re-weight
+
+		double deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
+		double deltaym=std::max(sy*0.5-(ddy*0.5+yt-ccc.Ycord),0.0);
+
+		double deltaxp=std::max(sx*0.5-(ddx*0.5-xt+ccc.Xcord),0.0);
+		double deltayp=std::max(sy*0.5-(ddy*0.5-yt+ccc.Ycord),0.0);
+
+		double deltaxc=sx-deltaxm-deltaxp;
+		double deltayc=sy-deltaym-deltayp;
+
+		double deltaz=(ddz/dz-k);
+		
+		weight[0] = deltaxm*deltaym/c[0]->dx/c[0]->dy;
+		weight[1] = deltaxm*deltayc/c[1]->dx/c[1]->dy;
+		weight[2] = deltaxm*deltayp/c[2]->dx/c[2]->dy;
+
+		weight[3] = deltaxc*deltaym/c[3]->dx/c[3]->dy;
+		weight[4] = deltaxc*deltayc/c[4]->dx/c[4]->dy;
+		weight[5] = deltaxc*deltayp/c[5]->dx/c[5]->dy;
+
+		weight[6] = deltaxp*deltaym/c[6]->dx/c[6]->dy;
+		weight[7] = deltaxp*deltayc/c[7]->dx/c[7]->dy;
+		weight[8] = deltaxp*deltayp/c[8]->dx/c[8]->dy;
+
+		for(int n=0;n<9;n++)
+		{
+			weight[n+9]=weight[n]*deltaz;
+			weight[n] *=(1-deltaz);
+		}
+		for (int n=0; n<18; n++)
+		{
+			c[n] -> W_Source[6]  += massweig * weight[n] * Q; //density
+			c[n] -> W_Source[7]  += massweig * weight[n] * Q * (p->px)/(p->gamma); //jx
+			c[n] -> W_Source[8]  += massweig * weight[n] * Q * (p->py)/(p->gamma); //jy
+			c[n] -> W_Source[9]  += massweig * weight[n] * Q * (p->pz)/(p->gamma); //jz
+			c[n] -> W_Source[10] += massweig * weight[n] * abs(Q*q2m) /(p->gamma); //chi
 
 		}
 		p = p->p_PrevPart;
 
 	}
 
-	AdjustBSource();
-
 	return;
 
 }
 
+//deprecated//May-27-tianhong
 void Mesh::AdjustBSource()
 {
-	int Xpa = p_domain()->p_Partition()->GetXpart();
-	int Ypa = p_domain()->p_Partition()->GetYpart();
-
-	for(int k=0; k<GridZ; k++)
-	{
-
-		//=====mm-corner======================
-		Cell &c1  = GetCell( 1,1,k);
-		Cell &co1 = GetCell( 0,0,k);
-
-		for (int i=SOU_DIM; i<SOU_DIM+BEA_DIM; i++)
-		{ c1.W_Source[i] += co1.W_Source[i]; }
-
-		//=====mp-corner======================
-		Cell &c2  = GetCell( 1,GridY,k);
-		Cell &co2 = GetCell( 0,GridY+1,k);
-
-		for (int i=SOU_DIM; i<SOU_DIM+BEA_DIM; i++)
-		{ c2.W_Source[i] += co2.W_Source[i]; }
-
-		//=====pm-corner======================
-		Cell &c3  = GetCell( GridX,1,k);
-		Cell &co3 = GetCell( GridX+1,0,k);
-
-		for (int i=SOU_DIM; i<SOU_DIM+BEA_DIM; i++)
-		{ c3.W_Source[i] += co3.W_Source[i]; }
-
-		//=====pp-corner======================
-		Cell &c4  = GetCell( GridX,GridY,k);
-		Cell &co4 = GetCell( GridX+1,GridY+1,k);
-
-		for (int i=SOU_DIM; i<SOU_DIM+BEA_DIM; i++)
-		{	c4.W_Source[i] += co4.W_Source[i]; }
-	}
+	
 	return;
 
 }

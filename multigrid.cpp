@@ -820,7 +820,6 @@ void MultiGrid::RestrictionB(int send, int rece, int tolayer, int where)//?
 int i,j;
 switch(where)
 {
-
 	case 0:
 	for(j=1; j<=LayerGridY[tolayer]; j++)
 	{
@@ -829,7 +828,6 @@ switch(where)
 
 			MG_Cell &mgc = GetMGCell(i,j,tolayer);
 			mgc.M_value[rece] = (mgc.p_Res_cc)->M_value[send];
-			
 		}
 
 	}
@@ -841,12 +839,8 @@ switch(where)
 	{
 		for(i=1; i<=BLayerGrid[tolayer]; i++)
 		{
-
 			MG_Cell &mgc = GetMGBCell(i,j,tolayer);
-
 			mgc.M_value[rece] = (mgc.p_Res_cc)->M_value[send];
-
-
 		}
 
 	}
@@ -859,11 +853,11 @@ switch(where)
 }
 
 
-// Four type prolongation
 void MultiGrid::Prolongation(int send, int rece, int tolayer, int where) //v
 {
 
 	int i,j;
+	double dxm, dxp, dym, dyp;
 
 switch(where)
 {
@@ -883,20 +877,28 @@ switch(where)
 					break;
 
 				case 1: 
-					mgc.M_value[rece] = ((mgc.p_Pro_xm)->M_value[send]
-										+(mgc.p_Pro_xp)->M_value[send])*0.5;
+					dxm=mgc.p_Pro_xm->dx;
+					dxp=mgc.p_Pro_xp->dx;
+					mgc.M_value[rece] = ((mgc.p_Pro_xm)->M_value[send]*dxp
+										+(mgc.p_Pro_xp)->M_value[send]*dxm)/(dxm+dxp);
 					break;
 					
 				case 2: 
-					mgc.M_value[rece] = ((mgc.p_Pro_ym)->M_value[send]
-										+(mgc.p_Pro_yp)->M_value[send])*0.5;
-
+					dym=mgc.p_Pro_ym->dy;
+					dyp=mgc.p_Pro_yp->dy;
+					mgc.M_value[rece] = ((mgc.p_Pro_ym)->M_value[send]*dyp
+										+(mgc.p_Pro_yp)->M_value[send]*dym)/(dym+dyp);
 					break;
 
 				case 3: 
-					mgc.M_value[rece] =			  ((mgc.p_Pro_xm)->M_value[send]
-					+(mgc.p_Pro_xp)->M_value[send]+(mgc.p_Pro_ym)->M_value[send]
-					+(mgc.p_Pro_yp)->M_value[send])*0.25;
+					dxm=mgc.p_Pro_xm->dx;
+					dxp=mgc.p_Pro_xp->dx;
+					dym=mgc.p_Pro_ym->dy;
+					dyp=mgc.p_Pro_yp->dy;
+
+					mgc.M_value[rece] = ((mgc.p_Pro_xm)->M_value[send]*dxp*dyp
+					+(mgc.p_Pro_xp)->M_value[send]*dxm*dyp+(mgc.p_Pro_ym)->M_value[send]*dxp*dym
+					+(mgc.p_Pro_yp)->M_value[send]*dxm*dym)/(dxm+dxp)/(dym+dyp);
 					break;
 
 			}
@@ -957,6 +959,7 @@ switch(where)
 
 	return;
 }
+
 
 
 //deprecated//May-25-tianhong
@@ -1222,9 +1225,13 @@ void MultiGrid::Relaxation(int field, int layer, int where) //v
 
 	int i,j;
 	int nx,ny, amp;
-	double hxp,hxm,hxa;
-	double hyp,hym,hya;
 
+	double hxp,hxm,hxa,hxd,h2x;
+	double hyp,hym,hya,hyd,h2y;
+
+	double wcc,wxm,wxp,wym,wyp,wmm,wmp,wpm,wpp;
+	double d2xS, d2yS, dxS, dyS;
+	double kcc,kxm,kxp,kym,kyp;
 
 	switch(RelaxType)
 	{
@@ -1232,40 +1239,74 @@ void MultiGrid::Relaxation(int field, int layer, int where) //v
 	// case 0: Hybird Gauss-Siedel Relaxation
 	// case 1: Red-Black Relaxation
 	// case 2: 
-		case 0:
-		default:
-		nx=LayerGridX[layer];
-		ny=LayerGridY[layer];
+	case 0:
+	default:
+	nx=LayerGridX[layer];
+	ny=LayerGridY[layer];
 		// amp=MeshAmplif[layer];
 
 			//Exchange boundary conditions;
 			
 			// case 0: Hybird Gauss-Shield Relaxatio
 
-			for (j=1; j<=ny; j++)
-			{
-				for (i=1; i<=nx; i++)
-				{
-					MG_Cell &ccc = GetMGCell(i,   j, layer);
-					MG_Cell &cxm = GetMGCell(i-1, j, layer);
-					MG_Cell &cxp = GetMGCell(i+1, j, layer);
-					MG_Cell &cym = GetMGCell(i, j-1, layer);
-					MG_Cell &cyp = GetMGCell(i, j+1, layer);
+	for (j=1; j<=ny; j++)
+	{
+		for (i=1; i<=nx; i++)
+		{
+			
+			MG_Cell &ccc = GetMGCell(i,   j, layer);
 
-					hxp=(cxp.dx+ccc.dx)*0.5;
-					hxm=(ccc.dx+cxm.dx)*0.5;
-					hxa=hxp+hxm;
+			MG_Cell &cxm = GetMGCell(i-1, j, layer);
+			MG_Cell &cxp = GetMGCell(i+1, j, layer);
+			MG_Cell &cym = GetMGCell(i, j-1, layer);
+			MG_Cell &cyp = GetMGCell(i, j+1, layer);
 
-					hyp=(cyp.dy+ccc.dy)*0.5;
-					hym=(ccc.dy+cym.dy)*0.5;
-					hya=hyp+hym;
+			MG_Cell &cmm = GetMGCell(i-1, j-1, layer);
+			MG_Cell &cmp = GetMGCell(i-1, j+1, layer);
+			MG_Cell &cpm = GetMGCell(i+1, j-1, layer);
+			MG_Cell &cpp = GetMGCell(i+1, j+1, layer);
 
-					ccc.M_value[0]=(1-omega)*ccc.M_value[0]+omega*(
-						(cxm.M_value[0]/hxm/hxa+cxp.M_value[0]/hxp/hxa+cym.M_value[0]/hym/hya+cyp.M_value[0]/hyp/hya)*2
-						-ccc.M_value[1])/(2.0/hxm/hxp+2.0/hym/hyp+ccc.M_value[4]);
-				}
+			hxp=(cxp.dx+ccc.dx)*0.5;
+			hxm=(ccc.dx+cxm.dx)*0.5;
+			hxa=hxp+hxm; hxd=hxp-hxm;
+			h2x=hxa*hxa-hxp*hxm*3;
 
-			}
+			hyp=(cyp.dy+ccc.dy)*0.5;
+			hym=(ccc.dy+cym.dy)*0.5;
+			hya=hyp+hym; hyd=hyp-hym;
+			h2y=hya*hya-hyp*hym*3;
+
+			kcc=ccc.M_value[4];
+			kxm=cxm.M_value[4];
+			kxp=cxp.M_value[4];
+			kym=cym.M_value[4];
+			kyp=cyp.M_value[4];
+
+			wmm = (h2x + h2y - 2*hxd*hxp - 2*hyd*hyp)/(3*hxa*hxm*hya*hym);
+			wmp = (h2x + h2y - 2*hxd*hxp + 2*hyd*hym)/(3*hxa*hxm*hya*hyp);
+			wpm = (h2x + h2y + 2*hxd*hxm - 2*hyd*hyp)/(3*hxa*hxp*hya*hym);
+			wpp = (h2x + h2y + 2*hxd*hxm + 2*hyd*hym)/(3*hxa*hxp*hya*hyp);
+
+			wxm = -( 2*h2y-4*(hyd*hyd+3*hym*hyp) + (h2x-2*hxd*hxp)*(2+hym*hyp*kxm) )/(6*hxa*hxm*hym*hyp);
+			wxp = -( 2*h2y-4*(hyd*hyd+3*hym*hyp) + (h2x+2*hxd*hxm)*(2+hym*hyp*kxp) )/(6*hxa*hxp*hym*hyp);
+			wym = -( 2*h2x-4*(hxd*hxd+3*hxm*hxp) + (h2y-2*hyd*hyp)*(2+hxm*hxp*kym) )/(6*hxm*hxp*hya*hym);
+			wyp = -( 2*h2x-4*(hxd*hxd+3*hxm*hxp) + (h2y+2*hyd*hym)*(2+hxm*hxp*kyp) )/(6*hxm*hxp*hya*hyp);
+
+			wcc = ( h2y*(-2+hxm*hxp*kcc) + h2x*(-2+hym*hyp*kcc) - 2*(hym*hyp*(4+hxd*hxd*kcc) + hxm*hxp*(4+hyd*hyd*kcc)) )/(6*hxm*hxp*hym*hyp);
+
+			dxS = (cxp.M_value[1]-ccc.M_value[1])*hxm/hxp/hxa + (ccc.M_value[1]-cxm.M_value[1])*hxp/hxm/hxa;
+			dyS = (cyp.M_value[1]-ccc.M_value[1])*hym/hyp/hya + (ccc.M_value[1]-cym.M_value[1])*hyp/hym/hya;
+
+			d2xS = (hxm*cxp.M_value[1]-hxa*ccc.M_value[1]+hxp*cxm.M_value[1])*2/hxa/hxp/hxm;
+			d2yS = (hym*cyp.M_value[1]-hya*ccc.M_value[1]+hyp*cym.M_value[1])*2/hya/hyp/hym;
+
+			ccc.M_value[0]=(1-omega)*ccc.M_value[0]+omega*
+			( ccc.M_value[1] + h2x/12*d2xS + h2y/12*d2yS + hxd/3*dxS + hyd/3*dyS
+			 - wxm*cxm.M_value[0]- wxp*cxp.M_value[0]- wym*cym.M_value[0]- wyp*cyp.M_value[0]
+			 - wmm*cmm.M_value[0]- wpm*cpm.M_value[0]- wmp*cmp.M_value[0]- wpp*cpp.M_value[0])/(wcc-kcc) ;
+		}
+
+	}
 			
 
 		// //Bottom layer
@@ -1305,8 +1346,12 @@ void MultiGrid::Residual(int field, int layer, int where) //v
 	int nx,ny, amp;
 
 
-	double hxp,hxm,hxa;
-	double hyp,hym,hya;
+	double hxp,hxm,hxa,hxd,h2x;
+	double hyp,hym,hya,hyd,h2y;
+
+	double wcc,wxm,wxp,wym,wyp,wmm,wmp,wpm,wpp;
+	double d2xS, d2yS, dxS, dyS;
+	double kcc,kxm,kxp,kym,kyp;
 
 // switch(where)
 // {
@@ -1320,24 +1365,57 @@ void MultiGrid::Residual(int field, int layer, int where) //v
 	{
 		for (i=1; i<=nx; i++)
 		{	
+
 			MG_Cell &ccc = GetMGCell(i,   j, layer);
+
 			MG_Cell &cxm = GetMGCell(i-1, j, layer);
 			MG_Cell &cxp = GetMGCell(i+1, j, layer);
 			MG_Cell &cym = GetMGCell(i, j-1, layer);
 			MG_Cell &cyp = GetMGCell(i, j+1, layer);
 
+			MG_Cell &cmm = GetMGCell(i-1, j-1, layer);
+			MG_Cell &cmp = GetMGCell(i-1, j+1, layer);
+			MG_Cell &cpm = GetMGCell(i+1, j-1, layer);
+			MG_Cell &cpp = GetMGCell(i+1, j+1, layer);
+
 			hxp=(cxp.dx+ccc.dx)*0.5;
 			hxm=(ccc.dx+cxm.dx)*0.5;
-			hxa=hxp+hxm;
+			hxa=hxp+hxm; hxd=hxp-hxm;
+			h2x=hxa*hxa-hxp*hxm*3;
 
 			hyp=(cyp.dy+ccc.dy)*0.5;
 			hym=(ccc.dy+cym.dy)*0.5;
-			hya=hyp+hym;
+			hya=hyp+hym; hyd=hyp-hym;
+			h2y=hya*hya-hyp*hym*3;
+
+			kcc=ccc.M_value[4];
+			kxm=cxm.M_value[4];
+			kxp=cxp.M_value[4];
+			kym=cym.M_value[4];
+			kyp=cyp.M_value[4];
+
+			wmm = (h2x + h2y - 2*hxd*hxp - 2*hyd*hyp)/(3*hxa*hxm*hya*hym);
+			wmp = (h2x + h2y - 2*hxd*hxp + 2*hyd*hym)/(3*hxa*hxm*hya*hyp);
+			wpm = (h2x + h2y + 2*hxd*hxm - 2*hyd*hyp)/(3*hxa*hxp*hya*hym);
+			wpp = (h2x + h2y + 2*hxd*hxm + 2*hyd*hym)/(3*hxa*hxp*hya*hyp);
+
+			wxm = -( 2*h2y-4*(hyd*hyd+3*hym*hyp) + (h2x-2*hxd*hxp)*(2+hym*hyp*kxm) )/(6*hxa*hxm*hym*hyp);
+			wxp = -( 2*h2y-4*(hyd*hyd+3*hym*hyp) + (h2x+2*hxd*hxm)*(2+hym*hyp*kxp) )/(6*hxa*hxp*hym*hyp);
+			wym = -( 2*h2x-4*(hxd*hxd+3*hxm*hxp) + (h2y-2*hyd*hyp)*(2+hxm*hxp*kym) )/(6*hxm*hxp*hya*hym);
+			wyp = -( 2*h2x-4*(hxd*hxd+3*hxm*hxp) + (h2y+2*hyd*hym)*(2+hxm*hxp*kyp) )/(6*hxm*hxp*hya*hyp);
+
+			wcc = ( h2y*(-2+hxm*hxp*kcc) + h2x*(-2+hym*hyp*kcc) - 2*(hym*hyp*(4+hxd*hxd*kcc) + hxm*hxp*(4+hyd*hyd*kcc)) )/(6*hxm*hxp*hym*hyp);
+
+			dxS = (cxp.M_value[1]-ccc.M_value[1])*hxm/hxp/hxa + (ccc.M_value[1]-cxm.M_value[1])*hxp/hxm/hxa;
+			dyS = (cyp.M_value[1]-ccc.M_value[1])*hym/hyp/hya + (ccc.M_value[1]-cym.M_value[1])*hyp/hym/hya;
+
+			d2xS = (hxm*cxp.M_value[1]-hxa*ccc.M_value[1]+hxp*cxm.M_value[1])*2/hxa/hxp/hxm;
+			d2yS = (hym*cyp.M_value[1]-hya*ccc.M_value[1]+hyp*cym.M_value[1])*2/hya/hyp/hym;
 
 			ccc.M_value[2]=ccc.M_value[1]-
-			( 
-				(cxm.M_value[0]/hxm/hxa+cxp.M_value[0]/hxp/hxa+cym.M_value[0]/hym/hya+cyp.M_value[0]/hyp/hya)*2
-				-(2.0/hxm/hxp+2.0/hym/hyp+ccc.M_value[4])*ccc.M_value[0]
+			(  wxm*cxm.M_value[0]+ wxp*cxp.M_value[0]+ wym*cym.M_value[0]+ wyp*cyp.M_value[0]
+			 + wmm*cmm.M_value[0]+ wpm*cpm.M_value[0]+ wmp*cmp.M_value[0]+ wpp*cpp.M_value[0]
+			 + (wcc-kcc)*ccc.M_value[0] -h2x/12*d2xS -h2y/12*d2yS - hxd/3*dxS - hyd/3*dyS
 			);
 		}
 

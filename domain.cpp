@@ -180,11 +180,8 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
          if (rank==0)        printf("==== Domain: Pusle File No.%4d Loaded.  ====\n",IfRestart);
          // reset the timer.
          Time=OutDt*IfRestart;
-
       }
-
    }
-
 
 
    //===============================================================

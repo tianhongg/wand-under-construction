@@ -197,7 +197,7 @@ public:
    void ExchangeT();
    void ExchangeP();
    void PackT(Trajectory* p_Traj, double* &Se);
-   void PackP(Particle*   p_Part, int Sendn, int where);
+   void PackP(Particle*   p_Part, double* &Se);
    Trajectory* Reconnect(Trajectory* p_Traj);
    Particle*   Reconnect(Particle*   p_Part);
    dcomplex SourceAx(int i, int j, int k, int NF);

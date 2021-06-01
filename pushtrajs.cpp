@@ -170,8 +170,14 @@ void Mesh::PushTrajectory_HalfE(int k)
 		ddx=ccc.dx;
 		ddy=ccc.dy;
 
-		sx=ddx/TpCellx;  //- re-size
-		sy=ddy/TpCelly;  //- re-size
+		// sx=ddx/TpCellx;  //- re-size
+		// sy=ddy/TpCelly;  //- re-size
+
+
+		// this one is better
+		sx=ddx;  //- re-size
+		sy=ddy;  //- re-size
+
 		sxy = sx*sy;
 
 		double deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
@@ -324,8 +330,13 @@ void Mesh::PushTrajectory_HalfB(int k)
 		ddx=ccc.dx;
 		ddy=ccc.dy;
 
-		sx=ddx/TpCellx;  //- re-size
-		sy=ddy/TpCelly;  //- re-size
+		// sx=ddx/TpCellx;  //- re-size
+		// sy=ddy/TpCelly;  //- re-size
+
+		// this one is better
+		sx=ddx;  //- re-size
+		sy=ddy;  //- re-size
+
 		sxy = sx*sy;
 
 		double deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
@@ -588,7 +599,7 @@ void Mesh::ExchangeT()
 		//=====================================================================
 		//======== Exchange Trajectoryies with Neighboring Processors =========
 		//=====================================================================
-		if(bufsize/GridX<*std::min_element(SendN.begin(), SendN.begin()+4)||bufsize<*std::min_element(SendN.begin()+5, SendN.end()))
+		if(bufsize/GridX<*std::max_element(SendN.begin(), SendN.begin()+4)||bufsize<*std::max_element(SendN.begin()+5, SendN.end()))
 		{	
 			printf("==== Mesh: At Rank: %5d. ==================\n",Rank);
 			std::cout << "==== Mesh: Send Too Many Trajectoryies.  ====\n";

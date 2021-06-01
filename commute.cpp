@@ -937,10 +937,12 @@ void Commute::UnPackT(int what, std::vector<int> ReceN)
 
 	int n;
 	double x0,y0,z0,px,py,pz;
-	double xt,yt, sx, sy;
+	double xt,yt,zt, sx, sy;
 	double vx,vy,old_x,old_y,old_vx,old_vy; 
 	double q2m, weight;
 	double Ex0,Ey0,Ez0;
+	double Wxw,Wyw,Wzw;
+	double Wxl,Wyl,Wzl;
 	int type;
 
 	Trajectory *p =NULL;
@@ -1011,180 +1013,94 @@ void Commute::UnPackT(int what, std::vector<int> ReceN)
 				upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),yt);
 				p->idx_j=(upper-CellAccY.begin()-1);
 			}
-
 		}
 		break; //COMMU_T: // 
 
 
 
 		case COMMU_P:
-		
-		// for(n=0; n<Recexm; n++)
-		// {
-		// 	x0 = ReceSourceXm[n*SDP_DIM + 3];
-		// 	y0 = ReceSourceXm[n*SDP_DIM + 4];
-		// 	z0 = ReceSourceXm[n*SDP_DIM + 5];
-		// 	px = ReceSourceXm[n*SDP_DIM + 6];
-		// 	py = ReceSourceXm[n*SDP_DIM + 7];
-		// 	pz = ReceSourceXm[n*SDP_DIM + 8];
-		// 	Ex0= ReceSourceXm[n*SDP_DIM + 9];
-		// 	Ey0= ReceSourceXm[n*SDP_DIM +10];
-		// 	Ez0= ReceSourceXm[n*SDP_DIM +11];
 
-		// 	type=(int)ReceSourceXm[n*SDP_DIM +12];
-		// 	q2m    =  ReceSourceXm[n*SDP_DIM +13];
-		// 	weight =  ReceSourceXm[n*SDP_DIM +14];
+		for(int dir=0; dir<8; dir++)
+		{
+			double* Re=NULL;
 
-		// 	switch(type)
-		// 	{
-		// 	case ELECTRON:
-		// 	pp = new Electron(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
+			if(dir==0) Re=ReceSourcemm;
+			if(dir==1) Re=ReceSourcemp;
+			if(dir==2) Re=ReceSourcepm;
+			if(dir==3) Re=ReceSourcepp;
+			if(dir==4) Re=ReceSourceXm;
+			if(dir==5) Re=ReceSourceXp;
+			if(dir==6) Re=ReceSourceYm;
+			if(dir==7) Re=ReceSourceYp;
 
-		// 	case ION:
-		// 	pp = new Ion(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
-		// 	}
+			for(n=0; n<ReceN[dir]; n++)
+			{
+				xt = *Re; Re++; 
+				yt = *Re; Re++;
+				zt = *Re; Re++;
 
-		// 	pp->x = ReceSourceXm[n*SDP_DIM + 0];
-		// 	pp->y = ReceSourceXm[n*SDP_DIM + 1];
-		// 	pp->z = ReceSourceXm[n*SDP_DIM + 2];
+				x0 = *Re; Re++; 
+				y0 = *Re; Re++; 
+				z0 = *Re; Re++; 
 
-		// 	pp->Wxw = ReceSourceXm[n*SDP_DIM + 15];
-		// 	pp->Wyw = ReceSourceXm[n*SDP_DIM + 16];
-		// 	pp->Wzw = ReceSourceXm[n*SDP_DIM + 17];
-		// 	pp->Wxl = ReceSourceXm[n*SDP_DIM + 18];
-		// 	pp->Wyl = ReceSourceXm[n*SDP_DIM + 19];
-		// 	pp->Wzl = ReceSourceXm[n*SDP_DIM + 20];
+				px = *Re; Re++; 
+				py = *Re; Re++; 
+				pz = *Re; Re++; 
 
+				Ex0 = *Re; Re++; 
+				Ey0 = *Re; Re++; 
+				Ez0 = *Re; Re++; 
 
-		// }
+				type=(int)*Re; Re++; 
+				q2m = 	  *Re; Re++; 
+				weight =  *Re; Re++; 
 
+				Wxw = *Re; Re++; 
+				Wyw = *Re; Re++; 
+				Wzw = *Re; Re++; 
 
-		// for(n=0; n<Recexp; n++)
-		// {
-		// 	x0 = ReceSourceXp[n*SDP_DIM + 3];
-		// 	y0 = ReceSourceXp[n*SDP_DIM + 4];
-		// 	z0 = ReceSourceXp[n*SDP_DIM + 5];
-		// 	px = ReceSourceXp[n*SDP_DIM + 6];
-		// 	py = ReceSourceXp[n*SDP_DIM + 7];
-		// 	pz = ReceSourceXp[n*SDP_DIM + 8];
-		// 	Ex0= ReceSourceXp[n*SDP_DIM + 9];
-		// 	Ey0= ReceSourceXp[n*SDP_DIM +10];
-		// 	Ez0= ReceSourceXp[n*SDP_DIM +11];
+				Wxl = *Re; Re++; 
+				Wyl = *Re; Re++; 
+				Wzl = *Re; Re++; 
 
-		// 	type=(int)ReceSourceXp[n*SDP_DIM +12];
-		// 	q2m=      ReceSourceXp[n*SDP_DIM +13];
-		// 	weight =  ReceSourceXp[n*SDP_DIM +14];
-		// 	switch(type)
-		// 	{
-		// 	case ELECTRON:
-		// 	pp = new Electron(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
+				sx = *Re; Re++; 
+				sy = *Re; Re++; 
 
-		// 	case ION:
-		// 	pp = new Ion(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
-		// 	}
+				switch(type)
+				{
+					case ELECTRON:
+						pp = new Electron(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
+					break;
 
-		// 	pp->x = ReceSourceXp[n*SDP_DIM + 0];
-		// 	pp->y = ReceSourceXp[n*SDP_DIM + 1];
-		// 	pp->z = ReceSourceXp[n*SDP_DIM + 2];
+					case ION:
+						pp = new Ion(x0, y0, z0, px, py, pz, Ex0, Ey0, Ez0, q2m, weight);
+					break;
+				}
 
-		// 	pp->Wxw = ReceSourceXp[n*SDP_DIM + 15];
-		// 	pp->Wyw = ReceSourceXp[n*SDP_DIM + 16];
-		// 	pp->Wzw = ReceSourceXp[n*SDP_DIM + 17];
-		// 	pp->Wxl = ReceSourceXp[n*SDP_DIM + 18];
-		// 	pp->Wyl = ReceSourceXp[n*SDP_DIM + 19];
-		// 	pp->Wzl = ReceSourceXp[n*SDP_DIM + 20];
-		// }
+				pp->x =xt;
+				pp->y =yt;
+				pp->z =zt;
 
-		// for(n=0; n<Receym; n++)
-		// {
-		// 	x0 = ReceSourceYm[n*SDP_DIM + 3];
-		// 	y0 = ReceSourceYm[n*SDP_DIM + 4];
-		// 	z0 = ReceSourceYm[n*SDP_DIM + 5];
-		// 	px = ReceSourceYm[n*SDP_DIM + 6];
-		// 	py = ReceSourceYm[n*SDP_DIM + 7];
-		// 	pz = ReceSourceYm[n*SDP_DIM + 8];
-		// 	Ex0= ReceSourceYm[n*SDP_DIM + 9];
-		// 	Ey0= ReceSourceYm[n*SDP_DIM +10];
-		// 	Ez0= ReceSourceYm[n*SDP_DIM +11];
+				pp->Wxw = Wxw;
+				pp->Wyw = Wyw;
+				pp->Wzw = Wzw;
+				pp->Wxl = Wxl;
+				pp->Wyl = Wyl;
+				pp->Wzl = Wzl;
 
-		// 	type=(int)ReceSourceYm[n*SDP_DIM +12];
-		// 	q2m =     ReceSourceYm[n*SDP_DIM +13];
-		// 	weight =  ReceSourceYm[n*SDP_DIM +14];
-		// 	switch(type)
-		// 	{
-		// 	case ELECTRON:
-		// 	pp = new Electron(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
+				pp->sx=sx;
+				pp->sy=sy;
 
-		// 	case ION:
-		// 	pp = new Ion(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
-		// 	}
+				auto upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),xt);
+				pp->idx_i= (upper-CellAccX.begin()-1);
+				upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),yt);
+				pp->idx_j=(upper-CellAccY.begin()-1);
 
-		// 	pp->x = ReceSourceYm[n*SDP_DIM + 0];
-		// 	pp->y = ReceSourceYm[n*SDP_DIM + 1];
-		// 	pp->z = ReceSourceYm[n*SDP_DIM + 2];
-
-		// 	pp->Wxw = ReceSourceYm[n*SDP_DIM + 15];
-		// 	pp->Wyw = ReceSourceYm[n*SDP_DIM + 16];
-		// 	pp->Wzw = ReceSourceYm[n*SDP_DIM + 17];
-		// 	pp->Wxl = ReceSourceYm[n*SDP_DIM + 18];
-		// 	pp->Wyl = ReceSourceYm[n*SDP_DIM + 19];
-		// 	pp->Wzl = ReceSourceYm[n*SDP_DIM + 20];
-		// }
-
-		// for(n=0; n<Receyp; n++)
-		// {
-		// 	x0 = ReceSourceYp[n*SDP_DIM + 3];
-		// 	y0 = ReceSourceYp[n*SDP_DIM + 4];
-		// 	z0 = ReceSourceYp[n*SDP_DIM + 5];
-		// 	px = ReceSourceYp[n*SDP_DIM + 6];
-		// 	py = ReceSourceYp[n*SDP_DIM + 7];
-		// 	pz = ReceSourceYp[n*SDP_DIM + 8];
-		// 	Ex0= ReceSourceYp[n*SDP_DIM + 9];
-		// 	Ey0= ReceSourceYp[n*SDP_DIM +10];
-		// 	Ez0= ReceSourceYp[n*SDP_DIM +11];
-
-		// 	type=(int)ReceSourceYp[n*SDP_DIM +12];
-		// 	q2m=      ReceSourceYp[n*SDP_DIM +13];
-		// 	weight =  ReceSourceYp[n*SDP_DIM +14];
-			
-		// 	switch(type)
-		// 	{
-		// 	case ELECTRON:
-		// 	pp = new Electron(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
-
-		// 	case ION:
-		// 	pp = new Ion(x0, y0, z0, px, py, pz,
-		// 					Ex0, Ey0, Ez0, q2m, weight);
-		// 	break;
-		// 	}
-
-		// 	pp->x = ReceSourceYp[n*SDP_DIM + 0];
-		// 	pp->y = ReceSourceYp[n*SDP_DIM + 1];
-		// 	pp->z = ReceSourceYp[n*SDP_DIM + 2];
-
-		// 	pp->Wxw = ReceSourceYp[n*SDP_DIM + 15];
-		// 	pp->Wyw = ReceSourceYp[n*SDP_DIM + 16];
-		// 	pp->Wzw = ReceSourceYp[n*SDP_DIM + 17];
-		// 	pp->Wxl = ReceSourceYp[n*SDP_DIM + 18];
-		// 	pp->Wyl = ReceSourceYp[n*SDP_DIM + 19];
-		// 	pp->Wzl = ReceSourceYp[n*SDP_DIM + 20];
-		// }
-
+			}
+		}
 		break;
+		
+	
 
 	}
 
