@@ -239,25 +239,25 @@ void Commute::DoCommute(int what, int k)
 		int i = 0;
 		if (RankIdx_X == 1) 
 		{ 
-			for (i = 0; i < ssx; i++)  {ReceSourceXm[i] = 0.0;}
+			for (i = 0; i < ssx;  i++) {ReceSourceXm[i] = 0.0;}
 			for (i = 0; i < ssxd; i++) {ReceSourcemm[i] = 0.0;ReceSourcemp[i] = 0.0;}
 		};
 
 		if (RankIdx_X == Xpa) 
 		{ 
-			for (i = 0; i < ssx; i++)  {ReceSourceXp[i] = 0.0;}
+			for (i = 0; i < ssx;  i++) {ReceSourceXp[i] = 0.0;}
 			for (i = 0; i < ssxd; i++) {ReceSourcepm[i] = 0.0;ReceSourcepm[i] = 0.0;}
 		};
 
 		if (RankIdx_Y == 1) 
 		{ 
-			for (i = 0; i < ssy; i++)  {ReceSourceYm[i] = 0.0;}
+			for (i = 0; i < ssy;  i++) {ReceSourceYm[i] = 0.0;}
 			for (i = 0; i < ssyd; i++) {ReceSourcemm[i] = 0.0;ReceSourcepm[i] = 0.0;}
 		};
 
 		if (RankIdx_Y == Ypa) 
 		{
-			for (i = 0; i < ssy; i++)  {ReceSourceYp[i] = 0.0;}
+			for (i = 0; i < ssy;  i++) {ReceSourceYp[i] = 0.0;}
 			for (i = 0; i < ssyd; i++) {ReceSourcemp[i] = 0.0;ReceSourcepp[i] = 0.0;}
 		};
 		break;
@@ -552,7 +552,6 @@ void Commute::DoPack(int what, int k)
 			MG_Cell &cym = p_Multi->GetMGCell(i,		  1, k);
 			MG_Cell &cyp = p_Multi->GetMGCell(i, LayerGridY, k);
 
-
 			SendSourceYm[i-1] = cym.M_value[field];
 			SendSourceYp[i-1] = cyp.M_value[field];
 		}
@@ -568,8 +567,6 @@ void Commute::DoPack(int what, int k)
 		SendSourcepp[0] = cpp.M_value[field];
 
 		break;
-
-
 
 		case COMMU_MG_P_C:
 		case COMMU_MG_R_C:
@@ -712,17 +709,25 @@ void Commute::UnPack(int what, int k)
 			if (RankIdx_X == 1) 
 			{	
 				for (i=0; i<=GridY+1; i++)
-				{	Cell &c = p_Meshs->GetCell(0, i,k); c.W_Denn  = c.W_Deni;
-					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
-
+				{	
+					for(int b=0;b<2;b++)
+					{
+						Cell &c = p_Meshs->GetCell(b, i,k); c.W_Denn  = c.W_Deni;
+						for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
+					}
+					
 				}
 			}
 
 			if (RankIdx_X == Xpa) 
 			{	
 				for (i=0; i<=GridY+1; i++)
-				{	Cell &c = p_Meshs->GetCell(GridX+1,i,k); c.W_Denn  = c.W_Deni;
-					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
+				{	
+					for(int b=0;b<2;b++)
+					{
+						Cell &c = p_Meshs->GetCell(GridX+b,i,k); c.W_Denn  = c.W_Deni;
+						for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
+					}
 				}
 			
 			}
@@ -730,16 +735,24 @@ void Commute::UnPack(int what, int k)
 			if (RankIdx_Y == 1) 
 			{	
 				for (i=0; i<=GridX+1; i++)
-				{	Cell &c = p_Meshs->GetCell(i,0,k); c.W_Denn  = c.W_Deni;
-					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
+				{	
+					for(int b=0;b<2;b++)
+					{
+						Cell &c = p_Meshs->GetCell(i,b,k); c.W_Denn  = c.W_Deni;
+						for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
+					}
 				}
 			}
 
 			if (RankIdx_Y == Ypa) 
 			{	
 				for (i=0; i<=GridX+1; i++)
-				{	Cell &c = p_Meshs->GetCell(i,GridY+1,k); c.W_Denn  = c.W_Deni;
-					for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
+				{	
+					for(int b=0;b<2;b++)
+					{
+						Cell &c = p_Meshs->GetCell(i,GridY+b,k); c.W_Denn  = c.W_Deni;
+						for (n = 1; n < NSource; n++) {c.W_Source[n]==0;};
+					}
 				}
 			}
 
@@ -813,7 +826,7 @@ void Commute::UnPack(int what, int k)
 		if(what==COMMU_MG_R) field=2;
 
 		int mu=0;
-		if(what==COMMU_MG_R_C) mu=1;
+		if(what==COMMU_MG_R) mu=1;
 
 		p_Multi = p_domain()->p_MG();
 
@@ -836,15 +849,15 @@ void Commute::UnPack(int what, int k)
 			cyp.M_value[field] = ReceSourceYp[i-1];
 		}
 
-		MG_Cell &cmm = p_Multi->GetMGCell(0,		  0, k);
+		MG_Cell &cmm = p_Multi->GetMGCell(0,		    0, k);
 		MG_Cell &cmp = p_Multi->GetMGCell(0, LayerGridY+1, k);
 		MG_Cell &cpm = p_Multi->GetMGCell(LayerGridX+1, 0, k);
 		MG_Cell &cpp = p_Multi->GetMGCell(LayerGridX+1, LayerGridY+1, k);
 
-		cmm.M_value[field]=SendSourcemm[0];
-		cmp.M_value[field]=SendSourcemp[0];
-		cpm.M_value[field]=SendSourcepm[0];
-		cpp.M_value[field]=SendSourcepp[0];
+		cmm.M_value[field]=ReceSourcemm[0];
+		cmp.M_value[field]=ReceSourcemp[0];
+		cpm.M_value[field]=ReceSourcepm[0];
+		cpp.M_value[field]=ReceSourcepp[0];
 
 		if (RankIdx_X == 1) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
@@ -899,10 +912,10 @@ void Commute::UnPack(int what, int k)
 		MG_Cell &Cpm = p_Multi->GetMGCell(LayerGridX+1, 0, k);
 		MG_Cell &Cpp = p_Multi->GetMGCell(LayerGridX+1, LayerGridY+1, k);
 
-		Cmm.C_value[field]=SendSourcemm[0]+ci*SendSourcemm[1];
-		Cmp.C_value[field]=SendSourcemp[0]+ci*SendSourcemp[1];
-		Cpm.C_value[field]=SendSourcepm[0]+ci*SendSourcepm[1];
-		Cpp.C_value[field]=SendSourcepp[0]+ci*SendSourcepp[1];
+		Cmm.C_value[field]=ReceSourcemm[0]+ci*ReceSourcemm[1];
+		Cmp.C_value[field]=ReceSourcemp[0]+ci*ReceSourcemp[1];
+		Cpm.C_value[field]=ReceSourcepm[0]+ci*ReceSourcepm[1];
+		Cpp.C_value[field]=ReceSourcepp[0]+ci*ReceSourcepp[1];
 
 		if (RankIdx_X == 1) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 

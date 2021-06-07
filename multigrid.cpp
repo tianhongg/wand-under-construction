@@ -1246,9 +1246,7 @@ void MultiGrid::Relaxation(int field, int layer, int where) //v
 		// amp=MeshAmplif[layer];
 
 			//Exchange boundary conditions;
-			
 			// case 0: Hybird Gauss-Shield Relaxatio
-
 	for (j=1; j<=ny; j++)
 	{
 		for (i=1; i<=nx; i++)
@@ -1305,10 +1303,7 @@ void MultiGrid::Relaxation(int field, int layer, int where) //v
 			 - wxm*cxm.M_value[0]- wxp*cxp.M_value[0]- wym*cym.M_value[0]- wyp*cyp.M_value[0]
 			 - wmm*cmm.M_value[0]- wpm*cpm.M_value[0]- wmp*cmp.M_value[0]- wpp*cpp.M_value[0])/(wcc-kcc) ;
 		}
-
 	}
-			
-
 		// //Bottom layer
 		// 	for (j=1; j<=BLayerGrid[layer]; j++)
 		// 	{
