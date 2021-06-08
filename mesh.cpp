@@ -139,6 +139,7 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
   	AddEntry((char*)"Push_Traj_Order",	&PushOrder, 1);
   	AddEntry((char*)"AdaptiveStep",		&AdaptiveStep,0);
   	AddEntry((char*)"Threshold_V",		&V_thresh,1.0);
+  	AddEntry((char*)"AdjustPsi", 		&IfAdjustPsi,0);
   	AddEntry((char*)"IfIonization",	&if_ioniz,0);
   	AddEntry((char*)"Ion_Radius",	&Ion_R, 0.0);
   	

@@ -61,6 +61,7 @@ class Domain : public NList{
     int MeshType;
     double delta;
     double dxRefine;
+    double radius0;
     double order;
 
 

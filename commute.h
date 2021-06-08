@@ -96,12 +96,12 @@ private:
 public:
 
    
-   void DoCommuteT(int what, std::vector<int> SendN);
-   void    UnPackT(int what, std::vector<int> ReceN);
+   void DoCommuteT(exchange what, std::vector<int> SendN);
+   void    UnPackT(exchange what, std::vector<int> ReceN);
 
-   void DoCommute(int what, int k);
-   void    DoPack(int what, int k);
-   void    UnPack(int what, int k);
+   void DoCommute(exchange what, int k);
+   void    DoPack(exchange what, int k);
+   void    UnPack(exchange what, int k);
 
    int Get_bufsize() {return bufsize;};
 

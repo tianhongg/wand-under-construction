@@ -63,6 +63,8 @@ private:
    double Vmax;
    double Vlim;
 
+   int IfAdjustPsi;
+
 //===Possible Ionization
    int if_ioniz;      // if there is a need for ionization.
    double Ion_R;

@@ -831,7 +831,6 @@ switch(where)
 		}
 
 	}
-
 	break;
 
 	case 1:
@@ -1493,29 +1492,25 @@ void MultiGrid::SetZero(int what, int layer, int where)
 
 // }
 
-
-
-
 	return;
 }
-
-
 
 void MultiGrid::Exchange(int what, int layer)
 {
 
 	switch(what)
 	{
-		case 0:
+		case MG_Phi:
 			p_domain()->p_Com()->DoCommute(COMMU_MG_P, layer);
 			break;
-		case 1:
+		case MG_Sou:
 			p_domain()->p_Com()->DoCommute(COMMU_MG_S, layer);
 			break;
-		case 2:
+		case MG_Res:
 			p_domain()->p_Com()->DoCommute(COMMU_MG_R, layer);
+		case MG_Chi:
+			p_domain()->p_Com()->DoCommute(COMMU_MG_C, layer);
 			break;
-
 	}
 	return;
 }
@@ -1725,6 +1720,9 @@ int MultiGrid::MG_V_cycle(int field, double k0, int k)
 //==============   Put Source For Different Equation =========
 //============================================================
 	Put_Source(field, k0, k);
+	Exchange(MG_Sou, 1);
+	if(field>2) Exchange(MG_Chi,1);
+
 
 
 //============================================================
@@ -1734,20 +1732,20 @@ int MultiGrid::MG_V_cycle(int field, double k0, int k)
 
 	for (n=1; n<MPI_Layer; n++)
 	{
-		RestrictionB(MG_Chi,MG_Chi,n+1, 0);
+		RestrictionB(MG_Chi,MG_Chi,n+1, 0); 
+		Exchange(MG_Chi, n);
 	}
-
-	switch(BottomType)
-	{
-		case 1:
-		SendtoBottom(MG_Chi);
-		for (n=1; n<SER_Layer; n++)
-		{
-			RestrictionB(MG_Chi,MG_Chi,n+1,1);
-		}
-		break;
-	}
-
+	
+	// switch(BottomType)
+	// {
+	// 	case 1:
+	// 	// SendtoBottom(MG_Chi);
+	// 	// for (n=1; n<SER_Layer; n++)
+	// 	// {
+	// 	// 	RestrictionB(MG_Chi,MG_Chi,n+1,1);
+	// 	// }
+	// 	break;
+	// }
 
 //============================================================
 //==============     V-Cycle Start          ==================
@@ -1762,16 +1760,11 @@ while(eps > EpsLim*maxall)
 	//if(Rank==0) std::cout<<k<<'\n';
 
 	iter++;
+
 	//record old value
-	for (j=1; j<=LayerGridY[1]; j++)
-	{
-		for (i=1; i<=LayerGridX[1]; i++)
-		{
+	for (j=1; j<=LayerGridY[1]; j++) 
+		for (i=1; i<=LayerGridX[1]; i++) 
 			GetMGCell(i, j, 1).M_value[3] = GetMGCell(i, j, 1).M_value[0];
-
-		}
-
-	}
 
 
 
@@ -1794,7 +1787,8 @@ while(eps > EpsLim*maxall)
 		Exchange(MG_Res, n);
 		
 		Restriction(MG_Res,MG_Sou,n+1, 0);
-		
+		Exchange(MG_Sou, n+1);
+
 		SetZero(MG_Phi, n+1, 0);
 
 
@@ -1820,13 +1814,13 @@ while(eps > EpsLim*maxall)
 		break;
 
 		case 1:
-
-			SendtoBottom(MG_Sou);
-			if(Rank == Worker) 
-			{
-				MG_BottomLayer(field);
-			}
-			BottomSendBack(MG_Phi);
+			//deprecated//May-25-tianhong
+			// SendtoBottom(MG_Sou);
+			// if(Rank == Worker) 
+			// {
+			// 	MG_BottomLayer(field);
+			// }
+			// BottomSendBack(MG_Phi);
 
 		break;
 
@@ -1858,9 +1852,6 @@ while(eps > EpsLim*maxall)
 //============================================================
 	eps = FindError(maxall)/GridXY;
 
-	//======== test==========
-	//if(Rank == 0) std::cout<<"iter: "<<iter<<";   eps:"<<eps<<'\n';
-	//======== test==========
 
 //============================================================
 //==============     Fail to Converge.      ==================
@@ -1876,10 +1867,7 @@ while(eps > EpsLim*maxall)
 //==============   Put Solution Back to Cell         =========
 //============================================================
 	Put_Fields(field, k);
-
 	return 0;
-
-
 
 }
 

@@ -127,7 +127,7 @@ Commute::Commute(int XGridN, int YGridN)
 
 };
 
-void Commute::DoCommute(int what, int k)
+void Commute::DoCommute(exchange what, int k)
 {
 
 
@@ -168,7 +168,9 @@ void Commute::DoCommute(int what, int k)
 		break;
 
 		case COMMU_MG_P:
+		case COMMU_MG_S:
 		case COMMU_MG_R:
+		case COMMU_MG_C:
 			p_Multi = p_domain()->p_MG();
 			ssx = p_Multi->GetLayerGridY(k);
 			ssy = p_Multi->GetLayerGridX(k);
@@ -177,8 +179,10 @@ void Commute::DoCommute(int what, int k)
 		break;
 
 		case COMMU_MG_P_C:
+		case COMMU_MG_S_C:
 		case COMMU_MG_R_C:
-		p_Multi = p_domain()->p_MG();
+		case COMMU_MG_C_C:
+			p_Multi = p_domain()->p_MG();
 			ssx = p_Multi->GetLayerGridY(k)*2;
 			ssy = p_Multi->GetLayerGridX(k)*2;
 			ssxd= 2;
@@ -277,7 +281,7 @@ void Commute::DoCommute(int what, int k)
 }
 
 
-void Commute::DoCommuteT(int what, std::vector<int> SendN)
+void Commute::DoCommuteT(exchange what, std::vector<int> SendN)
 {
 
 	//===============================================================
@@ -382,7 +386,7 @@ void Commute::DoCommuteT(int what, std::vector<int> SendN)
 		//     |___|___|___|
 		//
 
-void Commute::DoPack(int what, int k)
+void Commute::DoPack(exchange what, int k)
 
 {
 
@@ -529,10 +533,11 @@ void Commute::DoPack(int what, int k)
 		//===============================================================
 		//Exchange multigrid potential
 		case COMMU_MG_P:
+		case COMMU_MG_S:
 		case COMMU_MG_R:
+		case COMMU_MG_C:
 
-		int field=0;
-		if(what==COMMU_MG_R) field=2;
+		int field=what-COMMU_MG_P;
 
 		p_Multi = p_domain()->p_MG();
 		LayerGridX = p_Multi->GetLayerGridX(k);
@@ -569,11 +574,11 @@ void Commute::DoPack(int what, int k)
 		break;
 
 		case COMMU_MG_P_C:
+		case COMMU_MG_S_C:
 		case COMMU_MG_R_C:
+		case COMMU_MG_C_C:
 
-		field=0;
-		if(what==COMMU_MG_R_C) field=2;
-
+		field=what-COMMU_MG_P_C;
 
 		p_Multi = p_domain()->p_MG();
 
@@ -624,7 +629,7 @@ void Commute::DoPack(int what, int k)
 }
 
 
-void Commute::UnPack(int what, int k)
+void Commute::UnPack(exchange what, int k)
 {
 	Mesh *p_Meshs  = p_domain()->p_Mesh();
 
@@ -810,23 +815,16 @@ void Commute::UnPack(int what, int k)
 			}
 		break;
 
-		//===============================================================
-		//===================== Unpack Vector Potential   ===============
-		//===============================================================
-
-
 
 		//===============================================================
 		//===================== Unpack Multigird Field ==================
 		//===============================================================
 		case COMMU_MG_P:
+		case COMMU_MG_S:
 		case COMMU_MG_R:
+		case COMMU_MG_C:
 
-		int field=0;
-		if(what==COMMU_MG_R) field=2;
-
-		int mu=0;
-		if(what==COMMU_MG_R) mu=1;
+		int field=what-COMMU_MG_P;
 
 		p_Multi = p_domain()->p_MG();
 
@@ -861,30 +859,29 @@ void Commute::UnPack(int what, int k)
 
 		if (RankIdx_X == 1) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(0, i, k)).M_value[field]			  = mu*(p_Multi->GetMGCell(1, i, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(0, i, k)).M_value[field]			  = 0*(p_Multi->GetMGCell(1, i, k)).M_value[field]; } };
 
 		if (RankIdx_X == Xpa) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).M_value[field] = mu*(p_Multi->GetMGCell(LayerGridX, i, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).M_value[field] = 0*(p_Multi->GetMGCell(LayerGridX, i, k)).M_value[field]; } };
 
 		if (RankIdx_Y == 1) 
 		{ for (i = 0; i <= LayerGridX+1; i++) 
-		{ (p_Multi->GetMGCell(i, 0, k)).M_value[field] 			  = mu*(p_Multi->GetMGCell(i, 1, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(i, 0, k)).M_value[field] 			  = 0*(p_Multi->GetMGCell(i, 1, k)).M_value[field]; } };
 
 		if (RankIdx_Y == Ypa) 
 		{ for (i = 0; i <= LayerGridX+1; i++)
-		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[field] = mu*(p_Multi->GetMGCell(i, LayerGridY, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[field] = 0*(p_Multi->GetMGCell(i, LayerGridY, k)).M_value[field]; } };
 
 		break;
 
 
 		case COMMU_MG_P_C:
+		case COMMU_MG_S_C:
 		case COMMU_MG_R_C:
+		case COMMU_MG_C_C:
 
-		field=0;
-		if(what==COMMU_MG_R_C) field=2;
-		mu=0;
-		if(what==COMMU_MG_R_C) mu=1;
+		field=what-COMMU_MG_P_C;
 
 		p_Multi = p_domain()->p_MG();
 
@@ -919,24 +916,21 @@ void Commute::UnPack(int what, int k)
 
 		if (RankIdx_X == 1) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(0, i, k)).C_value[field]			  = mu*(p_Multi->GetMGCell(1, i, k)).C_value[field]; } };
+		{ (p_Multi->GetMGCell(0, i, k)).C_value[field]			  = 0*(p_Multi->GetMGCell(1, i, k)).C_value[field]; } };
 
 		if (RankIdx_X == Xpa) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).C_value[field] = mu*(p_Multi->GetMGCell(LayerGridX, i, k)).C_value[field]; } };
+		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).C_value[field] = 0*(p_Multi->GetMGCell(LayerGridX, i, k)).C_value[field]; } };
 
 		if (RankIdx_Y == 1) 
 		{ for (i = 0; i <= LayerGridX+1; i++) 
-		{ (p_Multi->GetMGCell(i, 0, k)).C_value[field] 			  = mu*(p_Multi->GetMGCell(i, 1, k)).C_value[field]; } };
+		{ (p_Multi->GetMGCell(i, 0, k)).C_value[field] 			  = 0*(p_Multi->GetMGCell(i, 1, k)).C_value[field]; } };
 
 		if (RankIdx_Y == Ypa) 
 		{ for (i = 0; i <= LayerGridX+1; i++)
-		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).C_value[field] = mu*(p_Multi->GetMGCell(i, LayerGridY, k)).C_value[field]; } };
-		break;
-
-	
+		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).C_value[field] = 0*(p_Multi->GetMGCell(i, LayerGridY, k)).C_value[field]; } };
+		break;	
 	}
-
 
 
 
@@ -945,7 +939,7 @@ void Commute::UnPack(int what, int k)
 
 
 
-void Commute::UnPackT(int what, std::vector<int> ReceN)
+void Commute::UnPackT(exchange what, std::vector<int> ReceN)
 {
 
 	int n;

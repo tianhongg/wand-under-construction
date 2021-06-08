@@ -29,6 +29,8 @@
 #define ci dcomplex(0.0,1.0)
 
 
+#define L_MPI
+
 #define FLD_DIM 6
 #define WAK_DIM 9
 #define BEA_DIM 5
@@ -37,30 +39,34 @@
 #define SDP_DIM 23
 #define WAK_DIM2 4
 
-
-#define L_MPI
-
-#define COMMU_S 11
-#define COMMU_F 22
-#define COMMU_A 33
-#define COMMU_T 44
-#define COMMU_P 55
-#define COMMU_SO 120
-
-#define COMMU_MG_P 66
-#define COMMU_MG_S 77
-#define COMMU_MG_R 88
-
-#define COMMU_MG_P_C 99
-#define COMMU_MG_S_C 100
-#define COMMU_MG_R_C 110
-
 #define MG_Phi 0
 #define MG_Sou 1
 #define MG_Res 2
 #define MG_Chi 4
 
 
+// exchange
+enum exchange
+{
+	COMMU_S,   //source
+	COMMU_F,   // field
+	COMMU_A,   // a0
+	COMMU_T,   //trajectory
+	COMMU_P,   //particle
+	COMMU_SO,  //source
+
+	COMMU_MG_P,  //potential
+	COMMU_MG_S,  //source
+	COMMU_MG_R,  //residual
+	COMMU_MG_F, 
+	COMMU_MG_C,  //\chi
+
+	COMMU_MG_P_C,//potential
+	COMMU_MG_S_C,//source
+	COMMU_MG_R_C, //residual
+	COMMU_MG_F_C, 
+	COMMU_MG_C_C
+};
 
 
 #include <mpi.h>

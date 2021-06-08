@@ -41,6 +41,7 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    AddEntry((char*)"MeshType",    &MeshType,  0);
    AddEntry((char*)"dxRefine",    &dxRefine,  2);
    AddEntry((char*)"order",       &order,  4);
+   AddEntry((char*)"radius",      &radius0,  0.0);
    AddEntry((char*)"delta",       &delta,  1);
 
    AddEntry((char*)"TStep",		&dt,	1.0);
@@ -476,17 +477,15 @@ double Domain::CustomGrid(double r)
          if(order<0) order=0;
          if(dxRefine<1) dxRefine=1;
          if(delta<=0) delta=1;
-         return dx/( (dxRefine-1.0)/(pow(r/delta,order)+1.0)+1.0);
+         return dx/( (dxRefine-1.0)/(pow(abs(r-radius0)/delta,order)+1.0)+1.0);
       break;
-
 
       case 2:
          if(order<0) order=0;
          if(dxRefine<1) dxRefine=1;
          if(delta<=0) delta=1;
-         return dx/( (dxRefine-1.0)*exp(-pow(r/delta,order))+1.0);
+         return dx/( (dxRefine-1.0)*exp(-pow(abs(r-radius0)/delta,order))+1.0);
       break;
-
 
       case 3:
          if(order<0) order=0;
