@@ -42,6 +42,7 @@ Commute::Commute(int XGridN, int YGridN)
 	ReceSourceYm = NULL;
 	ReceSourceYp = NULL;
 
+
 	Rank = p_domain()->p_Partition()->Get_Rank();
 	//Big Coordinates of the Rank
 	RankIdx_X = p_domain()->p_Partition()->RankIdx_X(); 
@@ -880,7 +881,7 @@ void Commute::UnPack(exchange what, int k)
 		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[field] = 0; } };
 
 		break;
-		
+
 		case COMMU_MG_P_C:
 		case COMMU_MG_S_C:
 		case COMMU_MG_R_C:
