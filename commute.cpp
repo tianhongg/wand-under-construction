@@ -205,15 +205,17 @@ void Commute::DoCommute(exchange what, int k)
 		MPI_Irecv(ReceSourcepm, ssyd, MPI_DOUBLE, pmPE, 6, MPI_COMM_WORLD, &Request[6]);
 		MPI_Irecv(ReceSourcepp, ssyd, MPI_DOUBLE, ppPE, 7, MPI_COMM_WORLD, &Request[7]);
 
-		MPI_Isend(SendSourcepp, ssxd, MPI_DOUBLE, ppPE, 4, MPI_COMM_WORLD, &Request[8]);
-		MPI_Isend(SendSourcepm, ssxd, MPI_DOUBLE, pmPE, 5, MPI_COMM_WORLD, &Request[9]);
- 		MPI_Isend(SendSourcemp, ssyd, MPI_DOUBLE, mpPE, 6, MPI_COMM_WORLD, &Request[10]);
-		MPI_Isend(SendSourcemm, ssyd, MPI_DOUBLE, mmPE, 7, MPI_COMM_WORLD, &Request[11]);
+		MPI_Isend(SendSourceXp, ssx,  MPI_DOUBLE, XpPE, 0, MPI_COMM_WORLD, &Request[8]);
+		MPI_Isend(SendSourceXm, ssx,  MPI_DOUBLE, XmPE, 1, MPI_COMM_WORLD, &Request[9]);
+ 		MPI_Isend(SendSourceYp, ssy,  MPI_DOUBLE, YpPE, 2, MPI_COMM_WORLD, &Request[10]);
+		MPI_Isend(SendSourceYm, ssy,  MPI_DOUBLE, YmPE, 3, MPI_COMM_WORLD, &Request[11]);
 
-		MPI_Isend(SendSourceXp, ssx,  MPI_DOUBLE, XpPE, 0, MPI_COMM_WORLD, &Request[12]);
-		MPI_Isend(SendSourceXm, ssx,  MPI_DOUBLE, XmPE, 1, MPI_COMM_WORLD, &Request[13]);
- 		MPI_Isend(SendSourceYp, ssy,  MPI_DOUBLE, YpPE, 2, MPI_COMM_WORLD, &Request[14]);
-		MPI_Isend(SendSourceYm, ssy,  MPI_DOUBLE, YmPE, 3, MPI_COMM_WORLD, &Request[15]);
+		MPI_Isend(SendSourcepp, ssxd, MPI_DOUBLE, ppPE, 4, MPI_COMM_WORLD, &Request[12]);
+		MPI_Isend(SendSourcepm, ssxd, MPI_DOUBLE, pmPE, 5, MPI_COMM_WORLD, &Request[13]);
+ 		MPI_Isend(SendSourcemp, ssyd, MPI_DOUBLE, mpPE, 6, MPI_COMM_WORLD, &Request[14]);
+		MPI_Isend(SendSourcemm, ssyd, MPI_DOUBLE, mmPE, 7, MPI_COMM_WORLD, &Request[15]);
+
+
 
  		int ierr;
 		ierr = MPI_Waitall(16, Request,Status);
@@ -229,7 +231,7 @@ void Commute::DoCommute(exchange what, int k)
 				MPI_Error_string(err,errtxt,&len);
 				printf("%s; \n",errtxt);
 			}
-		MPI_Abort(MPI_COMM_WORLD,0);
+			MPI_Abort(MPI_COMM_WORLD,0);
 		}
 
 	//===============================================================
@@ -250,7 +252,7 @@ void Commute::DoCommute(exchange what, int k)
 		if (RankIdx_X == Xpa) 
 		{ 
 			for (i = 0; i < ssx;  i++) {ReceSourceXp[i] = 0.0;}
-			for (i = 0; i < ssxd; i++) {ReceSourcepm[i] = 0.0;ReceSourcepm[i] = 0.0;}
+			for (i = 0; i < ssxd; i++) {ReceSourcepm[i] = 0.0;ReceSourcepp[i] = 0.0;}
 		};
 
 		if (RankIdx_Y == 1) 
@@ -396,6 +398,17 @@ void Commute::DoPack(exchange what, int k)
 	int LayerGridY;
 	MultiGrid *p_Multi = NULL;
 
+
+	double* SeXm=SendSourceXm;
+	double* SeXp=SendSourceXp;
+	double* SeYm=SendSourceYm;
+	double* SeYp=SendSourceYp;
+
+	double* Semm=SendSourcemm;
+	double* Semp=SendSourcemp;
+	double* Sepm=SendSourcepm;
+	double* Sepp=SendSourcepp;
+
 	switch (what)
 	{
 
@@ -423,14 +436,13 @@ void Commute::DoPack(exchange what, int k)
 
 				for (n = 0; n < NSource; n++)
 				{
-					SendSourceYm[ (GridX*m+i)*NSource + n ] = cm.W_Source[n];
-					SendSourceYp[ (GridX*m+i)*NSource + n ] = cp.W_Source[n];
-
+					*SeYm = cm.W_Source[n]; SeYm++;
+					*SeYp = cp.W_Source[n]; SeYp++;
 					//diagonal
 					if(i==0)
 					{
-						SendSourcemp[ m*NSource + n ] = mp.W_Source[n];
-						SendSourcepp[ m*NSource + n ] = pp.W_Source[n];
+						*Semp = mp.W_Source[n]; Semp++;
+						*Sepp = pp.W_Source[n]; Sepp++;
 					}
 				}
 
@@ -440,28 +452,24 @@ void Commute::DoPack(exchange what, int k)
 		// Send Direction: X: left and right
 		for (m = 0 ; m<=1; m++)
 		{
-
 			Cell &mm = p_Meshs->GetCell(m,m,k);
 			Cell &pm = p_Meshs->GetCell(GridX+1-m,m,k);
 
 			for (j=0; j < GridY; j++)
 			{
-
 				Cell &cm = p_Meshs->GetCell(m,j+1,k);
 				Cell &cp = p_Meshs->GetCell(GridX+1-m,j+1,k);
 				for (n = 0; n < NSource; n++)
 				{
-					SendSourceXm[ (GridY*m+j)*NSource + n] = cm.W_Source[n];
-					SendSourceXp[ (GridY*m+j)*NSource + n] = cp.W_Source[n];
-
+					*SeXm = cm.W_Source[n]; SeXm++;
+					*SeXp = cp.W_Source[n]; SeXp++;
 					//diagonal
 					if(j==0)
 					{
-						SendSourcemm[ m*NSource + n ] = mm.W_Source[n];
-						SendSourcepm[ m*NSource + n ] = pm.W_Source[n];
+						*Semm = mm.W_Source[n]; Semm++;
+						*Sepm = pm.W_Source[n]; Sepm++;
 					}
 				}
-
 			}
 		}
 
@@ -476,6 +484,8 @@ void Commute::DoPack(exchange what, int k)
 
 			Cell &mp = p_Meshs->GetCell(1,GridY,k);
 			Cell &pp = p_Meshs->GetCell(GridX,GridY,k);
+			Cell &mm = p_Meshs->GetCell(1,1,k);
+			Cell &pm = p_Meshs->GetCell(GridX,1,k);
 
 			for (i=1; i <= GridX; i++)
 			{
@@ -484,21 +494,16 @@ void Commute::DoPack(exchange what, int k)
 
 				for (n = 0; n < WAK_DIM2; n++)
 				{
-					SendSourceYm[ (i-1)*WAK_DIM2 + n ] = cm.W_Fields[n+5];
-					SendSourceYp[ (i-1)*WAK_DIM2 + n ] = cp.W_Fields[n+5];
+					*SeYm = cm.W_Fields[n+5]; SeYm++;
+					*SeYp = cp.W_Fields[n+5]; SeYp++;
 
 					if(i==1)
 					{
-						SendSourcemp[n] = mp.W_Source[n+5];
-						SendSourcepp[n] = pp.W_Source[n+5];
+						*Semp = mp.W_Fields[n+5]; Semp++;
+						*Sepp = pp.W_Fields[n+5]; Sepp++;
 					}
-
 				}
-
 			}
-
-			Cell &mm = p_Meshs->GetCell(1,1,k);
-			Cell &pm = p_Meshs->GetCell(GridX,1,k);
 
 			for (j=1; j <= GridY; j++)
 			{
@@ -506,13 +511,13 @@ void Commute::DoPack(exchange what, int k)
 				Cell &cp = p_Meshs->GetCell(GridX,j,k);
 				for (n = 0; n < WAK_DIM2; n++)
 				{
-					SendSourceXm[ (j-1)*WAK_DIM2 + n ] = cm.W_Fields[n+5];
-					SendSourceXp[ (j-1)*WAK_DIM2 + n ] = cp.W_Fields[n+5];
+					*SeXm = cm.W_Fields[n+5]; SeXm++;
+					*SeXp = cp.W_Fields[n+5]; SeXp++;
 
 					if(j==1)
 					{
-						SendSourcemm[n] = mm.W_Source[n+5];
-						SendSourcepm[n] = pm.W_Source[n+5];
+						*Semm = mm.W_Fields[n+5]; Semm++;
+						*Sepm = pm.W_Fields[n+5]; Sepm++;
 					}
 				}
 
@@ -548,8 +553,8 @@ void Commute::DoPack(exchange what, int k)
 			MG_Cell &cxm = p_Multi->GetMGCell(1,		  j, k);
 			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX, j, k);
 
-			SendSourceXm[j-1] = cxm.M_value[field];
-			SendSourceXp[j-1] = cxp.M_value[field];
+			*SeXm = cxm.M_value[field]; SeXm++;
+			*SeXp = cxp.M_value[field]; SeXp++;
 		}
 
 		for (i = 1; i<= LayerGridX; i++)
@@ -557,19 +562,19 @@ void Commute::DoPack(exchange what, int k)
 			MG_Cell &cym = p_Multi->GetMGCell(i,		  1, k);
 			MG_Cell &cyp = p_Multi->GetMGCell(i, LayerGridY, k);
 
-			SendSourceYm[i-1] = cym.M_value[field];
-			SendSourceYp[i-1] = cyp.M_value[field];
+			*SeYm = cym.M_value[field]; SeYm++;
+			*SeYp = cyp.M_value[field]; SeYp++;
 		}
 
-		MG_Cell &cmm = p_Multi->GetMGCell(1,		  1, k);
-		MG_Cell &cmp = p_Multi->GetMGCell(1, LayerGridY, k);
-		MG_Cell &cpm = p_Multi->GetMGCell(LayerGridX, 1, k);
-		MG_Cell &cpp = p_Multi->GetMGCell(LayerGridX, LayerGridY, k);
+		MG_Cell &cmm = p_Multi->GetMGCell(1,		  1, 			 k);
+		MG_Cell &cmp = p_Multi->GetMGCell(1, 		  LayerGridY,    k);
+		MG_Cell &cpm = p_Multi->GetMGCell(LayerGridX, 1, 			 k);
+		MG_Cell &cpp = p_Multi->GetMGCell(LayerGridX, LayerGridY,	 k);
 
-		SendSourcemm[0] = cmm.M_value[field];
-		SendSourcemp[0] = cmp.M_value[field];
-		SendSourcepm[0] = cpm.M_value[field];
-		SendSourcepp[0] = cpp.M_value[field];
+		*Semm = cmm.M_value[field];
+		*Semp = cmp.M_value[field];
+		*Sepm = cpm.M_value[field];
+		*Sepp = cpp.M_value[field];
 
 		break;
 
@@ -590,11 +595,10 @@ void Commute::DoPack(exchange what, int k)
 			MG_Cell &cxm = p_Multi->GetMGCell(1,		  j, k);
 			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX, j, k);
 
-			SendSourceXm[(j-1)*2+0] = (cxm.C_value[field]).real();
-			SendSourceXm[(j-1)*2+1] = (cxm.C_value[field]).imag();
-
-			SendSourceXp[(j-1)*2+0] = (cxp.C_value[field]).real();
-			SendSourceXp[(j-1)*2+1] = (cxp.C_value[field]).imag();
+			*SeXm = (cxm.C_value[field]).real(); SeXm++;
+			*SeXm = (cxm.C_value[field]).imag(); SeXm++;
+			*SeXp = (cxp.C_value[field]).real(); SeXp++;
+			*SeXp = (cxp.C_value[field]).imag(); SeXp++;
 		}
 
 		for (i = 1; i<= LayerGridX; i++)
@@ -602,24 +606,23 @@ void Commute::DoPack(exchange what, int k)
 			MG_Cell &cym = p_Multi->GetMGCell(i,		  1, k);
 			MG_Cell &cyp = p_Multi->GetMGCell(i, LayerGridY, k);
 
-			SendSourceYm[(i-1)*2+0] = (cym.C_value[field]).real();
-			SendSourceYm[(i-1)*2+1] = (cym.C_value[field]).imag();
-			SendSourceYp[(i-1)*2+0] = (cyp.C_value[field]).real();
-			SendSourceYp[(i-1)*2+1] = (cyp.C_value[field]).imag();
+			*SeYm = (cym.C_value[field]).real(); SeYm++;
+			*SeYm = (cym.C_value[field]).imag(); SeYm++;
+			*SeYp = (cyp.C_value[field]).real(); SeYp++;
+			*SeYp = (cyp.C_value[field]).imag(); SeYp++;
 		}
 
-		MG_Cell &Cmm = p_Multi->GetMGCell(1,		  1, k);
-		MG_Cell &Cmp = p_Multi->GetMGCell(1, LayerGridY, k);
-		MG_Cell &Cpm = p_Multi->GetMGCell(LayerGridX, 1, k);
-		MG_Cell &Cpp = p_Multi->GetMGCell(LayerGridX, LayerGridY, k);
+		MG_Cell &Cmm = p_Multi->GetMGCell(1,		 	1, 			k);
+		MG_Cell &Cmp = p_Multi->GetMGCell(1, 			LayerGridY, k);
+		MG_Cell &Cpm = p_Multi->GetMGCell(LayerGridX,	1, 			k);
+		MG_Cell &Cpp = p_Multi->GetMGCell(LayerGridX, 	LayerGridY, k);
 
-		SendSourcemm[0] = Cmm.C_value[field].real();SendSourcemm[1] = Cmm.C_value[field].imag();
-		SendSourcemp[0] = Cmp.C_value[field].real();SendSourcemp[1] = Cmp.C_value[field].imag();
-		SendSourcepm[0] = Cpm.C_value[field].real();SendSourcepm[1] = Cpm.C_value[field].imag();
-		SendSourcepp[0] = Cpp.C_value[field].real();SendSourcepp[1] = Cpp.C_value[field].imag();
+		*Semm = Cmm.C_value[field].real(); Semm++; *Semm = Cmm.C_value[field].imag();
+		*Semp = Cmp.C_value[field].real(); Semp++; *Semp = Cmp.C_value[field].imag();
+		*Sepm = Cpm.C_value[field].real(); Sepm++; *Sepm = Cpm.C_value[field].imag();
+		*Sepp = Cpp.C_value[field].real(); Sepp++; *Sepp = Cpp.C_value[field].imag();
 
 		break;
-
 
 	}
 
@@ -638,6 +641,16 @@ void Commute::UnPack(exchange what, int k)
 	int LayerGridX;
 	int LayerGridY;
 
+	double* ReXm=ReceSourceXm;
+	double* ReXp=ReceSourceXp;
+	double* ReYm=ReceSourceYm;
+	double* ReYp=ReceSourceYp;
+
+	double* Remm=ReceSourcemm;
+	double* Remp=ReceSourcemp;
+	double* Repm=ReceSourcepm;
+	double* Repp=ReceSourcepp;
+
 	switch (what)
 	{
 		//===============================================================
@@ -655,24 +668,22 @@ void Commute::UnPack(exchange what, int k)
 		// Receive Direction: Y
 		for (m = 0; m<=1; m++)
 		{
-
 			Cell &mm = p_Meshs->GetCell(1-m,1-m,k);
 			Cell &pm = p_Meshs->GetCell(GridX+m,1-m,k);
 
 			for (i = 0; i < GridX; i++)
 			{
-
 				Cell &cm = p_Meshs->GetCell(i+1,1-m,k);
 				Cell &cp = p_Meshs->GetCell(i+1,GridY+m,k);
 				for (n = 0; n < NSource; n++)
 				{
-					cm.W_Source[n] += ReceSourceYm[ (GridX*m+i)*NSource+ n ];
-					cp.W_Source[n] += ReceSourceYp[ (GridX*m+i)*NSource+ n ];
+					cm.W_Source[n] += *ReYm; ReYm++; 
+					cp.W_Source[n] += *ReYp; ReYp++; 
 				
 					if(i==0)
 					{
-						mm.W_Source[n] += ReceSourcemm[ m*NSource+ n ];
-						pm.W_Source[n] += ReceSourcepm[ m*NSource+ n ];
+						mm.W_Source[n] += *Remm; Remm++;
+						pm.W_Source[n] += *Repm; Repm++;
 					}
 				}
 
@@ -682,24 +693,22 @@ void Commute::UnPack(exchange what, int k)
 		for (m = 0; m<=1; m++)
 		{
 
-			Cell &mp = p_Meshs->GetCell(1-m,GridY+m,k);
-			Cell &pp = p_Meshs->GetCell(GridX+m,GridY+m,k);
-
+			Cell &mp = p_Meshs->GetCell(1-m,    GridY+m, k);
+			Cell &pp = p_Meshs->GetCell(GridX+m,GridY+m, k);
 
 			for (j = 0; j < GridY; j++)
 			{
-
 				Cell &cm = p_Meshs->GetCell(1-m,j+1,k);
 				Cell &cp = p_Meshs->GetCell(GridX+m,j+1,k);
 				for (n = 0; n < NSource; n++)
 				{
-					cm.W_Source[n] += ReceSourceXm[ (GridY*m+j)*NSource + n];
-					cp.W_Source[n] += ReceSourceXp[ (GridY*m+j)*NSource + n];
+					cm.W_Source[n] += *ReXm; ReXm++;
+					cp.W_Source[n] += *ReXp; ReXp++;
 
 					if(j==0)
 					{
-						mp.W_Source[n] += ReceSourcemp[ m*NSource+ n ];
-						pp.W_Source[n] += ReceSourcepp[ m*NSource+ n ];
+						mp.W_Source[n] += *Remp; Remp++;
+						pp.W_Source[n] += *Repp; Repp++;
 					}
 				}
 
@@ -762,7 +771,6 @@ void Commute::UnPack(exchange what, int k)
 			}
 
 		}
-
 		break;
 
 
@@ -780,17 +788,15 @@ void Commute::UnPack(exchange what, int k)
 				Cell &cp = p_Meshs->GetCell(i,GridY+1,k);
 				for (n = 0; n < WAK_DIM2; n++)
 				{
-					cm.W_Fields[n+5] = ReceSourceYm[ (i-1)*WAK_DIM2 + n ];
-					cp.W_Fields[n+5] = ReceSourceYp[ (i-1)*WAK_DIM2 + n ];
+					cm.W_Fields[n+5] = *ReYm; ReYm++;
+					cp.W_Fields[n+5] = *ReYp; ReYp++;
 
 					if(i==1)
 					{
-						mm.W_Fields[n+5] = ReceSourcemm[ n ];
-						pm.W_Fields[n+5] = ReceSourcepm[ n ];
+						mm.W_Fields[n+5] = *Remm; Remm++;
+						pm.W_Fields[n+5] = *Repm; Repm++;
 					}
-
 				}
-
 			}
 
 			Cell &mp = p_Meshs->GetCell(0,GridY+1,k);
@@ -802,13 +808,13 @@ void Commute::UnPack(exchange what, int k)
 				Cell &cp = p_Meshs->GetCell(GridX+1,j,k);
 				for (n = 0; n < WAK_DIM2; n++)
 				{
-					cm.W_Fields[n+5] = ReceSourceXm[ (j-1)*WAK_DIM2 + n ];
-					cp.W_Fields[n+5] = ReceSourceXp[ (j-1)*WAK_DIM2 + n ];
+					cm.W_Fields[n+5] = *ReXm; ReXm++;
+					cp.W_Fields[n+5] = *ReXp; ReXp++;
 
 					if(j==1)
 					{
-						mp.W_Fields[n+5] = ReceSourcemp[ n ];
-						pp.W_Fields[n+5] = ReceSourcepp[ n ];
+						mp.W_Fields[n+5] = *Remp; Remp++;
+						pp.W_Fields[n+5] = *Repp; Repp++;
 					}
 				}
 
@@ -835,16 +841,16 @@ void Commute::UnPack(exchange what, int k)
 		{
 			MG_Cell &cxm = p_Multi->GetMGCell(0,			 j, k);
 			MG_Cell &cxp = p_Multi->GetMGCell(LayerGridX+1,  j, k);
-			cxm.M_value[field] = ReceSourceXm[j-1];
-			cxp.M_value[field] = ReceSourceXp[j-1];
+			cxm.M_value[field] = *ReXm; ReXm++;
+			cxp.M_value[field] = *ReXp; ReXp++;
 		}
 
 		for (i = 1; i<= LayerGridX; i++)
 		{
 			MG_Cell &cym = p_Multi->GetMGCell(i,			 0, k);
 			MG_Cell &cyp = p_Multi->GetMGCell(i,  LayerGridY+1, k);
-			cym.M_value[field] = ReceSourceYm[i-1];
-			cyp.M_value[field] = ReceSourceYp[i-1];
+			cym.M_value[field] = *ReYm; ReYm++;
+			cyp.M_value[field] = *ReYp; ReYp++;
 		}
 
 		MG_Cell &cmm = p_Multi->GetMGCell(0,		    0, k);
@@ -852,30 +858,29 @@ void Commute::UnPack(exchange what, int k)
 		MG_Cell &cpm = p_Multi->GetMGCell(LayerGridX+1, 0, k);
 		MG_Cell &cpp = p_Multi->GetMGCell(LayerGridX+1, LayerGridY+1, k);
 
-		cmm.M_value[field]=ReceSourcemm[0];
-		cmp.M_value[field]=ReceSourcemp[0];
-		cpm.M_value[field]=ReceSourcepm[0];
-		cpp.M_value[field]=ReceSourcepp[0];
+		cmm.M_value[field]=*Remm;
+		cmp.M_value[field]=*Remp;
+		cpm.M_value[field]=*Repm;
+		cpp.M_value[field]=*Repp;
 
 		if (RankIdx_X == 1) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(0, i, k)).M_value[field]			  = 0*(p_Multi->GetMGCell(1, i, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(0, i, k)).M_value[field]			  = 0; } };
 
 		if (RankIdx_X == Xpa) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).M_value[field] = 0*(p_Multi->GetMGCell(LayerGridX, i, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).M_value[field] = 0; } };
 
 		if (RankIdx_Y == 1) 
 		{ for (i = 0; i <= LayerGridX+1; i++) 
-		{ (p_Multi->GetMGCell(i, 0, k)).M_value[field] 			  = 0*(p_Multi->GetMGCell(i, 1, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(i, 0, k)).M_value[field] 			  = 0; } };
 
 		if (RankIdx_Y == Ypa) 
 		{ for (i = 0; i <= LayerGridX+1; i++)
-		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[field] = 0*(p_Multi->GetMGCell(i, LayerGridY, k)).M_value[field]; } };
+		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).M_value[field] = 0; } };
 
 		break;
-
-
+		
 		case COMMU_MG_P_C:
 		case COMMU_MG_S_C:
 		case COMMU_MG_R_C:
@@ -916,19 +921,19 @@ void Commute::UnPack(exchange what, int k)
 
 		if (RankIdx_X == 1) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(0, i, k)).C_value[field]			  = 0*(p_Multi->GetMGCell(1, i, k)).C_value[field]; } };
+		{ (p_Multi->GetMGCell(0, i, k)).C_value[field]			  = 0; } };
 
 		if (RankIdx_X == Xpa) 
 		{ for (i = 0; i <= LayerGridY+1; i++) 
-		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).C_value[field] = 0*(p_Multi->GetMGCell(LayerGridX, i, k)).C_value[field]; } };
+		{ (p_Multi->GetMGCell(LayerGridX+1, i, k)).C_value[field] = 0; } };
 
 		if (RankIdx_Y == 1) 
 		{ for (i = 0; i <= LayerGridX+1; i++) 
-		{ (p_Multi->GetMGCell(i, 0, k)).C_value[field] 			  = 0*(p_Multi->GetMGCell(i, 1, k)).C_value[field]; } };
+		{ (p_Multi->GetMGCell(i, 0, k)).C_value[field] 			  = 0; } };
 
 		if (RankIdx_Y == Ypa) 
 		{ for (i = 0; i <= LayerGridX+1; i++)
-		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).C_value[field] = 0*(p_Multi->GetMGCell(i, LayerGridY, k)).C_value[field]; } };
+		{ (p_Multi->GetMGCell(i, LayerGridY+1, k)).C_value[field] = 0; } };
 		break;	
 	}
 

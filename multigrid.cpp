@@ -1733,7 +1733,7 @@ int MultiGrid::MG_V_cycle(int field, double k0, int k)
 	for (n=1; n<MPI_Layer; n++)
 	{
 		RestrictionB(MG_Chi,MG_Chi,n+1, 0); 
-		Exchange(MG_Chi, n);
+		Exchange(MG_Chi, n+1);
 	}
 	
 	// switch(BottomType)
