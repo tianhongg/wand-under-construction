@@ -29,6 +29,7 @@ Trajectory::Trajectory(double xt, double yt, double ztime, int TpCellx, int TpCe
 
   Vx = Vy = Vxx = Vyy = Vxy = 0.0;
   old_vx = old_vy = 0.0;
+  
   unitm = 1.0;
   Gamma = 1.0;
 

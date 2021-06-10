@@ -72,6 +72,7 @@ enum exchange
 #include <mpi.h>
 #include <complex>
 #include <cmath>
+#include <time.h> 
 #include <vector>
 #include "namelist.h"
 #include "domain.h"

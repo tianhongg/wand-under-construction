@@ -136,6 +136,7 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
   	AddEntry((char*)"PlasProfile_L", 	&PProfileL, 1);
   	AddEntry((char*)"Traj_per_Cellx", 	&TpCellx, 1);
   	AddEntry((char*)"Traj_per_Celly", 	&TpCelly, 1);
+  	AddEntry((char*)"Delta_P", 			&Delta_P, 0.0);
   	AddEntry((char*)"Push_Traj_Order",	&PushOrder, 1);
   	AddEntry((char*)"AdaptiveStep",		&AdaptiveStep,0);
   	AddEntry((char*)"Threshold_V",		&V_thresh,1.0);
@@ -213,6 +214,7 @@ void Mesh::SeedTrajectory()
 	double dxp;
 	double dyp;
 
+	srand(time(NULL));
 	
 	TrajNum = GridX*GridY*TpCellx*TpCelly;
 
@@ -245,6 +247,14 @@ void Mesh::SeedTrajectory()
 					p = new Trajectory(xt, yt, ztime, TpCellx, TpCelly, dxp, dyp);
 					p->idx_i=i;
 					p->idx_j=j;
+
+					// finite temperature section
+					double r1 = rand_gaussian(Delta_P);
+					double r2 = rand_gaussian(Delta_P);
+
+					p->Vx=p->old_vx=r1;  p->Vy=p->old_vy=r2;  
+					p->Vxx=r1*r1; p->Vyy=r2*r2; p->Vxy=r1*r2;
+
 					// fprintf(dFile, "%f,%f\n", xt,yt);
 				}
 
@@ -576,6 +586,20 @@ Detector::Detector(FILE *f): NList ("Detector")
 
 	}
 
+}
+
+
+double Mesh::rand_gaussian (double sigma)
+{
+	double x, y, r2;
+	do
+	{
+		x = (2.*rand()-RAND_MAX)/RAND_MAX;
+		y = (2.*rand()-RAND_MAX)/RAND_MAX;
+		r2 = x * x + y * y;
+	}
+	while (r2 > 1.0 || r2 == 0);
+	return sigma * y * sqrt (-2.0 * log (r2) / r2);
 }
 
 

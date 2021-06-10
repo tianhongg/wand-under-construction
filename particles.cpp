@@ -20,8 +20,6 @@
 //----------------------------------------------------------------------------------||
 
 #include "wand_PIC.h"
-#include <time.h> 
-double rand_gaussian (double sigma);
 
 
 
@@ -525,18 +523,7 @@ void Mesh::SetBSourceZero()
 
 
 
-double rand_gaussian (double sigma)
-{
-	double x, y, r2;
-	do
-	{
-		x = (2.*rand()-RAND_MAX)/RAND_MAX;
-		y = (2.*rand()-RAND_MAX)/RAND_MAX;
-		r2 = x * x + y * y;
-	}
-	while (r2 > 1.0 || r2 == 0);
-	return sigma * y * sqrt (-2.0 * log (r2) / r2);
-}
+
 
 
 

@@ -58,6 +58,7 @@ private:
    int TpCellx;         //Trajectory per cell in x direction
    int TpCelly;         //Trajectory per cell in y direction
    int PushOrder;       //Push Trajectory Order in z direction
+   double Delta_P;
    double AdaptiveStep;    //Adaptive Z-step for pushing trajectories
    double V_thresh;
    double Vmax;
@@ -206,7 +207,7 @@ public:
    dcomplex SourceAy(int i, int j, int k, int NF);
    void Put_dA12(int what,  int k, int NF);
    dcomplex GetdA0() {return dA0;}
-
+   double rand_gaussian (double sigma);
 
    Mesh(int XGridN, int YGridN, int ZGridN, FILE *f);
    ~Mesh();
