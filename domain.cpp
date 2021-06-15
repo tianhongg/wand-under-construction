@@ -29,6 +29,7 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
 {
 
    Time = 0.0;
+   step = 0;
 
    ifAx = ifAy = 0;
 
@@ -310,6 +311,7 @@ void Domain::Run()
 //============= Main Routine ===========
 while(Time<Tmax)
 {
+   step=n;
 
    if(Nbeam) p_Meshes -> BeamSource();
    

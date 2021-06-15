@@ -1424,7 +1424,7 @@ void MultiGrid::Put_Source(int field, double k0, int k) //v
 	int i,j;
 	int nx,ny;
 
-	double time =p_domain()->Get_RunTime();
+	int time =p_domain()->Get_Step();
 
 
 	nx=LayerGridX[1];
