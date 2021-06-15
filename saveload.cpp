@@ -733,7 +733,7 @@ int Domain::SaveP(int nt)
 	int np_id, F_DIM[1];
 	int x_id, y_id, z_id, x0_id, y0_id, z0_id;
 	int px_id, py_id, pz_id, Ex0_id, Ey0_id, Ez0_id;
-	int q2m_id, wei_id;
+	int q2m_id, wei_id, sx_id, sy_id;
 
 	int Wxw_id, Wyw_id, Wzw_id;
 	int Wxl_id, Wyl_id, Wzl_id;
@@ -765,7 +765,7 @@ int Domain::SaveP(int nt)
 		double   *Ex0_P, *Ey0_P, *Ez0_P;
 		double   *Wxw_P, *Wyw_P, *Wzw_P;
 		double   *Wxl_P, *Wyl_P, *Wzl_P;
-		double   *q2m_P, *Weight_P;
+		double   *q2m_P, *Weight_P, *sx_P, *sy_P;
 
 		x_P  = new double[Npart+1];
 		y_P  = new double[Npart+1];  
@@ -789,6 +789,8 @@ int Domain::SaveP(int nt)
 
 		q2m_P    = new double[Npart+1];
 		Weight_P = new double[Npart+1];
+		sx_P = new double[Npart+1];
+		sy_P = new double[Npart+1];
 
 
 
@@ -825,6 +827,9 @@ int Domain::SaveP(int nt)
 
 				q2m_P[npp]= p->q2m;
 				Weight_P[npp]=p->weight;
+
+				sx[npp]=p->sx;
+				sy[npp]=p->sy;
 
 				npp++;
 			}
@@ -913,6 +918,10 @@ int Domain::SaveP(int nt)
 		if ( (retval = ncmpi_def_var(ncid, "q2m",    NC_DOUBLE, 1, F_DIM, &q2m_id )) ) return NC_ERR;
 		if ( (retval = ncmpi_def_var(ncid, "weight", NC_DOUBLE, 1, F_DIM, &wei_id )) ) return NC_ERR;
 
+
+		if ( (retval = ncmpi_def_var(ncid, "sx", NC_DOUBLE, 1, F_DIM, &sx_id )) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "sy", NC_DOUBLE, 1, F_DIM, &sy_id )) ) return NC_ERR;
+
 		if ( (retval = ncmpi_enddef(ncid)) ) return NC_ERR;
 
 
@@ -946,6 +955,11 @@ int Domain::SaveP(int nt)
   		if ( (retval = ncmpi_put_vara_double_all(ncid, q2m_id,fstart, fcount, &q2m_P[0]))) return NC_ERR;
   		if ( (retval = ncmpi_put_vara_double_all(ncid, wei_id,fstart, fcount, &Weight_P[0]))) return NC_ERR;
   		
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, sx_id,fstart, fcount, &sx_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, sy_id,fstart, fcount, &sy_P[0]))) return NC_ERR;
+  		
+
+
 		if ( (retval = ncmpi_put_vara_int_all(ncid, PP_id, pstart, pcount,  &SC[0][0]))) return NC_ERR;
 
 
@@ -972,12 +986,203 @@ int Domain::SaveP(int nt)
 		delete [] Wxw_P; delete [] Wyw_P; delete [] Wzw_P;
 		delete [] Wxl_P; delete [] Wyl_P; delete [] Wzl_P;
 		delete [] q2m_P; delete [] Weight_P;
+		delete [] sx_P;  delete [] sy_P;
 
 
 
 
 	}
 
+
+	return 0;
+
+}
+
+
+
+int Domain::SaveT(int nt, int k)
+{
+	int N_processor;
+	MPI_Comm_size(MPI_COMM_WORLD, &N_processor);
+
+	char sFile[128];
+	char pFile[128];
+	static const int NC_ERR = 1;
+
+	int Xpa = p_Partition()->GetXpart();
+	int Ypa = p_Partition()->GetYpart();
+
+	int Idx_x = p_Partition()->RankIdx_X();
+	int Idx_y = p_Partition()->RankIdx_Y();
+
+	int n, type, Npart, NAll, Nparts[N_processor];
+
+	//========================================
+	//========= Pnetcdf Variables ============
+	int retval, ncid; 
+	int np_id, F_DIM[1];
+
+	int x_id, y_id, x0_id, y0_id;
+	int px_id, py_id, wei_id;
+
+	int PP_id; //particle partition information;
+
+	int PDim_id, PSC_id, P_DIM[2]; //start and count//dim
+	MPI_Offset pstart[2], pcount[2];
+
+
+	MPI_Info info;
+	MPI_Info_create(&info);
+	MPI_Offset fstart[1], fcount[1];
+	int SC[1][2];
+
+
+		type = SpecieType[n];
+
+		Npart=0;
+
+		Trajectory *p = p_Meshes -> p_Trajectory;
+
+		while(p)
+		{
+			Npart++;
+			p = p->p_PrevTraj;
+		}
+
+
+		double   *x_P, *y_P, *x0_P, *y0_P;	
+		double   *px_P,  *py_P,	*Weight_P;
+
+		x_P  = new double[Npart+1];
+		y_P  = new double[Npart+1];  
+		
+		x0_P = new double[Npart+1];  
+		y0_P = new double[Npart+1];  
+		
+		px_P = new double[Npart+1];
+		py_P = new double[Npart+1];
+		
+		Weight_P = new double[Npart+1];
+
+		p = p_Meshes -> p_Trajectory;
+
+		int npp=0;
+
+		while(p)
+		{
+			
+			x_P[npp]  = p->x;
+			y_P[npp]  = p->y;
+
+			x0_P[npp] = p->x0;
+			y0_P[npp] = p->y0;
+
+			px_P[npp] = p->Vx;
+			py_P[npp] = p->Vy;
+
+			Weight_P[npp]=p->sx*p->sy;
+			npp++;
+			p = p->p_PrevTraj;
+
+		}
+
+		MPI_Allgather(&Npart, 1, MPI_INT, &Nparts, 1, MPI_INT, MPI_COMM_WORLD);
+
+		fstart[0] = 0;
+		for(int i=0; i<Rank; i++) {fstart[0]+= Nparts[i];};
+		fcount[0] = Npart;
+
+		NAll = 0;
+		for(int i=0; i<N_processor; i++) {NAll += Nparts[i];};
+
+		// //save partition for the particles;
+		// sprintf(pFile,"PPartition_Rank_%d_sp_%d.dt",rank,n);
+		// FILE * dFile;
+		// dFile = fopen (pFile,"w");
+		// fprintf(dFile, "%d %d\n", fstart[0],fcount[0]);
+		// fclose (dFile);
+
+
+		sprintf(sFile,"Traj_%d_xi_%d.nc",nt,k);
+
+		if((retval = ncmpi_create(MPI_COMM_WORLD, sFile, NC_CLOBBER|NC_64BIT_OFFSET, info, &ncid)) ) 
+		{
+    		if(Rank==0) std::cout<< "Domain: pnetcdf error:" << retval << " while creating " << sFile << "." <<'\n';
+    		return NC_ERR;
+		}
+
+		//========================================
+		//========= Define Dimension =============
+		if ( (retval = ncmpi_def_dim(ncid, "np", NAll, &np_id)) )	return NC_ERR;
+		F_DIM[0] = np_id;
+
+		//particle partition information;
+		if ( (retval = ncmpi_def_dim(ncid, "npro", N_processor, &PDim_id)) )	return NC_ERR;
+		if ( (retval = ncmpi_def_dim(ncid, "SC", 	2, 			&PSC_id)) )		return NC_ERR;
+
+		P_DIM[0] = PDim_id; //Number of processors
+		P_DIM[1] = PSC_id;	//start and count
+
+		pstart[0]=Rank;
+		pstart[1]=0;
+		pcount[0]=1;
+		pcount[1]=2;
+
+		SC[0][0]=fstart[0];
+  		SC[0][1]=fcount[0];
+
+		//========================================
+		//========= Define Variables =============
+		if ( (retval = ncmpi_def_var(ncid, "partition", NC_INT, 2, P_DIM, &PP_id)) ) return NC_ERR;
+		
+		if ( (retval = ncmpi_def_var(ncid, "x0", NC_DOUBLE, 1, F_DIM, &x0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "y0", NC_DOUBLE, 1, F_DIM, &y0_id)) ) return NC_ERR;
+		
+		if ( (retval = ncmpi_def_var(ncid, "xx", NC_DOUBLE, 1, F_DIM, &x_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "yy", NC_DOUBLE, 1, F_DIM, &y_id)) ) return NC_ERR;
+
+		if ( (retval = ncmpi_def_var(ncid, "px", NC_DOUBLE, 1, F_DIM, &px_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "py", NC_DOUBLE, 1, F_DIM, &py_id)) ) return NC_ERR;
+		
+		if ( (retval = ncmpi_def_var(ncid, "weight", NC_DOUBLE, 1, F_DIM, &wei_id )) ) return NC_ERR;
+
+		if ( (retval = ncmpi_enddef(ncid)) ) return NC_ERR;
+
+
+
+		//========================================
+		//============ Put Variables =============
+		if ( (retval = ncmpi_put_vara_double_all(ncid, x0_id, fstart, fcount,  &x0_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, y0_id, fstart, fcount,  &y0_P[0]))) return NC_ERR;
+  		
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, x_id,  fstart, fcount,   &x_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, y_id,  fstart, fcount,   &y_P[0]))) return NC_ERR;
+  		
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, px_id, fstart, fcount,  &px_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, py_id, fstart, fcount,  &py_P[0]))) return NC_ERR;
+  		
+  		if ( (retval = ncmpi_put_vara_double_all(ncid, wei_id,fstart, fcount, &Weight_P[0]))) return NC_ERR;
+  		
+		if ( (retval = ncmpi_put_vara_int_all(ncid, PP_id, pstart, pcount,  &SC[0][0]))) return NC_ERR;
+
+
+
+		if ( (retval = ncmpi_sync(ncid)) )
+  		{
+			if(Rank==0) std::cout<< "Domain: pnetcdf error " << retval <<  " while syncing " << sFile << "." <<'\n';
+			return NC_ERR; 
+		}
+  
+		if ( (retval = ncmpi_close(ncid)) ) 
+		{
+			if(Rank==0) std::cout<< "Domain: pnetcdf error " << retval << " while closing " << sFile << "." <<'\n';
+			return NC_ERR;
+		}
+
+		delete [] x_P; 	 delete [] y_P;
+		delete [] x0_P;  delete [] y0_P;
+		delete [] px_P;  delete [] py_P;
+		delete [] Weight_P;
 
 	return 0;
 
@@ -1042,8 +1247,6 @@ int Domain::SaveXray(int nt)
 
 	}
 
-
-
 	
 	char sFile[128];
 	static const int NC_ERR = 1;
@@ -1096,9 +1299,6 @@ int Domain::SaveXray(int nt)
 	}
 
 	
-
-	
-
 
 
 	return 0;
@@ -1293,7 +1493,7 @@ int  Domain::LoadParti(int nt)
 
 	int x_id, y_id, z_id, x0_id, y0_id, z0_id;
 	int px_id, py_id, pz_id, Ex0_id, Ey0_id, Ez0_id;
-	int q2m_id, wei_id;
+	int q2m_id, wei_id, sx_id, sy_id;
 	int Wxw_id, Wyw_id, Wzw_id;
 	int Wxl_id, Wyl_id, Wzl_id;
 
@@ -1308,6 +1508,30 @@ int  Domain::LoadParti(int nt)
 	MPI_Offset fstart[1], fcount[1];
 	int Npart;
 	Particle *p =NULL;
+
+
+
+	//tianhong-June-15-2021
+	CellAccX = std::vector<double> (XGridN+3,0.0);
+	CellAccY = std::vector<double> (YGridN+3,0.0);
+
+	for(int i=0;i<XGridN+2;i++)
+	{	
+		Cell &ccc = p_domain()->p_Mesh()->GetCell(i,0,0);
+		CellAccX[i]= ccc.Xcord-ccc.dx*0.5;
+	}
+	Cell &c1 = p_domain()->p_Mesh()->GetCell(XGridN+1,0,0);
+	CellAccX[XGridN+2]=c1.Xcord+c1.dx*0.5;
+
+	for(int i=0;i<YGridN+2;i++)
+	{	
+		Cell &ccc = p_domain()->p_Mesh()->GetCell(0,i,0);
+		CellAccY[i]= ccc.Ycord-ccc.dy*0.5;
+	}
+	Cell &c2 = p_domain()->p_Mesh()->GetCell(0,YGridN+1,0);
+	CellAccY[YGridN+2]=c2.Ycord+c2.dy*0.5;
+	//----
+
 
 	for (n=0; n<NSpecie; n++)
 	{
@@ -1348,6 +1572,9 @@ int  Domain::LoadParti(int nt)
 		if ( (retval = ncmpi_inq_varid(ncid, "q2m" , 	&q2m_id))) return NC_ERR;
 		if ( (retval = ncmpi_inq_varid(ncid, "weight" , &wei_id))) return NC_ERR;
 
+		if ( (retval = ncmpi_inq_varid(ncid, "sx" , &sx_id))) return NC_ERR;
+		if ( (retval = ncmpi_inq_varid(ncid, "sy" , &sy_id))) return NC_ERR;
+
 		// read particle partitioning info
 
 		if ( (retval = ncmpi_inq_varid(ncid, "partition" , &PP_id))) return NC_ERR;
@@ -1360,7 +1587,7 @@ int  Domain::LoadParti(int nt)
 			double   *Ex0_P, *Ey0_P, *Ez0_P;
 			double   *Wxw_P, *Wyw_P, *Wzw_P;
 			double   *Wxl_P, *Wyl_P, *Wzl_P;
-			double   *q2m_P, *Weight_P;
+			double   *q2m_P, *Weight_P, *sx_P, *sy_P;
 
 			x_P  = new double[Npart];
 			y_P  = new double[Npart];  
@@ -1384,6 +1611,9 @@ int  Domain::LoadParti(int nt)
 
 			q2m_P = new double[Npart];
 			Weight_P = new double[Npart];
+
+			sx_P = new double[Npart];
+			sy_P = new double[Npart];
 
 			fstart[0]=SCAll[Rank][0];
 			fcount[0]=SCAll[Rank][1];
@@ -1415,6 +1645,10 @@ int  Domain::LoadParti(int nt)
 			if ( (retval = ncmpi_get_vara_double_all(ncid, q2m_id, fstart, fcount, &q2m_P[0])))  return NC_ERR;
 			if ( (retval = ncmpi_get_vara_double_all(ncid, wei_id, fstart, fcount, &Weight_P[0])))  return NC_ERR;
 
+			if ( (retval = ncmpi_get_vara_double_all(ncid, sx_id, fstart, fcount, &sx_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_double_all(ncid, sy_id, fstart, fcount, &sy_P[0])))  return NC_ERR;
+
+
 
 			for(int i=0;i<Npart;i++)
 			{	
@@ -1435,6 +1669,15 @@ int  Domain::LoadParti(int nt)
 					p->Wxl = Wxl_P[i];
 					p->Wyl = Wyl_P[i];
 					p->Wzl = Wzl_P[i];
+
+					p->sx=sx_P[i];
+					p->sy=sy_P[i];
+
+					auto upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),xt);
+					p->idx_i= (upper-CellAccX.begin()-1);
+					upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),yt);
+					p->idx_j= (upper-CellAccY.begin()-1);
+
 					break;
 
 					case ION:
@@ -1450,6 +1693,15 @@ int  Domain::LoadParti(int nt)
 					p->Wxl = Wxl_P[i];
 					p->Wyl = Wyl_P[i];
 					p->Wzl = Wzl_P[i];
+
+					p->sx=sx_P[i];
+					p->sy=sy_P[i];
+
+					auto upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),xt);
+					p->idx_i= (upper-CellAccX.begin()-1);
+					upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),yt);
+					p->idx_j= (upper-CellAccY.begin()-1);
+
 					break;
 
 				}
@@ -1465,8 +1717,6 @@ int  Domain::LoadParti(int nt)
 
 	}
 		
-
-
 
 
 

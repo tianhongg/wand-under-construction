@@ -156,6 +156,7 @@ class Domain : public NList{
     int  Save(int nt);
     int  Save2D(int nt, int savedim, bool part);
     int  SaveP(int nt);
+    int  SaveT(int nt, int k);
     int  SaveXray(int nt);
     int  LoadPulse(int nt);
     int  LoadParti(int nt);

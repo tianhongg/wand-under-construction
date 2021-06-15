@@ -24,7 +24,6 @@
 #include <exception>
 
 
-
 //---------------------------- Mesh::Mesh --------------------
 Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 {
@@ -589,7 +588,7 @@ Detector::Detector(FILE *f): NList ("Detector")
 }
 
 
-double Mesh::rand_gaussian (double sigma)
+double Mesh::rand_gaussian (double sigma) //sigma=standard deviation 
 {
 	double x, y, r2;
 	do

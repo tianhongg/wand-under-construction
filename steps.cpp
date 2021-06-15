@@ -138,6 +138,10 @@ int Domain::Boris(double &k0, int &k)
       }
    }
    //================================
+
+
+   
+   
    return 1;
 
 }
