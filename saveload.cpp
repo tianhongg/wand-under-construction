@@ -828,8 +828,8 @@ int Domain::SaveP(int nt)
 				q2m_P[npp]= p->q2m;
 				Weight_P[npp]=p->weight;
 
-				sx[npp]=p->sx;
-				sy[npp]=p->sy;
+				sx_P[npp]=p->sx;
+				sy_P[npp]=p->sy;
 
 				npp++;
 			}
@@ -1512,23 +1512,23 @@ int  Domain::LoadParti(int nt)
 
 
 	//tianhong-June-15-2021
-	CellAccX = std::vector<double> (XGridN+3,0.0);
-	CellAccY = std::vector<double> (YGridN+3,0.0);
+	std::vector<double> CellAccX (XGridN+3,0.0);
+	std::vector<double> CellAccY (YGridN+3,0.0);
 
 	for(int i=0;i<XGridN+2;i++)
 	{	
-		Cell &ccc = p_domain()->p_Mesh()->GetCell(i,0,0);
+		Cell &ccc = p_Mesh()->GetCell(i,0,0);
 		CellAccX[i]= ccc.Xcord-ccc.dx*0.5;
 	}
-	Cell &c1 = p_domain()->p_Mesh()->GetCell(XGridN+1,0,0);
+	Cell &c1 = p_Mesh()->GetCell(XGridN+1,0,0);
 	CellAccX[XGridN+2]=c1.Xcord+c1.dx*0.5;
 
 	for(int i=0;i<YGridN+2;i++)
 	{	
-		Cell &ccc = p_domain()->p_Mesh()->GetCell(0,i,0);
+		Cell &ccc = p_Mesh()->GetCell(0,i,0);
 		CellAccY[i]= ccc.Ycord-ccc.dy*0.5;
 	}
-	Cell &c2 = p_domain()->p_Mesh()->GetCell(0,YGridN+1,0);
+	Cell &c2 = p_Mesh()->GetCell(0,YGridN+1,0);
 	CellAccY[YGridN+2]=c2.Ycord+c2.dy*0.5;
 	//----
 
@@ -1648,8 +1648,6 @@ int  Domain::LoadParti(int nt)
 			if ( (retval = ncmpi_get_vara_double_all(ncid, sx_id, fstart, fcount, &sx_P[0])))  return NC_ERR;
 			if ( (retval = ncmpi_get_vara_double_all(ncid, sy_id, fstart, fcount, &sy_P[0])))  return NC_ERR;
 
-
-
 			for(int i=0;i<Npart;i++)
 			{	
 
@@ -1673,9 +1671,9 @@ int  Domain::LoadParti(int nt)
 					p->sx=sx_P[i];
 					p->sy=sy_P[i];
 
-					auto upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),xt);
+					auto upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),p->x);
 					p->idx_i= (upper-CellAccX.begin()-1);
-					upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),yt);
+					upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),p->y);
 					p->idx_j= (upper-CellAccY.begin()-1);
 
 					break;
@@ -1697,9 +1695,9 @@ int  Domain::LoadParti(int nt)
 					p->sx=sx_P[i];
 					p->sy=sy_P[i];
 
-					auto upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),xt);
+					upper=std::upper_bound(CellAccX.begin(),CellAccX.end(),p->x);
 					p->idx_i= (upper-CellAccX.begin()-1);
-					upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),yt);
+					upper=std::upper_bound(CellAccY.begin(),CellAccY.end(),p->y);
 					p->idx_j= (upper-CellAccY.begin()-1);
 
 					break;

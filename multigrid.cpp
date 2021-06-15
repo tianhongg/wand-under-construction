@@ -741,7 +741,6 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 
 
 // Full Weight Restriction
-// Don't forget to take care the corner values at exchange();
 void MultiGrid::Restriction(int send, int rece, int tolayer, int where) //v
 {
 
@@ -964,77 +963,7 @@ switch(where)
 //deprecated//May-25-tianhong
 void MultiGrid::SendtoBottom(int what)
 {
-	int i, j, n;
-
-	int nsend;
-	nsend = LayerGridX[MPI_Layer]*LayerGridY[MPI_Layer];
-	double mysend[nsend];
-	double myreceive[BottomCells];
-
-	n = 0;
-	for(j=1; j<=LayerGridY[MPI_Layer]; j++)
-	{
-		for(i=1; i<=LayerGridX[MPI_Layer]; i++)
-		{
-
-			MG_Cell &mgc = GetMGCell(i,j,MPI_Layer);
-			mysend[n] = mgc.M_value[what];
-			n++;
-
-		}
-	}
-
-	MPI_Gatherv(&mysend, nsend, MPI_DOUBLE, &myreceive, BottomSend, Bottomdisp,
-				MPI_DOUBLE, Worker, MPI_COMM_WORLD);
-
-	//put cells into Worker processor;
-	int ii = 0;
-	int jj = 0;
-
-	int offx[Xpa];
-	int offy[Ypa];
-
-	offx[0] = 0;
-	offy[0] = 0;
-
-	for(n=0; n<Xpa*Ypa; n++)
-	{
-	   if(n%Xpa+1<Xpa)		{offx[n%Xpa+1] 		= recebottomX[n];};
-	   if(int(n/Ypa)+1<Ypa) {offy[int(n/Ypa)+1] = recebottomY[n];};
-	}
-
-
-	for(n = 1; n<Xpa; n++)
-	{
-		offx[n] += offx[n-1];
-		offy[n] += offy[n-1];
-	}
-
-
-	if(Rank == Worker)
-	{
-
-		for (n=0; n<Xpa*Ypa; n++)
-		{
-
-			for(j=1; j<=recebottomY[n]; j++)
-			{
-
-				for(i=1; i<=recebottomX[n]; i++)
-				{
-
-					ii = offx[ n%Xpa ]+i;
-					jj = offy[ int(n/Xpa) ]+j;
-
-					MG_Cell &mgc = GetMGBCell(ii,jj,1);
-					mgc.M_value[what] = myreceive[ Bottomdisp[n]+(j-1)*recebottomX[n]+(i-1)];
-				}
-
-			}
-
-		}
-
-	}
+	
 
 
 	return;
@@ -1045,83 +974,7 @@ void MultiGrid::SendtoBottom(int what)
 //deprecated//May-25-tianhong
 void MultiGrid::BottomSendBack(int what)
 {
-	int i, j, n;
-
-	int nrece;
-	nrece = LayerGridX[MPI_Layer]*LayerGridY[MPI_Layer];
-
-	double myrece[nrece];
-	double mysend[BottomCells];
-
-
-	//put cells into Worker processor;
-	int ii = 0;
-	int jj = 0;
-
-
-
-	int offx[Xpa];
-	int offy[Xpa];
-
-	offx[0] = 0;
-	offy[0] = 0;
-
-	for(n=0; n<Xpa*Ypa; n++)
-	{
-	   if(n%Xpa+1<Xpa)		{offx[n%Xpa+1] 		= recebottomX[n];};
-	   if(int(n/Ypa)+1<Ypa) {offy[int(n/Ypa)+1] = recebottomY[n];};
-	}
-
-
-	for(n = 1; n<Xpa; n++)
-	{
-		offx[n] += offx[n-1];
-		offy[n] += offy[n-1];
-	}
-
-	if(Rank == Worker)
-	{
-
-		for (n=0; n<Xpa*Ypa; n++)
-		{
-
-			for(j=1; j<=recebottomY[n]; j++)
-			{
-
-				for(i=1; i<=recebottomX[n]; i++)
-				{
-
-					ii = offx[ n%Xpa ]+i;
-					jj = offy[ int(n/Xpa) ]+j;
-
-					MG_Cell &mgc = GetMGBCell(ii,jj,1);
-					mysend[ Bottomdisp[n]+(j-1)*recebottomX[n]+(i-1)] = mgc.M_value[what];
-				
-				}
-
-			}
-
-		}
-
-	}
-
-	MPI_Scatterv(&mysend, BottomSend, Bottomdisp, MPI_DOUBLE, &myrece, nrece,
-				MPI_DOUBLE, Worker, MPI_COMM_WORLD);
-
-
-	n = 0;
-	for(j=1; j<=LayerGridY[MPI_Layer]; j++)
-	{
-		for(i=1; i<=LayerGridX[MPI_Layer]; i++)
-		{
-
-			MG_Cell &mgc = GetMGCell(i,j,MPI_Layer);
-			mgc.M_value[what] = myrece[n];
-			n++;
-
-		}
-	}
-
+	
 
 
 	return;
@@ -1448,18 +1301,12 @@ void MultiGrid::SetZero(int what, int layer, int where)
 	int i,j;
 	int nx,ny;
 
-// switch(where)
-// {
 
-// 	case 0:
 
 	nx=LayerGridX[layer];
 	ny=LayerGridY[layer];
 
-	// switch(where)
-	// {
 
-	// case 0:
 	for (j=0; j<=ny+1; j++)
 	{
 		for (i=0; i<=nx+1; i++)
@@ -1472,25 +1319,7 @@ void MultiGrid::SetZero(int what, int layer, int where)
 
 	}	
 
-// 	break;
 
-// 	case 1:
-
-// 	for (j=0; j<=BLayerGrid[layer]+1; j++)
-// 	{
-// 		for (i=0; i<=BLayerGrid[layer]+1; i++)
-// 		{
-
-// 			MG_Cell &ccc = GetMGBCell(i, j, layer);
-// 			ccc.M_value[what] = 0;
-
-// 		}
-
-// 	}
-
-// 	break;
-
-// }
 
 	return;
 }
@@ -1541,25 +1370,7 @@ void MultiGrid::AddCorrection(int layer, int where)//v
 		}
 
 	}
-	// break;
-	// case 1:
-
-	// for (j=1; j<=BLayerGrid[layer]; j++)
-	// {
-	// 	for (i=1; i<=BLayerGrid[layer]; i++)
-	// 	{
-	// 		MG_Cell &ccc = GetMGBCell(i, j, layer);
-	// 		ccc.M_value[0] +=ccc.M_value[2];
-		
-	// 	}
-
-	// }
-
-	// break;
-
-	// }
-
-
+	
 
 	return;
 }
@@ -1613,6 +1424,9 @@ void MultiGrid::Put_Source(int field, double k0, int k) //v
 	int i,j;
 	int nx,ny;
 
+	double time =p_domain()->Get_RunTime();
+
+
 	nx=LayerGridX[1];
 	ny=LayerGridY[1];
 
@@ -1628,7 +1442,8 @@ void MultiGrid::Put_Source(int field, double k0, int k) //v
 			{
 				Cell &cm  = p_Meshs->GetCell(i, j, k-1);
 				Cell &cmm = p_Meshs->GetCell(i, j, k-2);
-				mgc.M_value[0] = 2*cm.W_Fields[field]-cmm.W_Fields[field];	//initial guess
+				if(time==0) mgc.M_value[0] = 2*cm.W_Fields[field]-cmm.W_Fields[field];	//initial guess
+				else mgc.M_value[0] = c.W_Fields[field];
 			}
 			else
 			{
