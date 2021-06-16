@@ -239,7 +239,7 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    {
       LoadParti(IfRestart);
       if (rank==0)  printf("==== Domain: ParticleFile No.%4d Loaded.====\n",IfRestart);
-      Time=OutDt*IfRestart;
+      // Time=OutDt*IfRestart;
    }
 
    //===============================================================

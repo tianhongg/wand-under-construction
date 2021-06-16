@@ -211,7 +211,7 @@ void Mesh::PushParticle()//v
 				By+=c[n]->W_By*weight[n];
 				Bz+=c[n]->W_Bz*weight[n];
 
-				Ex-=c[n]->W_Ez*weight[n];
+				Ex-=c[n]->W_Ex*weight[n];
 				Ey-=c[n]->W_Ey*weight[n];
 				Ez+=c[n]->W_Ez*weight[n];
 			}
@@ -224,6 +224,7 @@ void Mesh::PushParticle()//v
 			//=====laserfields===============
 			ExlR = EylR = EzlR = 0.0;
 			BxlR = BylR = BzlR = 0.0;
+			
 			if(NFreqs>0)
 			{
 

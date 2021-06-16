@@ -121,6 +121,9 @@ int Domain::Save(int nt)
 	}
 
 
+
+	if ( (retval = ncmpi_put_att_double(ncid, NC_GLOBAL, "time", NC_DOUBLE, 1, &Time)) ) return NC_ERR;
+
 	//========================================
 	//========= Define Dimension =============
 	if ( (retval = ncmpi_def_dim(ncid, "nx", XGridN*Xpa, &nx_id)) )	return NC_ERR;
@@ -875,6 +878,7 @@ int Domain::SaveP(int nt)
 		if ( (retval = ncmpi_def_dim(ncid, "npro", N_processor, &PDim_id)) )	return NC_ERR;
 		if ( (retval = ncmpi_def_dim(ncid, "SC", 	2, 			&PSC_id)) )		return NC_ERR;
 
+
 		P_DIM[0] = PDim_id; //Number of processors
 		P_DIM[1] = PSC_id;	//start and count
 
@@ -886,6 +890,8 @@ int Domain::SaveP(int nt)
 		SC[0][0]=fstart[0];
   		SC[0][1]=fcount[0];
 
+
+  		if ( (retval = ncmpi_put_att_double(ncid, NC_GLOBAL, "time", NC_DOUBLE, 1, &Time)) ) return NC_ERR;
 		
 
 		//========================================
@@ -1386,6 +1392,7 @@ int Domain::LoadPulse(int nt)
 	}
 
 	//========================================
+	if ( (retval =ncmpi_get_att_double(ncid, NC_GLOBAL, "time", &Time))) return NC_ERR;
 
 
 	//===== Laser Wake potential =======
@@ -1544,6 +1551,10 @@ int  Domain::LoadParti(int nt)
     	if(Rank==0) std::cout<< "Domain: pnetcdf error:" << retval << " while opening " << sFile << "." <<'\n';
     	return NC_ERR;
 		}
+
+
+		if ( (retval =ncmpi_get_att_double(ncid, NC_GLOBAL, "time", &Time))) return NC_ERR;
+
 
 		if ( (retval = ncmpi_inq_varid(ncid,  "x0" , 	 &x0_id))) return NC_ERR;
 		if ( (retval = ncmpi_inq_varid(ncid,  "y0" , 	 &y0_id))) return NC_ERR;
