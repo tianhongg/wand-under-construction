@@ -80,7 +80,7 @@ class Domain : public NList{
     double Tmax;
     double OutDt;
     double Time;
-    int step;
+    // int Tstep;
     int savedim;
 
     int Npulse;
@@ -127,9 +127,9 @@ class Domain : public NList{
     double Set_Ymax(double y) {return Ymax=y;};
 
     double Get_Zmax() {return Zmax;};
-
     double Get_RunTime() {return Time;};
-    int Get_Step() {return step;};
+    // int Get_Step() {return Tstep;};
+    
     int Get_BC()         {return BC;}
     double Get_Buffersize() {return Buffersize;}
 

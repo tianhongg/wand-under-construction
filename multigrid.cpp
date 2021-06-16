@@ -1424,7 +1424,7 @@ void MultiGrid::Put_Source(int field, double k0, int k) //v
 	int i,j;
 	int nx,ny;
 
-	int time =p_domain()->Get_Step();
+	// int time =p_domain()->Get_Step();
 
 
 	nx=LayerGridX[1];
@@ -1442,8 +1442,8 @@ void MultiGrid::Put_Source(int field, double k0, int k) //v
 			{
 				Cell &cm  = p_Meshs->GetCell(i, j, k-1);
 				Cell &cmm = p_Meshs->GetCell(i, j, k-2);
-				if(time==0) mgc.M_value[0] = 2*cm.W_Fields[field]-cmm.W_Fields[field];	//initial guess
-				else mgc.M_value[0] = c.W_Fields[field];
+				mgc.M_value[0] = 2*cm.W_Fields[field]-cmm.W_Fields[field];	//initial guess
+				// else mgc.M_value[0] = c.W_Fields[field];
 			}
 			else
 			{
