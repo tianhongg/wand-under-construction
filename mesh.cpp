@@ -153,7 +153,7 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
   	AddEntry((char*)"PlasmaBegin",	&PlasmaBegin, 0);
   	AddEntry((char*)"PlateauEnd",	&PlateauEnd,  1e10);
   	AddEntry((char*)"PlasmaEnd",	&PlasmaEnd,	  1e10);
-  	AddEntry((char*)"PlasRadius",	&PlasRadius,100.0);
+  	AddEntry((char*)"PlasRadius",	&PlasRadius,  10000);
 
 /*
   	char name[128];
