@@ -247,16 +247,15 @@ void Mesh::SeedTrajectory()
 					p->idx_i=i;
 					p->idx_j=j;
 
-					// // finite temperature section
-					// didn't work very good
-					// double r1 = rand_gaussian(Delta_P);
-					// double r2 = rand_gaussian(Delta_P);
+					// // finite temperature section: test
+					double r1 = rand_gaussian(Delta_P);
+					double r2 = rand_gaussian(Delta_P);
 
-					p->Vx=p->old_vx=0;  
-					p->Vy=p->old_vy=0;  
-					p->Vxx=0; 
-					p->Vyy=0; 
-					p->Vxy=0;
+ 					p->Vx=p->old_vx=r1;  
+ 					p->Vy=p->old_vy=r2;    
+                    p->Vxx=r1*r1; 
+                    p->Vyy=r2*r2; 
+                    p->Vxy=r1*r2;
 
 				}
 
