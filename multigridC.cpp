@@ -243,8 +243,8 @@ void MultiGrid::RelaxationC(int field, int layer, int where)
 
 	double hxp,hxm,hxa,hxd,h2x;
 	double hyp,hym,hya,hyd,h2y;
-
 	double wmm,wmp,wpm,wpp;
+
 	dcomplex wcc,wxm,wxp,wym,wyp;
 	dcomplex d2xS, d2yS, dxS, dyS;
 	dcomplex kcc,kxm,kxp,kym,kyp;
@@ -341,8 +341,8 @@ void MultiGrid::ResidualC(int field, int layer, int where)
 
 	double hxp,hxm,hxa,hxd,h2x;
 	double hyp,hym,hya,hyd,h2y;
-
 	double wmm,wmp,wpm,wpp;
+
 	dcomplex wcc,wxm,wxp,wym,wyp;
 	dcomplex d2xS, d2yS, dxS, dyS;
 	dcomplex kcc,kxm,kxp,kym,kyp;
@@ -575,13 +575,13 @@ void MultiGrid::Put_SourceC(int field, int k, int NF)
 			switch(field)
 			{	
 				case 5:
-				mgc.C_value[1] = p_Meshs->SourceAx(i,j,k,NF)*dxdy;
-				mgc.C_value[4] = (4*dA0+c.W_Chi-kk)*dxdy;
+				mgc.C_value[1] = p_Meshs->SourceAx(i,j,k,NF);
+				mgc.C_value[4] = (4*dA0+c.W_Chi-kk);
 				break;
 
 				case 6:
-				mgc.C_value[1] = p_Meshs->SourceAy(i,j,k,NF)*dxdy;
-				mgc.C_value[4] = (4*dA0+c.W_Chi-kk)*dxdy;
+				mgc.C_value[1] = p_Meshs->SourceAy(i,j,k,NF);
+				mgc.C_value[4] = (4*dA0+c.W_Chi-kk);
 				break;
 			}
 
