@@ -22,7 +22,7 @@
 #include "wand_PIC.h"
 
 
-void Mesh::PushTrajectory(double k0, int k, int step)
+void Mesh::PushTrajectory(WDOUBLE k0, int k, int step)
 {
 
 	// temporary remove
@@ -38,8 +38,8 @@ void Mesh::PushTrajectory_Half()
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
 	
-	double xt, yt, Vx, Vy, xtp, ytp;
-	double dztmp;
+	WDOUBLE xt, yt, Vx, Vy, xtp, ytp;
+	WDOUBLE dztmp;
 
 	p = p_Trajectory;
 
@@ -108,19 +108,19 @@ void Mesh::PushTrajectory_HalfE(int k)
 
 	Trajectory *p = NULL;
 
-	double ddx, ddy;
+	WDOUBLE ddx, ddy;
 
-	double Ex, Ey, Ez, Psi, Pondx, Pondy, Asq;
-	double Fx, Fy, gamma;
+	WDOUBLE Ex, Ey, Ez, Psi, Pondx, Pondy, Asq;
+	WDOUBLE Fx, Fy, gamma;
 
-	double xt, yt, Vx, Vy, Vxp, Vyp, xtp, ytp;
+	WDOUBLE xt, yt, Vx, Vy, Vxp, Vyp, xtp, ytp;
 	
-	double wmm,wmc,wmp;
-	double wcm,wcc,wcp;
-	double wpm,wpc,wpp;
+	WDOUBLE wmm,wmc,wmp;
+	WDOUBLE wcm,wcc,wcp;
+	WDOUBLE wpm,wpc,wpp;
 
-	double dztmp;
-	double sx, sy, sxy;
+	WDOUBLE dztmp;
+	WDOUBLE sx, sy, sxy;
 
 	int i,j;
 
@@ -180,14 +180,14 @@ void Mesh::PushTrajectory_HalfE(int k)
 
 		sxy = sx*sy;
 
-		double deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
-		double deltaym=std::max(sy*0.5-(ddy*0.5+yt-ccc.Ycord),0.0);
+		WDOUBLE deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
+		WDOUBLE deltaym=std::max(sy*0.5-(ddy*0.5+yt-ccc.Ycord),0.0);
 
-		double deltaxp=std::max(sx*0.5-(ddx*0.5-xt+ccc.Xcord),0.0);
-		double deltayp=std::max(sy*0.5-(ddy*0.5-yt+ccc.Ycord),0.0);
+		WDOUBLE deltaxp=std::max(sx*0.5-(ddx*0.5-xt+ccc.Xcord),0.0);
+		WDOUBLE deltayp=std::max(sy*0.5-(ddy*0.5-yt+ccc.Ycord),0.0);
 
-		double deltaxc=sx-deltaxm-deltaxp;
-		double deltayc=sy-deltaym-deltayp;
+		WDOUBLE deltaxc=sx-deltaxm-deltaxp;
+		WDOUBLE deltayc=sy-deltaym-deltayp;
 
 		wmm = deltaxm*deltaym/sxy;
 		wmc = deltaxm*deltayc/sxy;
@@ -239,7 +239,7 @@ void Mesh::PushTrajectory_HalfE(int k)
 
 		//==========================================
 		//=========== Adapteive Z Step =============
-		double Vr = sqrt(Vxp*Vxp+Vyp*Vyp);
+		WDOUBLE Vr = sqrt(Vxp*Vxp+Vyp*Vyp);
 		if(AdaptiveStep>0 && Vr >=Vlim*AdaptiveStep)
 		{
 			Vxp = Vlim*AdaptiveStep*Vxp/Vr;
@@ -258,7 +258,7 @@ void Mesh::PushTrajectory_HalfE(int k)
 
 		p = p->p_PrevTraj;
 
-		double Vrr=std::max(abs(Vxp)*dz/ccc.dx,abs(Vyp)*dz/ccc.dy);
+		WDOUBLE Vrr=std::max(abs(Vxp)*dz/ccc.dx,abs(Vyp)*dz/ccc.dy);
 		Vmax = std::max(Vmax, Vrr); // how many grids it can cross
 
 	}
@@ -271,19 +271,19 @@ void Mesh::PushTrajectory_HalfB(int k)
 {
 	Trajectory *p = NULL;
 
-	double ddx,ddy;
-	double Psi, Bx, By, Bz;
-	double Fx, Fy, gamma;
+	WDOUBLE ddx,ddy;
+	WDOUBLE Psi, Bx, By, Bz;
+	WDOUBLE Fx, Fy, gamma;
 
-	double xt, yt, Vx, Vy, Vxp, Vyp, xtp, ytp;
+	WDOUBLE xt, yt, Vx, Vy, Vxp, Vyp, xtp, ytp;
 	
-	double wmm,wmc,wmp;
-	double wcm,wcc,wcp;
-	double wpm,wpc,wpp;
+	WDOUBLE wmm,wmc,wmp;
+	WDOUBLE wcm,wcc,wcp;
+	WDOUBLE wpm,wpc,wpp;
 
-	double dztmp;
+	WDOUBLE dztmp;
 	int i,j;
-	double sx,sy, sxy;
+	WDOUBLE sx,sy, sxy;
 
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
@@ -339,14 +339,14 @@ void Mesh::PushTrajectory_HalfB(int k)
 
 		sxy = sx*sy;
 
-		double deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
-		double deltaym=std::max(sy*0.5-(ddy*0.5+yt-ccc.Ycord),0.0);
+		WDOUBLE deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
+		WDOUBLE deltaym=std::max(sy*0.5-(ddy*0.5+yt-ccc.Ycord),0.0);
 
-		double deltaxp=std::max(sx*0.5-(ddx*0.5-xt+ccc.Xcord),0.0);
-		double deltayp=std::max(sy*0.5-(ddy*0.5-yt+ccc.Ycord),0.0);
+		WDOUBLE deltaxp=std::max(sx*0.5-(ddx*0.5-xt+ccc.Xcord),0.0);
+		WDOUBLE deltayp=std::max(sy*0.5-(ddy*0.5-yt+ccc.Ycord),0.0);
 
-		double deltaxc=sx-deltaxm-deltaxp;
-		double deltayc=sy-deltaym-deltayp;
+		WDOUBLE deltaxc=sx-deltaxm-deltaxp;
+		WDOUBLE deltayc=sy-deltaym-deltayp;
 
 		wmm = deltaxm*deltaym/sxy;
 		wmc = deltaxm*deltayc/sxy;
@@ -430,7 +430,7 @@ Trajectory* Mesh::Reconnect(Trajectory* p_Traj)
 }
 
 
-void Mesh::PackT(Trajectory* p_Traj, double* &Se)
+void Mesh::PackT(Trajectory* p_Traj, WDOUBLE* &Se)
 {
 
 	*Se = p_Traj-> x;  Se++;
@@ -459,11 +459,11 @@ void Mesh::ExchangeT()
 	Commute *p_COMM = p_domain()->p_Com();
 	
 	//=========Send and Receive Buf Size===============
-	double bufsize = p_domain()->p_Com()->Get_bufsize();
+	WDOUBLE bufsize = p_domain()->p_Com()->Get_bufsize();
 	bufsize *= (GridX*SOU_DIM*2.0/SDT_DIM);
 	//=================================================
 
-	double xtp, ytp;
+	WDOUBLE xtp, ytp;
 
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
@@ -490,15 +490,15 @@ void Mesh::ExchangeT()
 
 		SendN[0]=SendN[1]=SendN[2]=SendN[3]=SendN[4]=SendN[5]=SendN[6]=SendN[7]=0;
 
-		double* SeXm=p_COMM->SendSourceXm;
-		double* SeXp=p_COMM->SendSourceXp;
-		double* SeYm=p_COMM->SendSourceYm;
-		double* SeYp=p_COMM->SendSourceYp;
+		WDOUBLE* SeXm=p_COMM->SendSourceXm;
+		WDOUBLE* SeXp=p_COMM->SendSourceXp;
+		WDOUBLE* SeYm=p_COMM->SendSourceYm;
+		WDOUBLE* SeYp=p_COMM->SendSourceYp;
 
-		double* Semm=p_COMM->SendSourcemm;
-		double* Semp=p_COMM->SendSourcemp;
-		double* Sepm=p_COMM->SendSourcepm;
-		double* Sepp=p_COMM->SendSourcepp;
+		WDOUBLE* Semm=p_COMM->SendSourcemm;
+		WDOUBLE* Semp=p_COMM->SendSourcemp;
+		WDOUBLE* Sepm=p_COMM->SendSourcepm;
+		WDOUBLE* Sepp=p_COMM->SendSourcepp;
 
 		while (p)
 		{
@@ -615,14 +615,14 @@ void Mesh::ExchangeT()
 	return;
 }
 
-void Mesh::AdjustZstep(double k0, int k, double &dz2dz)
+void Mesh::AdjustZstep(WDOUBLE k0, int k, WDOUBLE &dz2dz)
 {
 	//==========================================
 	//=========== Adapteive Z Step =============
 	if(AdaptiveStep>0)
 	{	
-		double A_Vmax;
-		MPI_Allreduce(&Vmax, &A_Vmax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		WDOUBLE A_Vmax;
+		MPI_Allreduce(&Vmax, &A_Vmax, 1, MPI_WDOUBLE, MPI_MAX, MPI_COMM_WORLD);
 		if(A_Vmax>Vlim) 
  		{
 			dzz = dz/(A_Vmax/Vlim);

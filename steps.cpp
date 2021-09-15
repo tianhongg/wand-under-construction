@@ -22,10 +22,10 @@
 #include "wand_PIC.h"
 
 
-int Domain::RK2(double &k0, int &k)
+int Domain::RK2(WDOUBLE &k0, int &k)
 {
    int ierr=0;
-   double dz2dz;
+   WDOUBLE dz2dz;
    int NF;
 
 
@@ -61,11 +61,11 @@ int Domain::RK2(double &k0, int &k)
 }
 
 
-int Domain::RK1(double &k0, int &k)
+int Domain::RK1(WDOUBLE &k0, int &k)
 {
    int ierr=0;
    int NF;
-   double dz2dz;
+   WDOUBLE dz2dz;
 
 
    p_Meshes ->AdjustZstep(k0, k, dz2dz);
@@ -101,11 +101,11 @@ int Domain::RK1(double &k0, int &k)
 }
 
 
-int Domain::Boris(double &k0, int &k)
+int Domain::Boris(WDOUBLE &k0, int &k)
 {
    int ierr=0;
    int NF;
-   double dz2dz;
+   WDOUBLE dz2dz;
 
 
    p_Meshes ->AdjustZstep(k0, k, dz2dz);  
@@ -166,7 +166,7 @@ int Domain:: PushPulses(int k, int NF)
 }
 
 
-int Domain:: PushWakeFields(double k0, int k)
+int Domain:: PushWakeFields(WDOUBLE k0, int k)
 {
    int ierr=0;
    //================================
@@ -220,7 +220,7 @@ int Domain:: PushWakeFields(double k0, int k)
 
 }
 
-int Domain:: PushWakeFieldsE(double k0, int k)
+int Domain:: PushWakeFieldsE(WDOUBLE k0, int k)
 {
    int ierr=0;
    //================================
@@ -258,7 +258,7 @@ int Domain:: PushWakeFieldsE(double k0, int k)
 }
 
 
-int Domain:: PushWakeFieldsEz(double k0, int k)
+int Domain:: PushWakeFieldsEz(WDOUBLE k0, int k)
 {
    int ierr=0;
    //================================
@@ -275,7 +275,7 @@ int Domain:: PushWakeFieldsEz(double k0, int k)
    return 0;
 }
 
-int Domain:: PushWakeFieldsB(double k0, int k)
+int Domain:: PushWakeFieldsB(WDOUBLE k0, int k)
 {
    int ierr=0;
    //================================

@@ -28,10 +28,10 @@ void MultiGrid::RestrictionC(int send, int rece, int tolayer, int where)
 {
 
 	int i,j;
-	double wmm, wxm, wmp;
-	double wym, wcc, wyp;
-	double wpm, wxp, wpp;
-	double wa;
+	WDOUBLE wmm, wxm, wmp;
+	WDOUBLE wym, wcc, wyp;
+	WDOUBLE wpm, wxp, wpp;
+	WDOUBLE wa;
 
 switch(where)
 {
@@ -138,7 +138,7 @@ void MultiGrid::ProlongationC(int send, int rece, int tolayer, int where)
 {
 
 	int i,j;
-	double dxm, dxp, dym, dyp;
+	WDOUBLE dxm, dxp, dym, dyp;
 
 switch(where)
 {
@@ -241,9 +241,9 @@ void MultiGrid::RelaxationC(int field, int layer, int where)
 	int i,j;
 	int nx,ny, amp;
 
-	double hxp,hxm,hxa,hxd,h2x;
-	double hyp,hym,hya,hyd,h2y;
-	double wmm,wmp,wpm,wpp;
+	WDOUBLE hxp,hxm,hxa,hxd,h2x;
+	WDOUBLE hyp,hym,hya,hyd,h2y;
+	WDOUBLE wmm,wmp,wpm,wpp;
 
 	dcomplex wcc,wxm,wxp,wym,wyp;
 	dcomplex d2xS, d2yS, dxS, dyS;
@@ -339,9 +339,9 @@ void MultiGrid::ResidualC(int field, int layer, int where)
 	int nx,ny, amp;
 
 
-	double hxp,hxm,hxa,hxd,h2x;
-	double hyp,hym,hya,hyd,h2y;
-	double wmm,wmp,wpm,wpp;
+	WDOUBLE hxp,hxm,hxa,hxd,h2x;
+	WDOUBLE hyp,hym,hya,hyd,h2y;
+	WDOUBLE wmm,wmp,wpm,wpp;
 
 	dcomplex wcc,wxm,wxp,wym,wyp;
 	dcomplex d2xS, d2yS, dxS, dyS;
@@ -501,16 +501,16 @@ void MultiGrid::AddCorrectionC(int layer, int where)
 }
 
 
-double MultiGrid::FindErrorC(double &maxall)
+WDOUBLE MultiGrid::FindErrorC(WDOUBLE &maxall)
 {
 
 	int i,j;
 
 	dcomplex epsn;
-	double   epsp;
-	double   eps;
+	WDOUBLE   epsp;
+	WDOUBLE   eps;
 
-	double maxp;
+	WDOUBLE maxp;
 
 	epsp = 0.0;
 	maxp=0;
@@ -527,8 +527,8 @@ double MultiGrid::FindErrorC(double &maxall)
 		}
 	}
 
-	MPI_Allreduce(&epsp, &eps,    1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	MPI_Allreduce(&maxp, &maxall, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	MPI_Allreduce(&epsp, &eps,    1, MPI_WDOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&maxp, &maxall, 1, MPI_WDOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
 	return eps;
 }
@@ -539,7 +539,7 @@ void MultiGrid::Put_SourceC(int field, int k, int NF)
 	int i,j;
 	dcomplex dA0=p_Meshs->GetdA0();
 	dcomplex kk =4*ci*(p_domain()->OmegaL[NF])/(p_domain()->Get_dt());
-	double time =p_domain()->Get_RunTime();
+	WDOUBLE time =p_domain()->Get_RunTime();
 
 	for (j=0; j<=LayerGridY[1]+1; j++)
 	{
@@ -632,8 +632,8 @@ int MultiGrid::MG_V_cycleC(int field, int k, int NF)
 
 
 	int i,j,n;
-	double eps;
-	double maxall=1.0;
+	WDOUBLE eps;
+	WDOUBLE maxall=1.0;
 
 //============================================================
 //==============   Put Source For Different Equation =========

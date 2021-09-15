@@ -29,29 +29,29 @@ void Mesh::PushParticle()//v
 
 	Particle *p = NULL;
 
-	double ddx;
-	double ddy;
-	double ddz;
-	double ddz2;
-	double sx,sy,sxy;
+	WDOUBLE ddx;
+	WDOUBLE ddy;
+	WDOUBLE ddz;
+	WDOUBLE ddz2;
+	WDOUBLE sx,sy,sxy;
 
-	double dt  = p_domain()->Get_dt();
+	WDOUBLE dt  = p_domain()->Get_dt();
 	int Nt  = p_domain()->Get_SubCycle();
-	double dtt = dt/Nt;
+	WDOUBLE dtt = dt/Nt;
 
-	double Ex, Ey, Ez, Psi, Bx, By, Bz, Pondx, Pondy, Asq;
+	WDOUBLE Ex, Ey, Ez, Psi, Bx, By, Bz, Pondx, Pondy, Asq;
 
 	dcomplex Exl, Eyl, Ezl, Bxl, Byl, Bzl;
 
-	double ExlR, EylR, EzlR, BxlR, BylR, BzlR;
+	WDOUBLE ExlR, EylR, EzlR, BxlR, BylR, BzlR;
 
-	double x, y, z, x0, y0, z0, px, py, pz, px0, py0, pz0, gamma;
+	WDOUBLE x, y, z, x0, y0, z0, px, py, pz, px0, py0, pz0, gamma;
 
-	double pxp, pyp, pzp;
+	WDOUBLE pxp, pyp, pzp;
 
-	double q2m;
+	WDOUBLE q2m;
 
-	double cc0,  cc1,  cc2;
+	WDOUBLE cc0,  cc1,  cc2;
 
 	int i, j, k, k2, n;
 
@@ -60,38 +60,38 @@ void Mesh::PushParticle()//v
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
 
-	double Xmax = Offset_X+GridX*dx;
-	double Ymax = Offset_Y+GridY*dy;
+	WDOUBLE Xmax = Offset_X+GridX*dx;
+	WDOUBLE Ymax = Offset_Y+GridY*dy;
 
 	Cell  **c = new Cell*[18];
-	double weight[18];
+	WDOUBLE weight[18];
 
 	int NFreqs =  p_domain()->NFreqs;
 	int NF;
-	double OmegaL;
+	WDOUBLE OmegaL;
 
 
 	//===radiation part=========
-	double reinkp=sqrt(3)*(1e-9)*sqrt(Pla_ne/1.40251e20);//  sqrt(3)*re/lambda_L; classical electron radius in lambda_p
-	double theta_x;
-	double phi_y;
-	double Rcurve;   // radius of curvature.
-	double omegac;   //critical frequency.
+	WDOUBLE reinkp=sqrt(3)*(1e-9)*sqrt(Pla_ne/1.40251e20);//  sqrt(3)*re/lambda_L; classical electron radius in lambda_p
+	WDOUBLE theta_x;
+	WDOUBLE phi_y;
+	WDOUBLE Rcurve;   // radius of curvature.
+	WDOUBLE omegac;   //critical frequency.
 
- 	double ThetaMax = XRayDetector->ThetaMax;
- 	double PhiMax   = XRayDetector->PhiMax;
-	double OmegaMax = XRayDetector->OmegaMax;
-	double OmegaMin = XRayDetector->OmegaMin;
+ 	WDOUBLE ThetaMax = XRayDetector->ThetaMax;
+ 	WDOUBLE PhiMax   = XRayDetector->PhiMax;
+	WDOUBLE OmegaMax = XRayDetector->OmegaMax;
+	WDOUBLE OmegaMin = XRayDetector->OmegaMin;
 
 	int NOmega = XRayDetector->NOmega;
 	int NTheta = XRayDetector->NTheta;
 	int NPhi   = XRayDetector->NPhi;
 
-	double dtheta =2*ThetaMax/NTheta;
-	double dphi   =2*PhiMax/NPhi;
-	double domega =(OmegaMax-OmegaMin)/NOmega;  //in KeV
+	WDOUBLE dtheta =2*ThetaMax/NTheta;
+	WDOUBLE dphi   =2*PhiMax/NPhi;
+	WDOUBLE domega =(OmegaMax-OmegaMin)/NOmega;  //in KeV
 
-	double minga=1e20;
+	WDOUBLE minga=1e20;
 
 
 	p = p_Particle;
@@ -175,16 +175,16 @@ void Mesh::PushParticle()//v
 			sy=ddy;  //- re-size
 			sxy=sx*sy;
 
-			double deltaxm=std::max(sx*0.5-(ddx*0.5+x-ccc.Xcord),0.0);
-			double deltaym=std::max(sy*0.5-(ddy*0.5+y-ccc.Ycord),0.0);
+			WDOUBLE deltaxm=std::max(sx*0.5-(ddx*0.5+x-ccc.Xcord),0.0);
+			WDOUBLE deltaym=std::max(sy*0.5-(ddy*0.5+y-ccc.Ycord),0.0);
 
-			double deltaxp=std::max(sx*0.5-(ddx*0.5-x+ccc.Xcord),0.0);
-			double deltayp=std::max(sy*0.5-(ddy*0.5-y+ccc.Ycord),0.0);
+			WDOUBLE deltaxp=std::max(sx*0.5-(ddx*0.5-x+ccc.Xcord),0.0);
+			WDOUBLE deltayp=std::max(sy*0.5-(ddy*0.5-y+ccc.Ycord),0.0);
 
-			double deltaxc=sx-deltaxm-deltaxp;
-			double deltayc=sy-deltaym-deltayp;
+			WDOUBLE deltaxc=sx-deltaxm-deltaxp;
+			WDOUBLE deltayc=sy-deltaym-deltayp;
 
-			double deltaz=(ddz/dz-k);
+			WDOUBLE deltaz=(ddz/dz-k);
 		
 			weight[0] = deltaxm*deltaym/sxy;
 			weight[1] = deltaxm*deltayc/sxy;
@@ -240,16 +240,16 @@ void Mesh::PushParticle()//v
 			c[7] = &GetCell(i+1,j  ,k2); c[16] = &GetCell(i+1,j  ,k2+1);
 			c[8] = &GetCell(i+1,j+1,k2); c[17] = &GetCell(i+1,j+1,k2+1);
 
-			double deltaxm=std::max(sx*0.5-(ddx*0.5+x-ccc.Xcord),0.0);
-			double deltaym=std::max(sy*0.5-(ddy*0.5+y-ccc.Ycord),0.0);
+			WDOUBLE deltaxm=std::max(sx*0.5-(ddx*0.5+x-ccc.Xcord),0.0);
+			WDOUBLE deltaym=std::max(sy*0.5-(ddy*0.5+y-ccc.Ycord),0.0);
 
-			double deltaxp=std::max(sx*0.5-(ddx*0.5-x+ccc.Xcord),0.0);
-			double deltayp=std::max(sy*0.5-(ddy*0.5-y+ccc.Ycord),0.0);
+			WDOUBLE deltaxp=std::max(sx*0.5-(ddx*0.5-x+ccc.Xcord),0.0);
+			WDOUBLE deltayp=std::max(sy*0.5-(ddy*0.5-y+ccc.Ycord),0.0);
 
-			double deltaxc=sx-deltaxm-deltaxp;
-			double deltayc=sy-deltaym-deltayp;
+			WDOUBLE deltaxc=sx-deltaxm-deltaxp;
+			WDOUBLE deltayc=sy-deltaym-deltayp;
 
-			double deltaz=(ddz2/dz-k2);
+			WDOUBLE deltaz=(ddz2/dz-k2);
 		
 			weight[0] = deltaxm*deltaym/sxy;
 			weight[1] = deltaxm*deltayc/sxy;
@@ -359,9 +359,9 @@ void Mesh::PushParticle()//v
 
 				theta_x = px/pz;
 				phi_y   = py/pz;
-				double vs =(px*px + py*py + pz*pz)/gamma/gamma;
-				double vvs=( (px-px0)*(px-px0) + (py-py0)*(py-py0) + (pz-pz0)*(pz-pz0) )/gamma/gamma/dtt/dtt;
-				double vdvv= ( (px-px0)*px+ (py-py0)*py + (pz-pz0)*pz )/gamma/gamma/dtt;
+				WDOUBLE vs =(px*px + py*py + pz*pz)/gamma/gamma;
+				WDOUBLE vvs=( (px-px0)*(px-px0) + (py-py0)*(py-py0) + (pz-pz0)*(pz-pz0) )/gamma/gamma/dtt/dtt;
+				WDOUBLE vdvv= ( (px-px0)*px+ (py-py0)*py + (pz-pz0)*pz )/gamma/gamma/dtt;
 				if(vs*vvs-vdvv*vdvv==0)
 				{
 					Rcurve  = 1e20;
@@ -375,7 +375,7 @@ void Mesh::PushParticle()//v
 				}
 				
 				// calculate wavepacket energy
-				double k1=sqrt((x-x0)*(x-x0)+(y-y0)*(y-y0)+(dtt-(z-z0))*(dtt-(z-z0)))/Rcurve*gamma*reinkp;
+				WDOUBLE k1=sqrt((x-x0)*(x-x0)+(y-y0)*(y-y0)+(dtt-(z-z0))*(dtt-(z-z0)))/Rcurve*gamma*reinkp;
 				k1 *=p->weight*p->sx*p->sy;
 
 				omegac *= 1.2398*sqrt(Pla_ne/1.114855e21)/1000;
@@ -427,8 +427,8 @@ void Mesh::PushParticle()//v
 
 void Mesh::SetNewTimeStep()
 {
-	double gmin;
-	MPI_Allreduce(&minGamma, &gmin, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+	WDOUBLE gmin;
+	MPI_Allreduce(&minGamma, &gmin, 1, MPI_WDOUBLE, MPI_MIN, MPI_COMM_WORLD);
 	dt= dt0*sqrt(gmin);
 	p_domain()->set_new_dt(dt);
 
@@ -473,17 +473,17 @@ void Mesh::ExchangeP()
 	Particle *p = NULL;
 	Commute *p_COMM = p_domain()->p_Com();
 	//=========Send and Receive Buf Size===============
-	double bufsize = p_domain()->p_Com()->Get_bufsize();
+	WDOUBLE bufsize = p_domain()->p_Com()->Get_bufsize();
 	bufsize *= (GridX*SOU_DIM*2.0/SDP_DIM);
 	//=================================================
 
-	double xp, yp, zp;
+	WDOUBLE xp, yp, zp;
 
 	int Xpa  = p_domain()->p_Partition()->GetXpart();
 	int Ypa  = p_domain()->p_Partition()->GetYpart();
 
 
-	double Zmax = (GridZ-2)*dz;
+	WDOUBLE Zmax = (GridZ-2)*dz;
 
 	std::vector<int> SendN(8,0);//Sendmm, Sendmp, Sendpm, Sendpp; Sendxm, Sendxp, Sendym, Sendyp;
 
@@ -499,15 +499,15 @@ void Mesh::ExchangeP()
 
 		SendN[0]=SendN[1]=SendN[2]=SendN[3]=SendN[4]=SendN[5]=SendN[6]=SendN[7]=0;
 		
-		double* SeXm=p_COMM->SendSourceXm;
-		double* SeXp=p_COMM->SendSourceXp;
-		double* SeYm=p_COMM->SendSourceYm;
-		double* SeYp=p_COMM->SendSourceYp;
+		WDOUBLE* SeXm=p_COMM->SendSourceXm;
+		WDOUBLE* SeXp=p_COMM->SendSourceXp;
+		WDOUBLE* SeYm=p_COMM->SendSourceYm;
+		WDOUBLE* SeYp=p_COMM->SendSourceYp;
 
-		double* Semm=p_COMM->SendSourcemm;
-		double* Semp=p_COMM->SendSourcemp;
-		double* Sepm=p_COMM->SendSourcepm;
-		double* Sepp=p_COMM->SendSourcepp;
+		WDOUBLE* Semm=p_COMM->SendSourcemm;
+		WDOUBLE* Semp=p_COMM->SendSourcemp;
+		WDOUBLE* Sepm=p_COMM->SendSourcepm;
+		WDOUBLE* Sepp=p_COMM->SendSourcepp;
 
 		while (p)
 		{
@@ -627,7 +627,7 @@ void Mesh::ExchangeP()
 
 
 
-void Mesh::PackP(Particle* p_Part, double* &Se)
+void Mesh::PackP(Particle* p_Part, WDOUBLE* &Se)
 {
 	
 	*Se = p_Part-> x;  Se++;

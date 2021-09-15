@@ -54,13 +54,13 @@ Mesh::Mesh(int XGridN, int YGridN, int ZGridN, FILE *f): NList ("Plasma")
 	int N_Ypart=p_domain()->p_Partition()->GetYpart();
 
 	//
-	GridsTmp=std::vector<double>(XGridN*N_Xpart+2,0);
-	std::vector<double> GridsAcc(XGridN*N_Xpart+2,0);
+	GridsTmp=std::vector<WDOUBLE>(XGridN*N_Xpart+2,0);
+	std::vector<WDOUBLE> GridsAcc(XGridN*N_Xpart+2,0);
 
-	double ddxx=0;
+	WDOUBLE ddxx=0;
 	for(int i=0;i<XGridN*N_Xpart/2+1;i++)
 	{	
-		double dd=p_domain()->CustomGrid(ddxx);
+		WDOUBLE dd=p_domain()->CustomGrid(ddxx);
 		dd= floor(dd*1e4)/1e4;
 		GridsTmp[XGridN*N_Xpart/2-i]   =dd;
 		GridsTmp[XGridN*N_Xpart/2+i+1] =dd;
@@ -205,13 +205,13 @@ void Mesh::SeedTrajectory()
 	int Xpa= p_domain()->p_Partition()->GetXpart();
 	int Ypa= p_domain()->p_Partition()->GetYpart();
 
-	double ztime = p_domain()->Get_RunTime();
+	WDOUBLE ztime = p_domain()->Get_RunTime();
 
-	double xt;
-	double yt;
+	WDOUBLE xt;
+	WDOUBLE yt;
 
-	double dxp;
-	double dyp;
+	WDOUBLE dxp;
+	WDOUBLE dyp;
 
 	srand(time(NULL));
 	
@@ -240,16 +240,16 @@ void Mesh::SeedTrajectory()
 					dxp = c.dx/TpCellx;
 					dyp = c.dy/TpCelly;
 					
-					xt = c.Xcord-c.dx*0.5 + double(si + 0.5)*dxp;
-					yt = c.Ycord-c.dy*0.5 + double(sj + 0.5)*dyp;
+					xt = c.Xcord-c.dx*0.5 + WDOUBLE(si + 0.5)*dxp;
+					yt = c.Ycord-c.dy*0.5 + WDOUBLE(sj + 0.5)*dyp;
 
 					p = new Trajectory(xt, yt, ztime, TpCellx, TpCelly, dxp, dyp);
 					p->idx_i=i;
 					p->idx_j=j;
 
 					// // finite temperature section: test
-					double r1 = rand_gaussian(Delta_P);
-					double r2 = rand_gaussian(Delta_P);
+					WDOUBLE r1 = rand_gaussian(Delta_P);
+					WDOUBLE r2 = rand_gaussian(Delta_P);
 
  					p->Vx=p->old_vx=r1;  
  					p->Vy=p->old_vy=r2;    
@@ -273,7 +273,7 @@ void Mesh::SeedTrajectory()
 
 void Mesh::SetIonDensity()
 {
-	double ztime=p_domain()->Get_RunTime();
+	WDOUBLE ztime=p_domain()->Get_RunTime();
 
 	for (int k=0; k<GridZ; k++) 
 	{
@@ -396,28 +396,28 @@ void Mesh::ResetPlasma()
 void Mesh::Ionization()
 {
 
-	double ExR, EyR, EzR, EL_Inver, EL;
+	WDOUBLE ExR, EyR, EzR, EL_Inver, EL;
 	int i, j, k, k2, NF;
-	double x,y,z;
-	double wm, wp;
-	double OmegaL;
-	double proba;
-	double xtemp,ytemp,ztemp, weight;
+	WDOUBLE x,y,z;
+	WDOUBLE wm, wp;
+	WDOUBLE OmegaL;
+	WDOUBLE proba;
+	WDOUBLE xtemp,ytemp,ztemp, weight;
 	int NFreqs=p_domain()->NFreqs;
 
 
 	//====temporary ion data=================//
-	double UH  =13.6;		
-	double UIon=871.4;  //ionzaition potential eV
+	WDOUBLE UH  =13.6;		
+	WDOUBLE UIon=871.4;  //ionzaition potential eV
 	int Z_Ion=8; 		  //ion charge after ionization
 	//========================================
 
 
-	double E_natlog=2.718281828459;
-	double omega_alpha= 733.3*sqrt(1e18/Pla_ne);// atomic unit frequency in kp
-	double E_alpha=omega_alpha/137.0;
+	WDOUBLE E_natlog=2.718281828459;
+	WDOUBLE omega_alpha= 733.3*sqrt(1e18/Pla_ne);// atomic unit frequency in kp
+	WDOUBLE E_alpha=omega_alpha/137.0;
 
-	double neff =Z_Ion*sqrt(UH/UIon);  //n_star;
+	WDOUBLE neff =Z_Ion*sqrt(UH/UIon);  //n_star;
 
 	srand(time(NULL));
 	Particle *p =NULL;
@@ -468,7 +468,7 @@ void Mesh::Ionization()
 		 				*pow(4*EL_Inver*Z_Ion*Z_Ion*Z_Ion/neff/neff/neff/neff,2*neff-1.5)*exp(-2/3.*EL_Inver
 		 				*(Z_Ion*Z_Ion*Z_Ion/neff/neff/neff));
 
-		 				double seedr=(double) rand() / (RAND_MAX);
+		 				WDOUBLE seedr=(WDOUBLE) rand() / (RAND_MAX);
 		 				if(1-exp(-proba)>seedr)
 		 				{
 							xtemp = Offset_X + (i - 0.5)*dx;
@@ -501,7 +501,7 @@ void Mesh::Ionization()
 
 				if(c.Z_shifted>(GridZ-1)*dz)
 				{
-					double dzz=c.Z_shifted-GridZ*dz;
+					WDOUBLE dzz=c.Z_shifted-GridZ*dz;
 					c.Z_shifted=dzz;
 					c.InoState =1;
 
@@ -554,7 +554,7 @@ Detector::Detector(FILE *f): NList ("Detector")
     	try
     	{
   
-			p_DetectArray = new double[NTheta*NPhi*NOmega];
+			p_DetectArray = new WDOUBLE[NTheta*NPhi*NOmega];
 			if (rank==0)  std::cout << "==== Mesh: Radiation Detector Created.   ====\n";
 		}
   		catch (std::exception& e)
@@ -590,9 +590,9 @@ Detector::Detector(FILE *f): NList ("Detector")
 }
 
 
-double Mesh::rand_gaussian (double sigma) //sigma=standard deviation 
+WDOUBLE Mesh::rand_gaussian (WDOUBLE sigma) //sigma=standard deviation 
 {
-	double x, y, r2;
+	WDOUBLE x, y, r2;
 	do
 	{
 		x = (2.*rand()-RAND_MAX)/RAND_MAX;

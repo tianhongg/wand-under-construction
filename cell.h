@@ -47,33 +47,33 @@ private:
 //=====Wake Fields=======
    union
    {
-      double W_Fields[1];
-      double W_Psi;
+      WDOUBLE W_Fields[1];
+      WDOUBLE W_Psi;
    };
    // Ex and Ey here is actually d\psi/dx and d\psi/dy
    // Ponx is the pondermotive force.
    // Psi Ez, Bz, Bx, By is solved by MG.
-   double W_Ez, W_Bz, W_Bx, W_By;
-   double W_Ex, W_Ey, W_Ponx, W_Pony, W_Asq;
+   WDOUBLE W_Ez, W_Bz, W_Bx, W_By;
+   WDOUBLE W_Ex, W_Ey, W_Ponx, W_Pony, W_Asq;
 
 //=====Wake Currents and Densities=======
    union
    {
-      double W_Source[1];
-      double W_Denn;
+      WDOUBLE W_Source[1];
+      WDOUBLE W_Denn;
    };
-   double W_Jx, W_Jy, W_Jxx, W_Jyy, W_Jxy;
-   double B_Den, B_Jx, B_Jy, B_Jz, B_Chi;   // beam density and current
-   double W_Deni; // ion macro density
-   double W_Chi;
-   double W_Jz;
+   WDOUBLE W_Jx, W_Jy, W_Jxx, W_Jyy, W_Jxy;
+   WDOUBLE B_Den, B_Jx, B_Jy, B_Jz, B_Chi;   // beam density and current
+   WDOUBLE W_Deni; // ion macro density
+   WDOUBLE W_Chi;
+   WDOUBLE W_Jz;
 
    // Variable Grid Size.
-   double dx;
-   double dy;
+   WDOUBLE dx;
+   WDOUBLE dy;
 
-   double Xcord;
-   double Ycord;
+   WDOUBLE Xcord;
+   WDOUBLE Ycord;
 
 
    dcomplex *Acomx;
@@ -90,7 +90,7 @@ private:
 public:
 
    int InoState;
-   double Z_shifted;
+   WDOUBLE Z_shifted;
    
    void AddAComs(dcomplex acomx, dcomplex acomy, int NF)
    {

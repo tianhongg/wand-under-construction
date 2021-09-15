@@ -79,35 +79,35 @@ Commute::Commute(int XGridN, int YGridN)
 		SendSouSizeY = XGridN * SOU_DIM * 2;   //send in Y directions: up   and down	
 	}
 
-	SendSourceXm = new double[SendSouSizeX*bufsize];
-	SendSourceXp = new double[SendSouSizeX*bufsize];
+	SendSourceXm = new WDOUBLE[SendSouSizeX*bufsize];
+	SendSourceXp = new WDOUBLE[SendSouSizeX*bufsize];
 
-	ReceSourceXm = new double[SendSouSizeX*bufsize];
-	ReceSourceXp = new double[SendSouSizeX*bufsize];
+	ReceSourceXm = new WDOUBLE[SendSouSizeX*bufsize];
+	ReceSourceXp = new WDOUBLE[SendSouSizeX*bufsize];
 
-	SendSourceYm = new double[SendSouSizeY*bufsize];
-	SendSourceYp = new double[SendSouSizeY*bufsize];
+	SendSourceYm = new WDOUBLE[SendSouSizeY*bufsize];
+	SendSourceYp = new WDOUBLE[SendSouSizeY*bufsize];
 
-	ReceSourceYm = new double[SendSouSizeY*bufsize];
-	ReceSourceYp = new double[SendSouSizeY*bufsize];
+	ReceSourceYm = new WDOUBLE[SendSouSizeY*bufsize];
+	ReceSourceYp = new WDOUBLE[SendSouSizeY*bufsize];
 
 	// diagonal direction
-	SendSourcemm = new double[SendSouSizeX/YGridN*bufsize];
-	SendSourcemp = new double[SendSouSizeX/YGridN*bufsize];
+	SendSourcemm = new WDOUBLE[SendSouSizeX/YGridN*bufsize];
+	SendSourcemp = new WDOUBLE[SendSouSizeX/YGridN*bufsize];
 
-	ReceSourcemm = new double[SendSouSizeX/YGridN*bufsize];
-	ReceSourcemp = new double[SendSouSizeX/YGridN*bufsize];
+	ReceSourcemm = new WDOUBLE[SendSouSizeX/YGridN*bufsize];
+	ReceSourcemp = new WDOUBLE[SendSouSizeX/YGridN*bufsize];
 
-	SendSourcepm = new double[SendSouSizeY/XGridN*bufsize];
-	SendSourcepp = new double[SendSouSizeY/XGridN*bufsize];
+	SendSourcepm = new WDOUBLE[SendSouSizeY/XGridN*bufsize];
+	SendSourcepp = new WDOUBLE[SendSouSizeY/XGridN*bufsize];
 
-	ReceSourcepm = new double[SendSouSizeY/XGridN*bufsize];
-	ReceSourcepp = new double[SendSouSizeY/XGridN*bufsize];
+	ReceSourcepm = new WDOUBLE[SendSouSizeY/XGridN*bufsize];
+	ReceSourcepp = new WDOUBLE[SendSouSizeY/XGridN*bufsize];
 
 
 	//Cell Position Accumulative
-	CellAccX = std::vector<double> (XGridN+3,0.0);
-	CellAccY = std::vector<double> (YGridN+3,0.0);
+	CellAccX = std::vector<WDOUBLE> (XGridN+3,0.0);
+	CellAccY = std::vector<WDOUBLE> (YGridN+3,0.0);
 
 	for(int i=0;i<XGridN+2;i++)
 	{	
@@ -196,25 +196,25 @@ void Commute::DoCommute(exchange what, int k)
     	MPI_Request Request[16];
     	MPI_Status 	 Status[16];
 
- 		MPI_Irecv(ReceSourceXm, ssx,  MPI_DOUBLE, XmPE, 0, MPI_COMM_WORLD, &Request[0]);
-		MPI_Irecv(ReceSourceXp, ssx,  MPI_DOUBLE, XpPE, 1, MPI_COMM_WORLD, &Request[1]);
-		MPI_Irecv(ReceSourceYm, ssy,  MPI_DOUBLE, YmPE, 2, MPI_COMM_WORLD, &Request[2]);
-		MPI_Irecv(ReceSourceYp, ssy,  MPI_DOUBLE, YpPE, 3, MPI_COMM_WORLD, &Request[3]);
+ 		MPI_Irecv(ReceSourceXm, ssx,  MPI_WDOUBLE, XmPE, 0, MPI_COMM_WORLD, &Request[0]);
+		MPI_Irecv(ReceSourceXp, ssx,  MPI_WDOUBLE, XpPE, 1, MPI_COMM_WORLD, &Request[1]);
+		MPI_Irecv(ReceSourceYm, ssy,  MPI_WDOUBLE, YmPE, 2, MPI_COMM_WORLD, &Request[2]);
+		MPI_Irecv(ReceSourceYp, ssy,  MPI_WDOUBLE, YpPE, 3, MPI_COMM_WORLD, &Request[3]);
 
-		MPI_Irecv(ReceSourcemm, ssxd, MPI_DOUBLE, mmPE, 4, MPI_COMM_WORLD, &Request[4]);
-		MPI_Irecv(ReceSourcemp, ssxd, MPI_DOUBLE, mpPE, 5, MPI_COMM_WORLD, &Request[5]);
-		MPI_Irecv(ReceSourcepm, ssyd, MPI_DOUBLE, pmPE, 6, MPI_COMM_WORLD, &Request[6]);
-		MPI_Irecv(ReceSourcepp, ssyd, MPI_DOUBLE, ppPE, 7, MPI_COMM_WORLD, &Request[7]);
+		MPI_Irecv(ReceSourcemm, ssxd, MPI_WDOUBLE, mmPE, 4, MPI_COMM_WORLD, &Request[4]);
+		MPI_Irecv(ReceSourcemp, ssxd, MPI_WDOUBLE, mpPE, 5, MPI_COMM_WORLD, &Request[5]);
+		MPI_Irecv(ReceSourcepm, ssyd, MPI_WDOUBLE, pmPE, 6, MPI_COMM_WORLD, &Request[6]);
+		MPI_Irecv(ReceSourcepp, ssyd, MPI_WDOUBLE, ppPE, 7, MPI_COMM_WORLD, &Request[7]);
 
-		MPI_Isend(SendSourceXp, ssx,  MPI_DOUBLE, XpPE, 0, MPI_COMM_WORLD, &Request[8]);
-		MPI_Isend(SendSourceXm, ssx,  MPI_DOUBLE, XmPE, 1, MPI_COMM_WORLD, &Request[9]);
- 		MPI_Isend(SendSourceYp, ssy,  MPI_DOUBLE, YpPE, 2, MPI_COMM_WORLD, &Request[10]);
-		MPI_Isend(SendSourceYm, ssy,  MPI_DOUBLE, YmPE, 3, MPI_COMM_WORLD, &Request[11]);
+		MPI_Isend(SendSourceXp, ssx,  MPI_WDOUBLE, XpPE, 0, MPI_COMM_WORLD, &Request[8]);
+		MPI_Isend(SendSourceXm, ssx,  MPI_WDOUBLE, XmPE, 1, MPI_COMM_WORLD, &Request[9]);
+ 		MPI_Isend(SendSourceYp, ssy,  MPI_WDOUBLE, YpPE, 2, MPI_COMM_WORLD, &Request[10]);
+		MPI_Isend(SendSourceYm, ssy,  MPI_WDOUBLE, YmPE, 3, MPI_COMM_WORLD, &Request[11]);
 
-		MPI_Isend(SendSourcepp, ssxd, MPI_DOUBLE, ppPE, 4, MPI_COMM_WORLD, &Request[12]);
-		MPI_Isend(SendSourcepm, ssxd, MPI_DOUBLE, pmPE, 5, MPI_COMM_WORLD, &Request[13]);
- 		MPI_Isend(SendSourcemp, ssyd, MPI_DOUBLE, mpPE, 6, MPI_COMM_WORLD, &Request[14]);
-		MPI_Isend(SendSourcemm, ssyd, MPI_DOUBLE, mmPE, 7, MPI_COMM_WORLD, &Request[15]);
+		MPI_Isend(SendSourcepp, ssxd, MPI_WDOUBLE, ppPE, 4, MPI_COMM_WORLD, &Request[12]);
+		MPI_Isend(SendSourcepm, ssxd, MPI_WDOUBLE, pmPE, 5, MPI_COMM_WORLD, &Request[13]);
+ 		MPI_Isend(SendSourcemp, ssyd, MPI_WDOUBLE, mpPE, 6, MPI_COMM_WORLD, &Request[14]);
+		MPI_Isend(SendSourcemm, ssyd, MPI_WDOUBLE, mmPE, 7, MPI_COMM_WORLD, &Request[15]);
 
 
 
@@ -339,25 +339,25 @@ void Commute::DoCommuteT(exchange what, std::vector<int> SendN)
     	break;
     }
 
-    MPI_Irecv(ReceSourcemm, ReceN[0]*SendDIM, MPI_DOUBLE, mmPE, 0, MPI_COMM_WORLD, &Request2[0]);
-	MPI_Irecv(ReceSourcemp, ReceN[1]*SendDIM, MPI_DOUBLE, mpPE, 1, MPI_COMM_WORLD, &Request2[1]);
-	MPI_Irecv(ReceSourcepm, ReceN[2]*SendDIM, MPI_DOUBLE, pmPE, 2, MPI_COMM_WORLD, &Request2[2]);
-	MPI_Irecv(ReceSourcepp, ReceN[3]*SendDIM, MPI_DOUBLE, ppPE, 3, MPI_COMM_WORLD, &Request2[3]);
+    MPI_Irecv(ReceSourcemm, ReceN[0]*SendDIM, MPI_WDOUBLE, mmPE, 0, MPI_COMM_WORLD, &Request2[0]);
+	MPI_Irecv(ReceSourcemp, ReceN[1]*SendDIM, MPI_WDOUBLE, mpPE, 1, MPI_COMM_WORLD, &Request2[1]);
+	MPI_Irecv(ReceSourcepm, ReceN[2]*SendDIM, MPI_WDOUBLE, pmPE, 2, MPI_COMM_WORLD, &Request2[2]);
+	MPI_Irecv(ReceSourcepp, ReceN[3]*SendDIM, MPI_WDOUBLE, ppPE, 3, MPI_COMM_WORLD, &Request2[3]);
  	
- 	MPI_Irecv(ReceSourceXm, ReceN[4]*SendDIM, MPI_DOUBLE, XmPE, 4, MPI_COMM_WORLD, &Request2[4]);
-	MPI_Irecv(ReceSourceXp, ReceN[5]*SendDIM, MPI_DOUBLE, XpPE, 5, MPI_COMM_WORLD, &Request2[5]);
-	MPI_Irecv(ReceSourceYm, ReceN[6]*SendDIM, MPI_DOUBLE, YmPE, 6, MPI_COMM_WORLD, &Request2[6]);
-	MPI_Irecv(ReceSourceYp, ReceN[7]*SendDIM, MPI_DOUBLE, YpPE, 7, MPI_COMM_WORLD, &Request2[7]);
+ 	MPI_Irecv(ReceSourceXm, ReceN[4]*SendDIM, MPI_WDOUBLE, XmPE, 4, MPI_COMM_WORLD, &Request2[4]);
+	MPI_Irecv(ReceSourceXp, ReceN[5]*SendDIM, MPI_WDOUBLE, XpPE, 5, MPI_COMM_WORLD, &Request2[5]);
+	MPI_Irecv(ReceSourceYm, ReceN[6]*SendDIM, MPI_WDOUBLE, YmPE, 6, MPI_COMM_WORLD, &Request2[6]);
+	MPI_Irecv(ReceSourceYp, ReceN[7]*SendDIM, MPI_WDOUBLE, YpPE, 7, MPI_COMM_WORLD, &Request2[7]);
 
-	MPI_Isend(SendSourcepp, SendN[3]*SendDIM, MPI_DOUBLE, ppPE, 0, MPI_COMM_WORLD, &Request2[8]);
-	MPI_Isend(SendSourcepm, SendN[2]*SendDIM, MPI_DOUBLE, pmPE, 1, MPI_COMM_WORLD, &Request2[9]);
- 	MPI_Isend(SendSourcemp, SendN[1]*SendDIM, MPI_DOUBLE, mpPE, 2, MPI_COMM_WORLD, &Request2[10]);
-	MPI_Isend(SendSourcemm, SendN[0]*SendDIM, MPI_DOUBLE, mmPE, 3, MPI_COMM_WORLD, &Request2[11]);
+	MPI_Isend(SendSourcepp, SendN[3]*SendDIM, MPI_WDOUBLE, ppPE, 0, MPI_COMM_WORLD, &Request2[8]);
+	MPI_Isend(SendSourcepm, SendN[2]*SendDIM, MPI_WDOUBLE, pmPE, 1, MPI_COMM_WORLD, &Request2[9]);
+ 	MPI_Isend(SendSourcemp, SendN[1]*SendDIM, MPI_WDOUBLE, mpPE, 2, MPI_COMM_WORLD, &Request2[10]);
+	MPI_Isend(SendSourcemm, SendN[0]*SendDIM, MPI_WDOUBLE, mmPE, 3, MPI_COMM_WORLD, &Request2[11]);
 	
-	MPI_Isend(SendSourceXp, SendN[5]*SendDIM, MPI_DOUBLE, XpPE, 4, MPI_COMM_WORLD, &Request2[12]);
-	MPI_Isend(SendSourceXm, SendN[4]*SendDIM, MPI_DOUBLE, XmPE, 5, MPI_COMM_WORLD, &Request2[13]);
- 	MPI_Isend(SendSourceYp, SendN[7]*SendDIM, MPI_DOUBLE, YpPE, 6, MPI_COMM_WORLD, &Request2[14]);
-	MPI_Isend(SendSourceYm, SendN[6]*SendDIM, MPI_DOUBLE, YmPE, 7, MPI_COMM_WORLD, &Request2[15]);
+	MPI_Isend(SendSourceXp, SendN[5]*SendDIM, MPI_WDOUBLE, XpPE, 4, MPI_COMM_WORLD, &Request2[12]);
+	MPI_Isend(SendSourceXm, SendN[4]*SendDIM, MPI_WDOUBLE, XmPE, 5, MPI_COMM_WORLD, &Request2[13]);
+ 	MPI_Isend(SendSourceYp, SendN[7]*SendDIM, MPI_WDOUBLE, YpPE, 6, MPI_COMM_WORLD, &Request2[14]);
+	MPI_Isend(SendSourceYm, SendN[6]*SendDIM, MPI_WDOUBLE, YmPE, 7, MPI_COMM_WORLD, &Request2[15]);
 
 	ierr = MPI_Waitall(16, Request2,Status2);
 
@@ -400,15 +400,15 @@ void Commute::DoPack(exchange what, int k)
 	MultiGrid *p_Multi = NULL;
 
 
-	double* SeXm=SendSourceXm;
-	double* SeXp=SendSourceXp;
-	double* SeYm=SendSourceYm;
-	double* SeYp=SendSourceYp;
+	WDOUBLE* SeXm=SendSourceXm;
+	WDOUBLE* SeXp=SendSourceXp;
+	WDOUBLE* SeYm=SendSourceYm;
+	WDOUBLE* SeYp=SendSourceYp;
 
-	double* Semm=SendSourcemm;
-	double* Semp=SendSourcemp;
-	double* Sepm=SendSourcepm;
-	double* Sepp=SendSourcepp;
+	WDOUBLE* Semm=SendSourcemm;
+	WDOUBLE* Semp=SendSourcemp;
+	WDOUBLE* Sepm=SendSourcepm;
+	WDOUBLE* Sepp=SendSourcepp;
 
 	switch (what)
 	{
@@ -642,15 +642,15 @@ void Commute::UnPack(exchange what, int k)
 	int LayerGridX;
 	int LayerGridY;
 
-	double* ReXm=ReceSourceXm;
-	double* ReXp=ReceSourceXp;
-	double* ReYm=ReceSourceYm;
-	double* ReYp=ReceSourceYp;
+	WDOUBLE* ReXm=ReceSourceXm;
+	WDOUBLE* ReXp=ReceSourceXp;
+	WDOUBLE* ReYm=ReceSourceYm;
+	WDOUBLE* ReYp=ReceSourceYp;
 
-	double* Remm=ReceSourcemm;
-	double* Remp=ReceSourcemp;
-	double* Repm=ReceSourcepm;
-	double* Repp=ReceSourcepp;
+	WDOUBLE* Remm=ReceSourcemm;
+	WDOUBLE* Remp=ReceSourcemp;
+	WDOUBLE* Repm=ReceSourcepm;
+	WDOUBLE* Repp=ReceSourcepp;
 
 	switch (what)
 	{
@@ -949,13 +949,13 @@ void Commute::UnPackT(exchange what, std::vector<int> ReceN)
 {
 
 	int n;
-	double x0,y0,z0,px,py,pz;
-	double xt,yt,zt, sx, sy;
-	double vx,vy,old_x,old_y,old_vx,old_vy; 
-	double q2m, weight;
-	double Ex0,Ey0,Ez0;
-	double Wxw,Wyw,Wzw;
-	double Wxl,Wyl,Wzl;
+	WDOUBLE x0,y0,z0,px,py,pz;
+	WDOUBLE xt,yt,zt, sx, sy;
+	WDOUBLE vx,vy,old_x,old_y,old_vx,old_vy; 
+	WDOUBLE q2m, weight;
+	WDOUBLE Ex0,Ey0,Ez0;
+	WDOUBLE Wxw,Wyw,Wzw;
+	WDOUBLE Wxl,Wyl,Wzl;
 	int type;
 
 	Trajectory *p =NULL;
@@ -974,7 +974,7 @@ void Commute::UnPackT(exchange what, std::vector<int> ReceN)
 
 		for(int dir=0; dir<8; dir++)
 		{
-			double* Re=NULL;
+			WDOUBLE* Re=NULL;
 
 			if(dir==0) Re=ReceSourcemm;
 			if(dir==1) Re=ReceSourcemp;
@@ -1035,7 +1035,7 @@ void Commute::UnPackT(exchange what, std::vector<int> ReceN)
 
 		for(int dir=0; dir<8; dir++)
 		{
-			double* Re=NULL;
+			WDOUBLE* Re=NULL;
 
 			if(dir==0) Re=ReceSourcemm;
 			if(dir==1) Re=ReceSourcemp;

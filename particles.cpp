@@ -24,10 +24,10 @@
 
 
 
-Particle::Particle(double x0p,  double y0p,  double z0p,
-			 double pxp,  double pyp,  double pzp,
-  			 double Ex0p, double Ey0p, double Ez0p,
-  			 double q2mp, double weightp)
+Particle::Particle(WDOUBLE x0p,  WDOUBLE y0p,  WDOUBLE z0p,
+			 WDOUBLE pxp,  WDOUBLE pyp,  WDOUBLE pzp,
+  			 WDOUBLE Ex0p, WDOUBLE Ey0p, WDOUBLE Ez0p,
+  			 WDOUBLE q2mp, WDOUBLE weightp)
 {
 	x = x0 = x0p;	y = y0 = y0p;	z = z0 = z0p;
 	px = pxp;		py = pyp;		pz = pzp;
@@ -42,10 +42,10 @@ Particle::Particle(double x0p,  double y0p,  double z0p,
 
 
 
-Electron::Electron(double x0p,  double y0p,  double z0p,
-				   double pxp,  double pyp,  double pzp,
-  			 	   double Ex0p, double Ey0p, double Ez0p,
-  			 	   double q2mp, double weightp)
+Electron::Electron(WDOUBLE x0p,  WDOUBLE y0p,  WDOUBLE z0p,
+				   WDOUBLE pxp,  WDOUBLE pyp,  WDOUBLE pzp,
+  			 	   WDOUBLE Ex0p, WDOUBLE Ey0p, WDOUBLE Ez0p,
+  			 	   WDOUBLE q2mp, WDOUBLE weightp)
 		:Particle(x0p, y0p, z0p, pxp, pyp, pzp, Ex0p,Ey0p,Ez0p,q2mp,weightp)
 {
 	type = ELECTRON;
@@ -54,10 +54,10 @@ Electron::Electron(double x0p,  double y0p,  double z0p,
 Electron::~Electron()
 {;};
 
-Ion::Ion(double x0p,  double y0p,  double z0p,
-		 double pxp,  double pyp,  double pzp,
-		 double Ex0p, double Ey0p, double Ez0p,
-		 double q2mp, double weightp)
+Ion::Ion(WDOUBLE x0p,  WDOUBLE y0p,  WDOUBLE z0p,
+		 WDOUBLE pxp,  WDOUBLE pyp,  WDOUBLE pzp,
+		 WDOUBLE Ex0p, WDOUBLE Ey0p, WDOUBLE Ez0p,
+		 WDOUBLE q2mp, WDOUBLE weightp)
 		:Particle(x0p, y0p, z0p, pxp, pyp, pzp, Ex0p,Ey0p,Ez0p,q2mp,weightp)
 {
 	type = ION;
@@ -117,11 +117,11 @@ Specie::Specie(char *name, FILE *f) : NList(name)
 Specie::~Specie()
 {;};
 
-double Specie::Density(double x0, double y0, double z0)
+WDOUBLE Specie::Density(WDOUBLE x0, WDOUBLE y0, WDOUBLE z0)
 {
 
-	double dentemp;
-	double arg;
+	WDOUBLE dentemp;
+	WDOUBLE arg;
 	arg=0.0;
 
 	switch(P_profile)
@@ -180,7 +180,7 @@ double Specie::Density(double x0, double y0, double z0)
 		case 4:
             arg += (x0-P_Centerx)*(x0-P_Centerx)/P_Sizex/P_Sizex;
             arg += (y0-P_Centery)*(y0-P_Centery)/P_Sizey/P_Sizey;
-            double arg2=0.0;
+            WDOUBLE arg2=0.0;
 
             if(z0-P_Centerz<0) return 0;
 
@@ -198,7 +198,7 @@ double Specie::Density(double x0, double y0, double z0)
 
         // Transves Donut-like
         case 5:
-        	double r0=sqrt(x0*x0+y0*y0);
+        	WDOUBLE r0=sqrt(x0*x0+y0*y0);
             arg += (r0-P_Centerx)*(r0-P_Centerx)/P_Sizex/P_Sizex;
             arg += (z0-P_Centerz)*(z0-P_Centerz)/P_Sizez/P_Sizez;
       		
@@ -243,20 +243,20 @@ void Mesh::SeedParticles(Specie *specie)
 	int S_type = specie->Seed_type;
 	int P_type = specie->P_type;
 
-	double dxp = dx/(specie->PpCellx);
-	double dyp = dy/(specie->PpCelly);
-	double dzp = dz/(specie->PpCellz);
+	WDOUBLE dxp = dx/(specie->PpCellx);
+	WDOUBLE dyp = dy/(specie->PpCelly);
+	WDOUBLE dzp = dz/(specie->PpCellz);
 
-	double wtemp;
+	WDOUBLE wtemp;
 
 	int GridXp = GridX*(specie->PpCellx);
 	int GridYp = GridY*(specie->PpCelly);
 	int GridZp = GridZ*(specie->PpCellz);
 
-	double x0,y0,z0;
-	double px,  py,  pz;
-  	double Ex0, Ey0, Ez0;
-  	double q2m, weight, Den;
+	WDOUBLE x0,y0,z0;
+	WDOUBLE px,  py,  pz;
+  	WDOUBLE Ex0, Ey0, Ez0;
+  	WDOUBLE q2m, weight, Den;
 
 	srand(time(NULL));
 
@@ -291,17 +291,17 @@ void Mesh::SeedParticles(Specie *specie)
 						{
 
 							case 0:
-								x0 = c.Xcord-c.dx*0.5 + double(si + 0.5)*dxp;
-								y0 = c.Ycord-c.dy*0.5 + double(sj + 0.5)*dyp;
-								z0 = double(k + 0.5)*dzp;
+								x0 = c.Xcord-c.dx*0.5 + WDOUBLE(si + 0.5)*dxp;
+								y0 = c.Ycord-c.dy*0.5 + WDOUBLE(sj + 0.5)*dyp;
+								z0 = WDOUBLE(k + 0.5)*dzp;
 
 								
 							break;
 
 							case 1:
-								double r1 = ((double) rand() / (RAND_MAX));
-								double r2 = ((double) rand() / (RAND_MAX));
-								double r3 = ((double) rand() / (RAND_MAX));
+								WDOUBLE r1 = ((WDOUBLE) rand() / (RAND_MAX));
+								WDOUBLE r2 = ((WDOUBLE) rand() / (RAND_MAX));
+								WDOUBLE r3 = ((WDOUBLE) rand() / (RAND_MAX));
 
 								x0 = c.Xcord-c.dx*0.5 + (si + r1)*dxp;
 								y0 = c.Ycord-c.dy*0.5 + (sj + r2)*dyp;
@@ -378,20 +378,20 @@ void Mesh::BeamSource()//v
 
 	Particle *p = NULL;
 
-	double ddx;
-	double ddy;
-	double ddz;
+	WDOUBLE ddx;
+	WDOUBLE ddy;
+	WDOUBLE ddz;
 
-	double sx,sy;
+	WDOUBLE sx,sy;
 
-	double xt;
-	double yt;
-	double zt;
+	WDOUBLE xt;
+	WDOUBLE yt;
+	WDOUBLE zt;
 
-	double q2m, massweig, Q;
+	WDOUBLE q2m, massweig, Q;
 
 	Cell  **c = new Cell*[18];
-	double weight[18];
+	WDOUBLE weight[18];
 
 	int i,j,k;
 
@@ -445,16 +445,16 @@ void Mesh::BeamSource()//v
 
 		massweig *= (p->sx)*(p->sy)/sx/sy; // re-weight
 
-		double deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
-		double deltaym=std::max(sy*0.5-(ddy*0.5+yt-ccc.Ycord),0.0);
+		WDOUBLE deltaxm=std::max(sx*0.5-(ddx*0.5+xt-ccc.Xcord),0.0);
+		WDOUBLE deltaym=std::max(sy*0.5-(ddy*0.5+yt-ccc.Ycord),0.0);
 
-		double deltaxp=std::max(sx*0.5-(ddx*0.5-xt+ccc.Xcord),0.0);
-		double deltayp=std::max(sy*0.5-(ddy*0.5-yt+ccc.Ycord),0.0);
+		WDOUBLE deltaxp=std::max(sx*0.5-(ddx*0.5-xt+ccc.Xcord),0.0);
+		WDOUBLE deltayp=std::max(sy*0.5-(ddy*0.5-yt+ccc.Ycord),0.0);
 
-		double deltaxc=sx-deltaxm-deltaxp;
-		double deltayc=sy-deltaym-deltayp;
+		WDOUBLE deltaxc=sx-deltaxm-deltaxp;
+		WDOUBLE deltayc=sy-deltaym-deltayp;
 
-		double deltaz=(ddz/dz-k);
+		WDOUBLE deltaz=(ddz/dz-k);
 		
 		weight[0] = deltaxm*deltaym/c[0]->dx/c[0]->dy;
 		weight[1] = deltaxm*deltayc/c[1]->dx/c[1]->dy;

@@ -52,41 +52,41 @@ class Domain : public NList{
  
   private: 
   //variables
-    double dx;
-    double dy;
-    double dz;
-    double dt;
+    WDOUBLE dx;
+    WDOUBLE dy;
+    WDOUBLE dz;
+    WDOUBLE dt;
 
     // for variable mesh size
     int MeshType;
-    double delta;
-    double dxRefine;
-    double radius0;
-    double order;
+    WDOUBLE delta;
+    WDOUBLE dxRefine;
+    WDOUBLE radius0;
+    WDOUBLE order;
 
 
     int Adap_dt;
 
     int Ndt;
 
-    double Xmax;
-    double Ymax;
-    double Zmax;
+    WDOUBLE Xmax;
+    WDOUBLE Ymax;
+    WDOUBLE Zmax;
 
     int XGridN;
     int YGridN;
     int ZGridN;
 
-    double Tmax;
-    double OutDt;
-    double Time;
+    WDOUBLE Tmax;
+    WDOUBLE OutDt;
+    WDOUBLE Time;
     // int Tstep;
     int savedim;
 
     int Npulse;
     int Nbeam;
     int BC;
-    double Buffersize;
+    WDOUBLE Buffersize;
     int IfRestart; 
     int trajorder;
 
@@ -108,41 +108,41 @@ class Domain : public NList{
 
     int *ifAx;
     int *ifAy;
-    double *OmegaL;
+    WDOUBLE *OmegaL;
     int NFreqs;
-    double Q1;
-    double Get_dx() {return dx;};
-    double Get_dy() {return dy;};
-    double Get_dz() {return dz;};
-    double Get_dt() {return dt;};
-    void set_new_dt(double newdt) {dt=newdt;};
+    WDOUBLE Q1;
+    WDOUBLE Get_dx() {return dx;};
+    WDOUBLE Get_dy() {return dy;};
+    WDOUBLE Get_dz() {return dz;};
+    WDOUBLE Get_dt() {return dt;};
+    void set_new_dt(WDOUBLE newdt) {dt=newdt;};
     
     int Get_SubCycle() {return Ndt;};
 
 
-    double Get_Xmax() {return Xmax;};
-    double Get_Ymax() {return Ymax;};
+    WDOUBLE Get_Xmax() {return Xmax;};
+    WDOUBLE Get_Ymax() {return Ymax;};
 
-    double Set_Xmax(double x) {return Xmax=x;};
-    double Set_Ymax(double y) {return Ymax=y;};
+    WDOUBLE Set_Xmax(WDOUBLE x) {return Xmax=x;};
+    WDOUBLE Set_Ymax(WDOUBLE y) {return Ymax=y;};
 
-    double Get_Zmax() {return Zmax;};
-    double Get_RunTime() {return Time;};
+    WDOUBLE Get_Zmax() {return Zmax;};
+    WDOUBLE Get_RunTime() {return Time;};
     // int Get_Step() {return Tstep;};
     
     int Get_BC()         {return BC;}
-    double Get_Buffersize() {return Buffersize;}
+    WDOUBLE Get_Buffersize() {return Buffersize;}
 
     int Get_Nbeam()   {return Nbeam;};
 
     // ========run===========
-    int RK1(double &k0, int &k);
-    int RK2(double &k0, int &k);
-    int Boris(double &k0, int &k);
-    int PushWakeFields(double k0, int k);
-    int PushWakeFieldsE(double k0, int k);
-    int PushWakeFieldsEz(double k0, int k);
-    int PushWakeFieldsB(double k0, int k);
+    int RK1(WDOUBLE &k0, int &k);
+    int RK2(WDOUBLE &k0, int &k);
+    int Boris(WDOUBLE &k0, int &k);
+    int PushWakeFields(WDOUBLE k0, int k);
+    int PushWakeFieldsE(WDOUBLE k0, int k);
+    int PushWakeFieldsEz(WDOUBLE k0, int k);
+    int PushWakeFieldsB(WDOUBLE k0, int k);
     int PushPulses(int k, int NF);
     void Run();
 
@@ -165,7 +165,7 @@ class Domain : public NList{
     void AddSpecie(int P_type);
 
     int Get_NSpecie(int SpecieType);
-    double CustomGrid(double r);
+    WDOUBLE CustomGrid(WDOUBLE r);
 
 
 

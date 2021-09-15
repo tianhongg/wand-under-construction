@@ -59,20 +59,20 @@ int Domain::Save(int nt)
 	MPI_Info_create(&info);
 	MPI_Offset fstart[3], fcount[3];
 
-	double  ne[XGridN][YGridN][ZGridN],  nn[XGridN][YGridN][ZGridN], Psi[XGridN][YGridN][ZGridN];
-	double WEx[XGridN][YGridN][ZGridN], WEy[XGridN][YGridN][ZGridN], WEz[XGridN][YGridN][ZGridN];
-	double WBx[XGridN][YGridN][ZGridN], WBy[XGridN][YGridN][ZGridN], WBz[XGridN][YGridN][ZGridN];
-	double AxR[XGridN][YGridN][ZGridN], AxI[XGridN][YGridN][ZGridN];
-	double AyR[XGridN][YGridN][ZGridN], AyI[XGridN][YGridN][ZGridN];
+	WDOUBLE  ne[XGridN][YGridN][ZGridN],  nn[XGridN][YGridN][ZGridN], Psi[XGridN][YGridN][ZGridN];
+	WDOUBLE WEx[XGridN][YGridN][ZGridN], WEy[XGridN][YGridN][ZGridN], WEz[XGridN][YGridN][ZGridN];
+	WDOUBLE WBx[XGridN][YGridN][ZGridN], WBy[XGridN][YGridN][ZGridN], WBz[XGridN][YGridN][ZGridN];
+	WDOUBLE AxR[XGridN][YGridN][ZGridN], AxI[XGridN][YGridN][ZGridN];
+	WDOUBLE AyR[XGridN][YGridN][ZGridN], AyI[XGridN][YGridN][ZGridN];
 
-	double LExR[XGridN][YGridN][ZGridN], LExI[XGridN][YGridN][ZGridN];
-	double LEyR[XGridN][YGridN][ZGridN], LEyI[XGridN][YGridN][ZGridN];
-	double LEzR[XGridN][YGridN][ZGridN], LEzI[XGridN][YGridN][ZGridN];
-	double LBxR[XGridN][YGridN][ZGridN], LBxI[XGridN][YGridN][ZGridN];
-	double LByR[XGridN][YGridN][ZGridN], LByI[XGridN][YGridN][ZGridN];
-	double LBzR[XGridN][YGridN][ZGridN], LBzI[XGridN][YGridN][ZGridN];
+	WDOUBLE LExR[XGridN][YGridN][ZGridN], LExI[XGridN][YGridN][ZGridN];
+	WDOUBLE LEyR[XGridN][YGridN][ZGridN], LEyI[XGridN][YGridN][ZGridN];
+	WDOUBLE LEzR[XGridN][YGridN][ZGridN], LEzI[XGridN][YGridN][ZGridN];
+	WDOUBLE LBxR[XGridN][YGridN][ZGridN], LBxI[XGridN][YGridN][ZGridN];
+	WDOUBLE LByR[XGridN][YGridN][ZGridN], LByI[XGridN][YGridN][ZGridN];
+	WDOUBLE LBzR[XGridN][YGridN][ZGridN], LBzI[XGridN][YGridN][ZGridN];
 
-	double  nb[XGridN][YGridN][ZGridN];
+	WDOUBLE  nb[XGridN][YGridN][ZGridN];
 
 
 	fstart[0] = (Idx_x-1)*XGridN;
@@ -122,7 +122,7 @@ int Domain::Save(int nt)
 
 
 
-	if ( (retval = ncmpi_put_att_double(ncid, NC_GLOBAL, "time", NC_DOUBLE, 1, &Time)) ) return NC_ERR;
+	if ( (retval = ncmpi_put_att_WDOUBLE(ncid, NC_GLOBAL, "time", NC_WDOUBLE, 1, &Time)) ) return NC_ERR;
 
 	//========================================
 	//========= Define Dimension =============
@@ -136,21 +136,21 @@ int Domain::Save(int nt)
 
 	//========================================
 	//========= Define Variables =============
-	if ( (retval = ncmpi_def_var(ncid, "n_e", NC_DOUBLE, 3, F_DIM, &n_e_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "n_n", NC_DOUBLE, 3, F_DIM, &n_n_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "Psi", NC_DOUBLE, 3, F_DIM, &Psi_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "n_e", NC_WDOUBLE, 3, F_DIM, &n_e_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "n_n", NC_WDOUBLE, 3, F_DIM, &n_n_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "Psi", NC_WDOUBLE, 3, F_DIM, &Psi_id)) ) return NC_ERR;
 
-	if ( (retval = ncmpi_def_var(ncid, "WEx", NC_DOUBLE, 3, F_DIM, &WEx_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WEy", NC_DOUBLE, 3, F_DIM, &WEy_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WEz", NC_DOUBLE, 3, F_DIM, &WEz_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WEx", NC_WDOUBLE, 3, F_DIM, &WEx_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WEy", NC_WDOUBLE, 3, F_DIM, &WEy_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WEz", NC_WDOUBLE, 3, F_DIM, &WEz_id)) ) return NC_ERR;
 
-	if ( (retval = ncmpi_def_var(ncid, "WBx", NC_DOUBLE, 3, F_DIM, &WBx_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WBy", NC_DOUBLE, 3, F_DIM, &WBy_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WBz", NC_DOUBLE, 3, F_DIM, &WBz_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WBx", NC_WDOUBLE, 3, F_DIM, &WBx_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WBy", NC_WDOUBLE, 3, F_DIM, &WBy_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WBz", NC_WDOUBLE, 3, F_DIM, &WBz_id)) ) return NC_ERR;
 
 	// Beam Density;
 	if(Nbeam){
-	if ( (retval = ncmpi_def_var(ncid, "n_b", NC_DOUBLE, 3, F_DIM, &n_b_id)) ) return NC_ERR;}
+	if ( (retval = ncmpi_def_var(ncid, "n_b", NC_WDOUBLE, 3, F_DIM, &n_b_id)) ) return NC_ERR;}
 
 	//===== Laser Wake potential =======
 	for (NF=0; NF<NFreqs; NF++)
@@ -158,16 +158,16 @@ int Domain::Save(int nt)
 		if(ifAx[NF])
 		{
 		sprintf(vname1,"AxR_%d",NF);sprintf(vname2,"AxI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 3, F_DIM, &AxR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 3, F_DIM, &AxI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 3, F_DIM, &AxR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 3, F_DIM, &AxI_id[NF])) ) return NC_ERR;
 
 		sprintf(vname1,"LExR_%d",NF);sprintf(vname2,"LExI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 3, F_DIM, &LExR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 3, F_DIM, &LExI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 3, F_DIM, &LExR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 3, F_DIM, &LExI_id[NF])) ) return NC_ERR;
 
 		sprintf(vname1,"LByR_%d",NF);sprintf(vname2,"LByI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 3, F_DIM, &LByR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 3, F_DIM, &LByI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 3, F_DIM, &LByR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 3, F_DIM, &LByI_id[NF])) ) return NC_ERR;
 
 
 		}
@@ -175,22 +175,22 @@ int Domain::Save(int nt)
 		if(ifAy[NF])
 		{
 		sprintf(vname1,"AyR_%d",NF);sprintf(vname2,"AyI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 3, F_DIM, &AyR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 3, F_DIM, &AyI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 3, F_DIM, &AyR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 3, F_DIM, &AyI_id[NF])) ) return NC_ERR;
 
 		sprintf(vname1,"LEyR_%d",NF);sprintf(vname2,"LEyI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 3, F_DIM, &LEyR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 3, F_DIM, &LEyI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 3, F_DIM, &LEyR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 3, F_DIM, &LEyI_id[NF])) ) return NC_ERR;
 
 		sprintf(vname1,"LBxR_%d",NF);sprintf(vname2,"LBxI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 3, F_DIM, &LBxR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 3, F_DIM, &LBxI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 3, F_DIM, &LBxR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 3, F_DIM, &LBxI_id[NF])) ) return NC_ERR;
 
 		}
 
 		sprintf(vname1,"LEzR_%d",NF);sprintf(vname2,"LEzI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 3, F_DIM, &LEzR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 3, F_DIM, &LEzI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 3, F_DIM, &LEzR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 3, F_DIM, &LEzI_id[NF])) ) return NC_ERR;
 	}
 
 
@@ -198,20 +198,20 @@ int Domain::Save(int nt)
 
 	//========================================
 	//============ Put Variables =============
-	if ( (retval = ncmpi_put_vara_double_all(ncid, n_e_id, fstart, fcount,  &ne[0][0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, n_n_id, fstart, fcount,  &nn[0][0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, Psi_id, fstart, fcount, &Psi[0][0][0])) ) return NC_ERR;
+	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, n_e_id, fstart, fcount,  &ne[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, n_n_id, fstart, fcount,  &nn[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Psi_id, fstart, fcount, &Psi[0][0][0])) ) return NC_ERR;
 
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WEx_id, fstart, fcount, &WEx[0][0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WEy_id, fstart, fcount, &WEy[0][0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WEz_id, fstart, fcount, &WEz[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WEx_id, fstart, fcount, &WEx[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WEy_id, fstart, fcount, &WEy[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WEz_id, fstart, fcount, &WEz[0][0][0])) ) return NC_ERR;
 
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WBx_id, fstart, fcount, &WBx[0][0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WBy_id, fstart, fcount, &WBy[0][0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WBz_id, fstart, fcount, &WBz[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WBx_id, fstart, fcount, &WBx[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WBy_id, fstart, fcount, &WBy[0][0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WBz_id, fstart, fcount, &WBz[0][0][0])) ) return NC_ERR;
 	
 	if(Nbeam){
-	if ( (retval = ncmpi_put_vara_double_all(ncid, n_b_id, fstart, fcount,  &nb[0][0][0])) ) return NC_ERR;}
+	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, n_b_id, fstart, fcount,  &nb[0][0][0])) ) return NC_ERR;}
 
 	//===== Laser Wake potential =======
 	for (NF=0; NF<NFreqs; NF++)
@@ -260,32 +260,32 @@ int Domain::Save(int nt)
 
 		if(ifAx[NF])
 		{ 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AxR_id[NF], fstart, fcount,   &AxR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AxI_id[NF], fstart, fcount,   &AxI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AxR_id[NF], fstart, fcount,   &AxR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AxI_id[NF], fstart, fcount,   &AxI[0][0][0])) ) return NC_ERR;
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LExR_id[NF], fstart, fcount, &LExR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LExI_id[NF], fstart, fcount, &LExI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LExR_id[NF], fstart, fcount, &LExR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LExI_id[NF], fstart, fcount, &LExI[0][0][0])) ) return NC_ERR;
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LByR_id[NF], fstart, fcount, &LByR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LByI_id[NF], fstart, fcount, &LByI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LByR_id[NF], fstart, fcount, &LByR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LByI_id[NF], fstart, fcount, &LByI[0][0][0])) ) return NC_ERR;
 	
 		}
 	
 				
 		if(ifAy[NF])
 		{
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AyR_id[NF], fstart, fcount,   &AyR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AyI_id[NF], fstart, fcount,   &AyI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AyR_id[NF], fstart, fcount,   &AyR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AyI_id[NF], fstart, fcount,   &AyI[0][0][0])) ) return NC_ERR;
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEyR_id[NF], fstart, fcount, &LEyR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEyI_id[NF], fstart, fcount, &LEyI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEyR_id[NF], fstart, fcount, &LEyR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEyI_id[NF], fstart, fcount, &LEyI[0][0][0])) ) return NC_ERR;
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LBxR_id[NF], fstart, fcount, &LBxR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LBxI_id[NF], fstart, fcount, &LBxI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LBxR_id[NF], fstart, fcount, &LBxR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LBxI_id[NF], fstart, fcount, &LBxI[0][0][0])) ) return NC_ERR;
 		}
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEzR_id[NF], fstart, fcount, &LEzR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEzI_id[NF], fstart, fcount, &LEzI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEzR_id[NF], fstart, fcount, &LEzR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEzI_id[NF], fstart, fcount, &LEzI[0][0][0])) ) return NC_ERR;
 	}
 
 
@@ -369,20 +369,20 @@ int Domain::Save2D(int nt, int savedim, bool part)
 	fstart[1] = 0;
 	
 
-	double  ne[nx][ZGridN],  nn[nx][ZGridN], Psi[nx][ZGridN];
-	double WEx[nx][ZGridN], WEy[nx][ZGridN], WEz[nx][ZGridN];
-	double WBx[nx][ZGridN], WBy[nx][ZGridN], WBz[nx][ZGridN];
+	WDOUBLE  ne[nx][ZGridN],  nn[nx][ZGridN], Psi[nx][ZGridN];
+	WDOUBLE WEx[nx][ZGridN], WEy[nx][ZGridN], WEz[nx][ZGridN];
+	WDOUBLE WBx[nx][ZGridN], WBy[nx][ZGridN], WBz[nx][ZGridN];
 
-	double AxR[nx][ZGridN], AxI[nx][ZGridN];
-	double AyR[nx][ZGridN], AyI[nx][ZGridN];
+	WDOUBLE AxR[nx][ZGridN], AxI[nx][ZGridN];
+	WDOUBLE AyR[nx][ZGridN], AyI[nx][ZGridN];
 
-	double LExR[nx][ZGridN], LEyR[nx][ZGridN], LEzR[nx][ZGridN];
-	double LBxR[nx][ZGridN], LByR[nx][ZGridN], LBzR[nx][ZGridN];
+	WDOUBLE LExR[nx][ZGridN], LEyR[nx][ZGridN], LEzR[nx][ZGridN];
+	WDOUBLE LBxR[nx][ZGridN], LByR[nx][ZGridN], LBzR[nx][ZGridN];
 
-	double LExI[nx][ZGridN], LEyI[nx][ZGridN], LEzI[nx][ZGridN];
-	double LBxI[nx][ZGridN], LByI[nx][ZGridN], LBzI[nx][ZGridN];
+	WDOUBLE LExI[nx][ZGridN], LEyI[nx][ZGridN], LEzI[nx][ZGridN];
+	WDOUBLE LBxI[nx][ZGridN], LByI[nx][ZGridN], LBzI[nx][ZGridN];
 
-	double  nb[nx][ZGridN];
+	WDOUBLE  nb[nx][ZGridN];
 
 	switch(savedim)
 	{
@@ -502,20 +502,20 @@ int Domain::Save2D(int nt, int savedim, bool part)
 	
 	//========================================
 	//========= Define Variables =============
-	if ( (retval = ncmpi_def_var(ncid, "n_e", NC_DOUBLE, 2, F_DIM, &n_e_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "n_n", NC_DOUBLE, 2, F_DIM, &n_n_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "Psi", NC_DOUBLE, 2, F_DIM, &Psi_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "n_e", NC_WDOUBLE, 2, F_DIM, &n_e_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "n_n", NC_WDOUBLE, 2, F_DIM, &n_n_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "Psi", NC_WDOUBLE, 2, F_DIM, &Psi_id)) ) return NC_ERR;
 
-	if ( (retval = ncmpi_def_var(ncid, "WEx", NC_DOUBLE, 2, F_DIM, &WEx_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WEy", NC_DOUBLE, 2, F_DIM, &WEy_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WEz", NC_DOUBLE, 2, F_DIM, &WEz_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WEx", NC_WDOUBLE, 2, F_DIM, &WEx_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WEy", NC_WDOUBLE, 2, F_DIM, &WEy_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WEz", NC_WDOUBLE, 2, F_DIM, &WEz_id)) ) return NC_ERR;
 
-	if ( (retval = ncmpi_def_var(ncid, "WBx", NC_DOUBLE, 2, F_DIM, &WBx_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WBy", NC_DOUBLE, 2, F_DIM, &WBy_id)) ) return NC_ERR;
-	if ( (retval = ncmpi_def_var(ncid, "WBz", NC_DOUBLE, 2, F_DIM, &WBz_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WBx", NC_WDOUBLE, 2, F_DIM, &WBx_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WBy", NC_WDOUBLE, 2, F_DIM, &WBy_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "WBz", NC_WDOUBLE, 2, F_DIM, &WBz_id)) ) return NC_ERR;
 
 	if(Nbeam){
-	if ( (retval = ncmpi_def_var(ncid, "n_b", NC_DOUBLE, 2, F_DIM, &n_b_id)) ) return NC_ERR;}
+	if ( (retval = ncmpi_def_var(ncid, "n_b", NC_WDOUBLE, 2, F_DIM, &n_b_id)) ) return NC_ERR;}
 
 
 	//===== Laser Wake potential =======
@@ -524,37 +524,37 @@ int Domain::Save2D(int nt, int savedim, bool part)
 		if(ifAx[NF])
 		{
 		sprintf(vname1,"AxR_%d",NF);sprintf(vname2,"AxI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 2, F_DIM, &AxR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 2, F_DIM, &AxI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 2, F_DIM, &AxR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 2, F_DIM, &AxI_id[NF])) ) return NC_ERR;
 
 		sprintf(vname1,"LExR_%d",NF);sprintf(vname2,"LExI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 2, F_DIM, &LExR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 2, F_DIM, &LExI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 2, F_DIM, &LExR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 2, F_DIM, &LExI_id[NF])) ) return NC_ERR;
 
 		sprintf(vname1,"LByR_%d",NF);sprintf(vname2,"LByI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 2, F_DIM, &LByR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 2, F_DIM, &LByI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 2, F_DIM, &LByR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 2, F_DIM, &LByI_id[NF])) ) return NC_ERR;
 
 		}
 
 		if(ifAy[NF])
 		{
 		sprintf(vname1,"AyR_%d",NF);sprintf(vname2,"AyI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 2, F_DIM, &AyR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 2, F_DIM, &AyI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 2, F_DIM, &AyR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 2, F_DIM, &AyI_id[NF])) ) return NC_ERR;
 		
 		sprintf(vname1,"LEyR_%d",NF);sprintf(vname2,"LEyI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 2, F_DIM, &LEyR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 2, F_DIM, &LEyI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 2, F_DIM, &LEyR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 2, F_DIM, &LEyI_id[NF])) ) return NC_ERR;
 		
 		sprintf(vname1,"LBxR_%d",NF);sprintf(vname2,"LBxI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 2, F_DIM, &LBxR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 2, F_DIM, &LBxI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 2, F_DIM, &LBxR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 2, F_DIM, &LBxI_id[NF])) ) return NC_ERR;
 		}
 
 		sprintf(vname1,"LEzR_%d",NF);sprintf(vname2,"LEzI_%d",NF);
-		if ( (retval = ncmpi_def_var(ncid, vname1, NC_DOUBLE, 2, F_DIM, &LEzR_id[NF])) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, vname2, NC_DOUBLE, 2, F_DIM, &LEzI_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname1, NC_WDOUBLE, 2, F_DIM, &LEzR_id[NF])) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, vname2, NC_WDOUBLE, 2, F_DIM, &LEzI_id[NF])) ) return NC_ERR;
 	}
 
 
@@ -565,20 +565,20 @@ int Domain::Save2D(int nt, int savedim, bool part)
 	//============ Put Variables =============
 
 
-	if ( (retval = ncmpi_put_vara_double_all(ncid, n_e_id, fstart, fcount,  &ne[0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, n_n_id, fstart, fcount,  &nn[0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, Psi_id, fstart, fcount, &Psi[0][0])) ) return NC_ERR;
+	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, n_e_id, fstart, fcount,  &ne[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, n_n_id, fstart, fcount,  &nn[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Psi_id, fstart, fcount, &Psi[0][0])) ) return NC_ERR;
 
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WEx_id, fstart, fcount, &WEx[0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WEy_id, fstart, fcount, &WEy[0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WEz_id, fstart, fcount, &WEz[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WEx_id, fstart, fcount, &WEx[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WEy_id, fstart, fcount, &WEy[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WEz_id, fstart, fcount, &WEz[0][0])) ) return NC_ERR;
 
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WBx_id, fstart, fcount, &WBx[0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WBy_id, fstart, fcount, &WBy[0][0])) ) return NC_ERR;
-  	if ( (retval = ncmpi_put_vara_double_all(ncid, WBz_id, fstart, fcount, &WBz[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WBx_id, fstart, fcount, &WBx[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WBy_id, fstart, fcount, &WBy[0][0])) ) return NC_ERR;
+  	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, WBz_id, fstart, fcount, &WBz[0][0])) ) return NC_ERR;
 	
 	if(Nbeam){
-	if ( (retval = ncmpi_put_vara_double_all(ncid, n_b_id, fstart, fcount,  &nb[0][0])) ) return NC_ERR;}
+	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, n_b_id, fstart, fcount,  &nb[0][0])) ) return NC_ERR;}
 
 
 	//===== Laser Wake potential =======
@@ -660,28 +660,28 @@ int Domain::Save2D(int nt, int savedim, bool part)
 		}
 
 		if(ifAx[NF]){
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AxR_id[NF],  fstart, fcount,  &AxR[0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AxI_id[NF],  fstart, fcount,  &AxI[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AxR_id[NF],  fstart, fcount,  &AxR[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AxI_id[NF],  fstart, fcount,  &AxI[0][0])) ) return NC_ERR;
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LExR_id[NF], fstart, fcount, &LExR[0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LExI_id[NF], fstart, fcount, &LExI[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LExR_id[NF], fstart, fcount, &LExR[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LExI_id[NF], fstart, fcount, &LExI[0][0])) ) return NC_ERR;
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LByR_id[NF], fstart, fcount, &LByR[0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LByI_id[NF], fstart, fcount, &LByI[0][0])) ) return NC_ERR;}
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LByR_id[NF], fstart, fcount, &LByR[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LByI_id[NF], fstart, fcount, &LByI[0][0])) ) return NC_ERR;}
 
 
 		if(ifAy[NF]){
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AyR_id[NF],  fstart, fcount,  &AyR[0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, AyI_id[NF],  fstart, fcount,  &AyI[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AyR_id[NF],  fstart, fcount,  &AyR[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, AyI_id[NF],  fstart, fcount,  &AyI[0][0])) ) return NC_ERR;
 
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEyR_id[NF], fstart, fcount, &LEyR[0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEyI_id[NF], fstart, fcount, &LEyI[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEyR_id[NF], fstart, fcount, &LEyR[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEyI_id[NF], fstart, fcount, &LEyI[0][0])) ) return NC_ERR;
 
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LBxR_id[NF], fstart, fcount, &LBxR[0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LBxI_id[NF], fstart, fcount, &LBxI[0][0])) ) return NC_ERR;}
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEzR_id[NF], fstart, fcount, &LEzR[0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_put_vara_double_all(ncid, LEzI_id[NF], fstart, fcount, &LEzI[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LBxR_id[NF], fstart, fcount, &LBxR[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LBxI_id[NF], fstart, fcount, &LBxI[0][0])) ) return NC_ERR;}
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEzR_id[NF], fstart, fcount, &LEzR[0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, LEzI_id[NF], fstart, fcount, &LEzI[0][0])) ) return NC_ERR;
 	
 	}
 	
@@ -763,37 +763,37 @@ int Domain::SaveP(int nt)
 		Npart= Get_NSpecie(type);
 
 
-		double   *x_P, *y_P, *z_P, *x0_P, *y0_P,  *z0_P;	
-		double   *px_P,  *py_P,  *pz_P;	
-		double   *Ex0_P, *Ey0_P, *Ez0_P;
-		double   *Wxw_P, *Wyw_P, *Wzw_P;
-		double   *Wxl_P, *Wyl_P, *Wzl_P;
-		double   *q2m_P, *Weight_P, *sx_P, *sy_P;
+		WDOUBLE   *x_P, *y_P, *z_P, *x0_P, *y0_P,  *z0_P;	
+		WDOUBLE   *px_P,  *py_P,  *pz_P;	
+		WDOUBLE   *Ex0_P, *Ey0_P, *Ez0_P;
+		WDOUBLE   *Wxw_P, *Wyw_P, *Wzw_P;
+		WDOUBLE   *Wxl_P, *Wyl_P, *Wzl_P;
+		WDOUBLE   *q2m_P, *Weight_P, *sx_P, *sy_P;
 
-		x_P  = new double[Npart+1];
-		y_P  = new double[Npart+1];  
-		z_P  = new double[Npart+1];
-		x0_P = new double[Npart+1];  
-		y0_P = new double[Npart+1];  
-		z0_P = new double[Npart+1];
-		px_P = new double[Npart+1];
-		py_P = new double[Npart+1];
-		pz_P = new double[Npart+1];
-		Ex0_P= new double[Npart+1];
-		Ey0_P= new double[Npart+1];
-		Ez0_P= new double[Npart+1];
+		x_P  = new WDOUBLE[Npart+1];
+		y_P  = new WDOUBLE[Npart+1];  
+		z_P  = new WDOUBLE[Npart+1];
+		x0_P = new WDOUBLE[Npart+1];  
+		y0_P = new WDOUBLE[Npart+1];  
+		z0_P = new WDOUBLE[Npart+1];
+		px_P = new WDOUBLE[Npart+1];
+		py_P = new WDOUBLE[Npart+1];
+		pz_P = new WDOUBLE[Npart+1];
+		Ex0_P= new WDOUBLE[Npart+1];
+		Ey0_P= new WDOUBLE[Npart+1];
+		Ez0_P= new WDOUBLE[Npart+1];
 
-		Wxw_P = new double[Npart+1];
-		Wyw_P = new double[Npart+1];
-		Wzw_P = new double[Npart+1];
-		Wxl_P = new double[Npart+1];
-		Wyl_P = new double[Npart+1];
-		Wzl_P = new double[Npart+1];
+		Wxw_P = new WDOUBLE[Npart+1];
+		Wyw_P = new WDOUBLE[Npart+1];
+		Wzw_P = new WDOUBLE[Npart+1];
+		Wxl_P = new WDOUBLE[Npart+1];
+		Wyl_P = new WDOUBLE[Npart+1];
+		Wzl_P = new WDOUBLE[Npart+1];
 
-		q2m_P    = new double[Npart+1];
-		Weight_P = new double[Npart+1];
-		sx_P = new double[Npart+1];
-		sy_P = new double[Npart+1];
+		q2m_P    = new WDOUBLE[Npart+1];
+		Weight_P = new WDOUBLE[Npart+1];
+		sx_P = new WDOUBLE[Npart+1];
+		sy_P = new WDOUBLE[Npart+1];
 
 
 
@@ -891,42 +891,42 @@ int Domain::SaveP(int nt)
   		SC[0][1]=fcount[0];
 
 
-  		if ( (retval = ncmpi_put_att_double(ncid, NC_GLOBAL, "time", NC_DOUBLE, 1, &Time)) ) return NC_ERR;
+  		if ( (retval = ncmpi_put_att_WDOUBLE(ncid, NC_GLOBAL, "time", NC_WDOUBLE, 1, &Time)) ) return NC_ERR;
 		
 
 		//========================================
 		//========= Define Variables =============
 		if ( (retval = ncmpi_def_var(ncid, "partition", NC_INT, 2, P_DIM, &PP_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "x0", NC_DOUBLE, 1, F_DIM, &x0_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "y0", NC_DOUBLE, 1, F_DIM, &y0_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "z0", NC_DOUBLE, 1, F_DIM, &z0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "x0", NC_WDOUBLE, 1, F_DIM, &x0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "y0", NC_WDOUBLE, 1, F_DIM, &y0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "z0", NC_WDOUBLE, 1, F_DIM, &z0_id)) ) return NC_ERR;
 
-		if ( (retval = ncmpi_def_var(ncid, "xx", NC_DOUBLE, 1, F_DIM, &x_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "yy", NC_DOUBLE, 1, F_DIM, &y_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "zz", NC_DOUBLE, 1, F_DIM, &z_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "xx", NC_WDOUBLE, 1, F_DIM, &x_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "yy", NC_WDOUBLE, 1, F_DIM, &y_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "zz", NC_WDOUBLE, 1, F_DIM, &z_id)) ) return NC_ERR;
 
-		if ( (retval = ncmpi_def_var(ncid, "px", NC_DOUBLE, 1, F_DIM, &px_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "py", NC_DOUBLE, 1, F_DIM, &py_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "pz", NC_DOUBLE, 1, F_DIM, &pz_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "px", NC_WDOUBLE, 1, F_DIM, &px_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "py", NC_WDOUBLE, 1, F_DIM, &py_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "pz", NC_WDOUBLE, 1, F_DIM, &pz_id)) ) return NC_ERR;
 
-		if ( (retval = ncmpi_def_var(ncid, "Ex", NC_DOUBLE, 1, F_DIM, &Ex0_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "Ey", NC_DOUBLE, 1, F_DIM, &Ey0_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "Ez", NC_DOUBLE, 1, F_DIM, &Ez0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Ex", NC_WDOUBLE, 1, F_DIM, &Ex0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Ey", NC_WDOUBLE, 1, F_DIM, &Ey0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Ez", NC_WDOUBLE, 1, F_DIM, &Ez0_id)) ) return NC_ERR;
 		
-		if ( (retval = ncmpi_def_var(ncid, "Wxw", NC_DOUBLE, 1, F_DIM, &Wxw_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "Wyw", NC_DOUBLE, 1, F_DIM, &Wyw_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "Wzw", NC_DOUBLE, 1, F_DIM, &Wzw_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Wxw", NC_WDOUBLE, 1, F_DIM, &Wxw_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Wyw", NC_WDOUBLE, 1, F_DIM, &Wyw_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Wzw", NC_WDOUBLE, 1, F_DIM, &Wzw_id)) ) return NC_ERR;
 
-		if ( (retval = ncmpi_def_var(ncid, "Wxl", NC_DOUBLE, 1, F_DIM, &Wxl_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "Wyl", NC_DOUBLE, 1, F_DIM, &Wyl_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "Wzl", NC_DOUBLE, 1, F_DIM, &Wzl_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Wxl", NC_WDOUBLE, 1, F_DIM, &Wxl_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Wyl", NC_WDOUBLE, 1, F_DIM, &Wyl_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "Wzl", NC_WDOUBLE, 1, F_DIM, &Wzl_id)) ) return NC_ERR;
 
-		if ( (retval = ncmpi_def_var(ncid, "q2m",    NC_DOUBLE, 1, F_DIM, &q2m_id )) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "weight", NC_DOUBLE, 1, F_DIM, &wei_id )) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "q2m",    NC_WDOUBLE, 1, F_DIM, &q2m_id )) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "weight", NC_WDOUBLE, 1, F_DIM, &wei_id )) ) return NC_ERR;
 
 
-		if ( (retval = ncmpi_def_var(ncid, "sx", NC_DOUBLE, 1, F_DIM, &sx_id )) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "sy", NC_DOUBLE, 1, F_DIM, &sy_id )) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "sx", NC_WDOUBLE, 1, F_DIM, &sx_id )) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "sy", NC_WDOUBLE, 1, F_DIM, &sy_id )) ) return NC_ERR;
 
 		if ( (retval = ncmpi_enddef(ncid)) ) return NC_ERR;
 
@@ -934,35 +934,35 @@ int Domain::SaveP(int nt)
 
 		//========================================
 		//============ Put Variables =============
-		if ( (retval = ncmpi_put_vara_double_all(ncid, x0_id, fstart, fcount,  &x0_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, y0_id, fstart, fcount,  &y0_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, z0_id, fstart, fcount,  &z0_P[0]))) return NC_ERR;
+		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, x0_id, fstart, fcount,  &x0_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, y0_id, fstart, fcount,  &y0_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, z0_id, fstart, fcount,  &z0_P[0]))) return NC_ERR;
 
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, x_id,  fstart, fcount,   &x_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, y_id,  fstart, fcount,   &y_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, z_id,  fstart, fcount,   &z_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, x_id,  fstart, fcount,   &x_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, y_id,  fstart, fcount,   &y_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, z_id,  fstart, fcount,   &z_P[0]))) return NC_ERR;
 
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, px_id, fstart, fcount,  &px_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, py_id, fstart, fcount,  &py_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, pz_id, fstart, fcount,  &pz_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, px_id, fstart, fcount,  &px_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, py_id, fstart, fcount,  &py_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, pz_id, fstart, fcount,  &pz_P[0]))) return NC_ERR;
 
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Ex0_id,fstart, fcount, &Ex0_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Ey0_id,fstart, fcount, &Ey0_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Ez0_id,fstart, fcount, &Ez0_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Ex0_id,fstart, fcount, &Ex0_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Ey0_id,fstart, fcount, &Ey0_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Ez0_id,fstart, fcount, &Ez0_P[0]))) return NC_ERR;
 
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Wxw_id,fstart, fcount, &Wxw_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Wyw_id,fstart, fcount, &Wyw_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Wzw_id,fstart, fcount, &Wzw_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Wxw_id,fstart, fcount, &Wxw_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Wyw_id,fstart, fcount, &Wyw_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Wzw_id,fstart, fcount, &Wzw_P[0]))) return NC_ERR;
 
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Wxl_id,fstart, fcount, &Wxl_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Wyl_id,fstart, fcount, &Wyl_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, Wzl_id,fstart, fcount, &Wzl_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Wxl_id,fstart, fcount, &Wxl_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Wyl_id,fstart, fcount, &Wyl_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Wzl_id,fstart, fcount, &Wzl_P[0]))) return NC_ERR;
 
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, q2m_id,fstart, fcount, &q2m_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, wei_id,fstart, fcount, &Weight_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, q2m_id,fstart, fcount, &q2m_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, wei_id,fstart, fcount, &Weight_P[0]))) return NC_ERR;
   		
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, sx_id,fstart, fcount, &sx_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, sy_id,fstart, fcount, &sy_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, sx_id,fstart, fcount, &sx_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, sy_id,fstart, fcount, &sy_P[0]))) return NC_ERR;
   		
 
 
@@ -1056,19 +1056,19 @@ int Domain::SaveT(int nt, int k)
 		}
 
 
-		double   *x_P, *y_P, *x0_P, *y0_P;	
-		double   *px_P,  *py_P,	*Weight_P;
+		WDOUBLE   *x_P, *y_P, *x0_P, *y0_P;	
+		WDOUBLE   *px_P,  *py_P,	*Weight_P;
 
-		x_P  = new double[Npart+1];
-		y_P  = new double[Npart+1];  
+		x_P  = new WDOUBLE[Npart+1];
+		y_P  = new WDOUBLE[Npart+1];  
 		
-		x0_P = new double[Npart+1];  
-		y0_P = new double[Npart+1];  
+		x0_P = new WDOUBLE[Npart+1];  
+		y0_P = new WDOUBLE[Npart+1];  
 		
-		px_P = new double[Npart+1];
-		py_P = new double[Npart+1];
+		px_P = new WDOUBLE[Npart+1];
+		py_P = new WDOUBLE[Npart+1];
 		
-		Weight_P = new double[Npart+1];
+		Weight_P = new WDOUBLE[Npart+1];
 
 		p = p_Meshes -> p_Trajectory;
 
@@ -1141,16 +1141,16 @@ int Domain::SaveT(int nt, int k)
 		//========= Define Variables =============
 		if ( (retval = ncmpi_def_var(ncid, "partition", NC_INT, 2, P_DIM, &PP_id)) ) return NC_ERR;
 		
-		if ( (retval = ncmpi_def_var(ncid, "x0", NC_DOUBLE, 1, F_DIM, &x0_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "y0", NC_DOUBLE, 1, F_DIM, &y0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "x0", NC_WDOUBLE, 1, F_DIM, &x0_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "y0", NC_WDOUBLE, 1, F_DIM, &y0_id)) ) return NC_ERR;
 		
-		if ( (retval = ncmpi_def_var(ncid, "xx", NC_DOUBLE, 1, F_DIM, &x_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "yy", NC_DOUBLE, 1, F_DIM, &y_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "xx", NC_WDOUBLE, 1, F_DIM, &x_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "yy", NC_WDOUBLE, 1, F_DIM, &y_id)) ) return NC_ERR;
 
-		if ( (retval = ncmpi_def_var(ncid, "px", NC_DOUBLE, 1, F_DIM, &px_id)) ) return NC_ERR;
-		if ( (retval = ncmpi_def_var(ncid, "py", NC_DOUBLE, 1, F_DIM, &py_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "px", NC_WDOUBLE, 1, F_DIM, &px_id)) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "py", NC_WDOUBLE, 1, F_DIM, &py_id)) ) return NC_ERR;
 		
-		if ( (retval = ncmpi_def_var(ncid, "weight", NC_DOUBLE, 1, F_DIM, &wei_id )) ) return NC_ERR;
+		if ( (retval = ncmpi_def_var(ncid, "weight", NC_WDOUBLE, 1, F_DIM, &wei_id )) ) return NC_ERR;
 
 		if ( (retval = ncmpi_enddef(ncid)) ) return NC_ERR;
 
@@ -1158,16 +1158,16 @@ int Domain::SaveT(int nt, int k)
 
 		//========================================
 		//============ Put Variables =============
-		if ( (retval = ncmpi_put_vara_double_all(ncid, x0_id, fstart, fcount,  &x0_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, y0_id, fstart, fcount,  &y0_P[0]))) return NC_ERR;
+		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, x0_id, fstart, fcount,  &x0_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, y0_id, fstart, fcount,  &y0_P[0]))) return NC_ERR;
   		
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, x_id,  fstart, fcount,   &x_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, y_id,  fstart, fcount,   &y_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, x_id,  fstart, fcount,   &x_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, y_id,  fstart, fcount,   &y_P[0]))) return NC_ERR;
   		
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, px_id, fstart, fcount,  &px_P[0]))) return NC_ERR;
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, py_id, fstart, fcount,  &py_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, px_id, fstart, fcount,  &px_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, py_id, fstart, fcount,  &py_P[0]))) return NC_ERR;
   		
-  		if ( (retval = ncmpi_put_vara_double_all(ncid, wei_id,fstart, fcount, &Weight_P[0]))) return NC_ERR;
+  		if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, wei_id,fstart, fcount, &Weight_P[0]))) return NC_ERR;
   		
 		if ( (retval = ncmpi_put_vara_int_all(ncid, PP_id, pstart, pcount,  &SC[0][0]))) return NC_ERR;
 
@@ -1219,9 +1219,9 @@ int Domain::SaveXray(int nt)
 	int NTheta = p_Meshes->XRayDetector->NTheta;
 	int NPhi   = p_Meshes->XRayDetector->NPhi;
 
-	double Xray[NOmega][NTheta][NPhi];
-	double XraySpatial[NTheta][NPhi];
-	double XraySpatialAll[NTheta][NPhi];
+	WDOUBLE Xray[NOmega][NTheta][NPhi];
+	WDOUBLE XraySpatial[NTheta][NPhi];
+	WDOUBLE XraySpatialAll[NTheta][NPhi];
 
 	for(int i=0;i<NOmega;i++)
 	{
@@ -1234,7 +1234,7 @@ int Domain::SaveXray(int nt)
 				XraySpatialAll[j][k]=0.0;
 			}
 		}
-		MPI_Reduce(&XraySpatial[0][0], &XraySpatialAll[0][0],NTheta*NPhi, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+		MPI_Reduce(&XraySpatial[0][0], &XraySpatialAll[0][0],NTheta*NPhi, MPI_WDOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 		if(Rank==0) 
 		{
 
@@ -1287,10 +1287,10 @@ int Domain::SaveXray(int nt)
   	if(Rank==0) {fcount[0]=NOmega;fcount[1]=NTheta;fcount[2]=NPhi;}
   	//========================================
 	//========= Define Variables =============
-	if ( (retval = ncmpi_def_var(ncid, "X_Ray", NC_DOUBLE, 3, F_DIM, &Xray_id)) ) return NC_ERR;
+	if ( (retval = ncmpi_def_var(ncid, "X_Ray", NC_WDOUBLE, 3, F_DIM, &Xray_id)) ) return NC_ERR;
 	if ( (retval = ncmpi_enddef(ncid)) ) return NC_ERR;
 
-	if ( (retval = ncmpi_put_vara_double_all(ncid, Xray_id, fstart, fcount,  &Xray[0][0][0])) ) return NC_ERR;
+	if ( (retval = ncmpi_put_vara_WDOUBLE_all(ncid, Xray_id, fstart, fcount,  &Xray[0][0][0])) ) return NC_ERR;
 
 	if ( (retval = ncmpi_sync(ncid)) )
   	{
@@ -1367,8 +1367,8 @@ int Domain::LoadPulse(int nt)
 	int offy = -(Idx_y>1);
 
 
-	double AxR[nxx][nyy][ZGridN], AxI[nxx][nyy][ZGridN];
-	double AyR[nxx][nyy][ZGridN], AyI[nxx][nyy][ZGridN];
+	WDOUBLE AxR[nxx][nyy][ZGridN], AxI[nxx][nyy][ZGridN];
+	WDOUBLE AyR[nxx][nyy][ZGridN], AyI[nxx][nyy][ZGridN];
 
 
 
@@ -1392,7 +1392,7 @@ int Domain::LoadPulse(int nt)
 	}
 
 	//========================================
-	if ( (retval =ncmpi_get_att_double(ncid, NC_GLOBAL, "time", &Time))) return NC_ERR;
+	if ( (retval =ncmpi_get_att_WDOUBLE(ncid, NC_GLOBAL, "time", &Time))) return NC_ERR;
 
 
 	//===== Laser Wake potential =======
@@ -1431,16 +1431,16 @@ int Domain::LoadPulse(int nt)
 		
 		if(ifAx[NF])
 		{ 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, AxR_id[NF], fstart, fcount,   &AxR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, AxI_id[NF], fstart, fcount,   &AxI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, AxR_id[NF], fstart, fcount,   &AxR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, AxI_id[NF], fstart, fcount,   &AxI[0][0][0])) ) return NC_ERR;
 	
 		}
 	
 				
 		if(ifAy[NF])
 		{
-			if ( (retval = ncmpi_get_vara_double_all(ncid, AyR_id[NF], fstart, fcount,   &AyR[0][0][0])) ) return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, AyI_id[NF], fstart, fcount,   &AyI[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, AyR_id[NF], fstart, fcount,   &AyR[0][0][0])) ) return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, AyI_id[NF], fstart, fcount,   &AyI[0][0][0])) ) return NC_ERR;
 		}
 
 
@@ -1478,17 +1478,17 @@ int  Domain::LoadParti(int nt)
 	char sFile[128];
 	static const int NC_ERR = 1;
 
-	double Offset_X = p_Mesh()->GetOffset_X();
-	double Offset_Y = p_Mesh()->GetOffset_Y();
+	WDOUBLE Offset_X = p_Mesh()->GetOffset_X();
+	WDOUBLE Offset_Y = p_Mesh()->GetOffset_Y();
 
 
-	double XXmax = Offset_X+XGridN*dx;
-	double YYmax = Offset_Y+YGridN*dy;
-	double ZZmax = (ZGridN-2)*dz;
+	WDOUBLE XXmax = Offset_X+XGridN*dx;
+	WDOUBLE YYmax = Offset_Y+YGridN*dy;
+	WDOUBLE ZZmax = (ZGridN-2)*dz;
 
-	double XXmin = Offset_X;
-	double YYmin = Offset_Y;
-	double ZZmin = 0.0;
+	WDOUBLE XXmin = Offset_X;
+	WDOUBLE YYmin = Offset_Y;
+	WDOUBLE ZZmin = 0.0;
 
 
 	int n, type;
@@ -1519,8 +1519,8 @@ int  Domain::LoadParti(int nt)
 
 
 	//tianhong-June-15-2021
-	std::vector<double> CellAccX (XGridN+3,0.0);
-	std::vector<double> CellAccY (YGridN+3,0.0);
+	std::vector<WDOUBLE> CellAccX (XGridN+3,0.0);
+	std::vector<WDOUBLE> CellAccY (YGridN+3,0.0);
 
 	for(int i=0;i<XGridN+2;i++)
 	{	
@@ -1553,7 +1553,7 @@ int  Domain::LoadParti(int nt)
 		}
 
 
-		if ( (retval =ncmpi_get_att_double(ncid, NC_GLOBAL, "time", &Time))) return NC_ERR;
+		if ( (retval =ncmpi_get_att_WDOUBLE(ncid, NC_GLOBAL, "time", &Time))) return NC_ERR;
 
 
 		if ( (retval = ncmpi_inq_varid(ncid,  "x0" , 	 &x0_id))) return NC_ERR;
@@ -1593,71 +1593,71 @@ int  Domain::LoadParti(int nt)
 		// number of particles in each processor.
 		Npart=SCAll[Rank][1];
 
-			double   *x_P, *y_P, *z_P, *x0_P, *y0_P,  *z0_P;	
-			double   *px_P,  *py_P,  *pz_P;	
-			double   *Ex0_P, *Ey0_P, *Ez0_P;
-			double   *Wxw_P, *Wyw_P, *Wzw_P;
-			double   *Wxl_P, *Wyl_P, *Wzl_P;
-			double   *q2m_P, *Weight_P, *sx_P, *sy_P;
+			WDOUBLE   *x_P, *y_P, *z_P, *x0_P, *y0_P,  *z0_P;	
+			WDOUBLE   *px_P,  *py_P,  *pz_P;	
+			WDOUBLE   *Ex0_P, *Ey0_P, *Ez0_P;
+			WDOUBLE   *Wxw_P, *Wyw_P, *Wzw_P;
+			WDOUBLE   *Wxl_P, *Wyl_P, *Wzl_P;
+			WDOUBLE   *q2m_P, *Weight_P, *sx_P, *sy_P;
 
-			x_P  = new double[Npart];
-			y_P  = new double[Npart];  
-			z_P  = new double[Npart];
-			x0_P = new double[Npart];  
-			y0_P = new double[Npart];  
-			z0_P = new double[Npart];
-			px_P = new double[Npart];
-			py_P = new double[Npart];
-			pz_P = new double[Npart];
-			Ex0_P= new double[Npart];
-			Ey0_P= new double[Npart];
-			Ez0_P= new double[Npart];
+			x_P  = new WDOUBLE[Npart];
+			y_P  = new WDOUBLE[Npart];  
+			z_P  = new WDOUBLE[Npart];
+			x0_P = new WDOUBLE[Npart];  
+			y0_P = new WDOUBLE[Npart];  
+			z0_P = new WDOUBLE[Npart];
+			px_P = new WDOUBLE[Npart];
+			py_P = new WDOUBLE[Npart];
+			pz_P = new WDOUBLE[Npart];
+			Ex0_P= new WDOUBLE[Npart];
+			Ey0_P= new WDOUBLE[Npart];
+			Ez0_P= new WDOUBLE[Npart];
 
-			Wxw_P = new double[Npart];
-			Wyw_P = new double[Npart];
-			Wzw_P = new double[Npart];
-			Wxl_P = new double[Npart];
-			Wyl_P = new double[Npart];
-			Wzl_P = new double[Npart];
+			Wxw_P = new WDOUBLE[Npart];
+			Wyw_P = new WDOUBLE[Npart];
+			Wzw_P = new WDOUBLE[Npart];
+			Wxl_P = new WDOUBLE[Npart];
+			Wyl_P = new WDOUBLE[Npart];
+			Wzl_P = new WDOUBLE[Npart];
 
-			q2m_P = new double[Npart];
-			Weight_P = new double[Npart];
+			q2m_P = new WDOUBLE[Npart];
+			Weight_P = new WDOUBLE[Npart];
 
-			sx_P = new double[Npart];
-			sy_P = new double[Npart];
+			sx_P = new WDOUBLE[Npart];
+			sy_P = new WDOUBLE[Npart];
 
 			fstart[0]=SCAll[Rank][0];
 			fcount[0]=SCAll[Rank][1];
 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, x_id, fstart, fcount,  &x_P[0])))   return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, y_id, fstart, fcount,  &y_P[0])))   return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, z_id, fstart, fcount,  &z_P[0])))   return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, x_id, fstart, fcount,  &x_P[0])))   return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, y_id, fstart, fcount,  &y_P[0])))   return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, z_id, fstart, fcount,  &z_P[0])))   return NC_ERR;
 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, x0_id, fstart, fcount, &x0_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, y0_id, fstart, fcount, &y0_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, z0_id, fstart, fcount, &z0_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, x0_id, fstart, fcount, &x0_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, y0_id, fstart, fcount, &y0_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, z0_id, fstart, fcount, &z0_P[0])))  return NC_ERR;
 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, px_id, fstart, fcount, &px_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, py_id, fstart, fcount, &py_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, pz_id, fstart, fcount, &pz_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, px_id, fstart, fcount, &px_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, py_id, fstart, fcount, &py_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, pz_id, fstart, fcount, &pz_P[0])))  return NC_ERR;
 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Ex0_id, fstart, fcount, &Ex0_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Ey0_id, fstart, fcount, &Ey0_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Ez0_id, fstart, fcount, &Ez0_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Ex0_id, fstart, fcount, &Ex0_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Ey0_id, fstart, fcount, &Ey0_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Ez0_id, fstart, fcount, &Ez0_P[0])))  return NC_ERR;
 
 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Wxw_id, fstart, fcount, &Wxw_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Wyw_id, fstart, fcount, &Wyw_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Wzw_id, fstart, fcount, &Wzw_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Wxl_id, fstart, fcount, &Wxl_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Wyl_id, fstart, fcount, &Wyl_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, Wzl_id, fstart, fcount, &Wzl_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Wxw_id, fstart, fcount, &Wxw_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Wyw_id, fstart, fcount, &Wyw_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Wzw_id, fstart, fcount, &Wzw_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Wxl_id, fstart, fcount, &Wxl_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Wyl_id, fstart, fcount, &Wyl_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, Wzl_id, fstart, fcount, &Wzl_P[0])))  return NC_ERR;
 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, q2m_id, fstart, fcount, &q2m_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, wei_id, fstart, fcount, &Weight_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, q2m_id, fstart, fcount, &q2m_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, wei_id, fstart, fcount, &Weight_P[0])))  return NC_ERR;
 
-			if ( (retval = ncmpi_get_vara_double_all(ncid, sx_id, fstart, fcount, &sx_P[0])))  return NC_ERR;
-			if ( (retval = ncmpi_get_vara_double_all(ncid, sy_id, fstart, fcount, &sy_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, sx_id, fstart, fcount, &sx_P[0])))  return NC_ERR;
+			if ( (retval = ncmpi_get_vara_WDOUBLE_all(ncid, sy_id, fstart, fcount, &sy_P[0])))  return NC_ERR;
 
 			for(int i=0;i<Npart;i++)
 			{	

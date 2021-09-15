@@ -25,8 +25,29 @@
 #define H_WAND
 
 
-#define dcomplex std::complex<double>
+// switch the data type
+#ifdef _WTYPE
+	#define WDOUBLE double
+	#define NC_WDOUBLE NC_DOUBLE
+	#define MPI_WDOUBLE MPI_DOUBLE 
+	#define ncmpi_put_att_WDOUBLE ncmpi_put_att_double
+	#define ncmpi_get_att_WDOUBLE ncmpi_get_att_double
+	#define ncmpi_put_vara_WDOUBLE_all ncmpi_put_vara_double_all
+	#define ncmpi_get_vara_WDOUBLE_all ncmpi_get_vara_double_all
+#else
+	#define WDOUBLE float
+	#define NC_WDOUBLE NC_FLOAT
+	#define MPI_WDOUBLE MPI_FLOAT
+	#define ncmpi_put_att_WDOUBLE ncmpi_put_att_float
+	#define ncmpi_get_att_WDOUBLE ncmpi_get_att_float
+	#define ncmpi_put_vara_WDOUBLE_all ncmpi_put_vara_float_all
+	#define ncmpi_get_vara_WDOUBLE_all ncmpi_get_vara_float_all
+#endif
+
+
+#define dcomplex std::complex<WDOUBLE>
 #define ci dcomplex(0.0,1.0)
+
 
 
 #define L_MPI

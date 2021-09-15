@@ -95,7 +95,7 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
    }
 
 
-   double lim=0;
+   WDOUBLE lim=0;
    int totalGrid=0;
 
    while(lim<=Xmax*0.5)
@@ -126,7 +126,7 @@ Domain::Domain (char * infile, int rank) : NList("Domain")
       pp_Pulses = new Pulse*[Npulse];  
       //====================================
       //How Many frequencies possible in the domain.
-      OmegaL = new double[Npulse];
+      OmegaL = new WDOUBLE[Npulse];
       ifAx = new int[Npulse];
       ifAy = new int[Npulse];
       NFreqs = 0;
@@ -295,13 +295,13 @@ void Domain::Run()
    //=======Timer=======
    std::clock_t start;
    start = std::clock();
-   double duration;
+   WDOUBLE duration;
    //====================
 
    int n=0;
    int nc=0;
    int k=0;
-   double k0=0;
+   WDOUBLE k0=0;
    int ierr;
    
    // restart;
@@ -356,7 +356,7 @@ while(Time<Tmax)
    //===================================
 
    //==================save==============
-   duration=(std::clock()-start)/(double)CLOCKS_PER_SEC/60;
+   duration=(std::clock()-start)/(WDOUBLE)CLOCKS_PER_SEC/60;
    if(Rank==0) printf("==== Step: %8d ----  %7.3f Mins.  ====\n",n,duration);
    if(Nbeam&&Adap_dt&&Rank==0) printf("==== Current dt: %12.3f kp^-1.     ====\n",dt);
    Time += dt;
@@ -388,7 +388,7 @@ while(Time<Tmax)
       }
 
       nc++;
-      duration=(std::clock()-start)/(double)CLOCKS_PER_SEC/60;
+      duration=(std::clock()-start)/(WDOUBLE)CLOCKS_PER_SEC/60;
 
       if(Rank==0)
       { 
@@ -466,7 +466,7 @@ int Domain::Get_NSpecie(int SpecieType)
 }
 
 
-double Domain::CustomGrid(double r)
+WDOUBLE Domain::CustomGrid(WDOUBLE r)
 {
 
    switch(MeshType)

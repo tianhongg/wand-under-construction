@@ -110,8 +110,8 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 
 
 	//May-25-2021- Tianhong updates; 
-	std::vector< std::vector< std::pair<double,int> > > Dx;
-	std::vector< std::pair<double,int> > tmp;
+	std::vector< std::vector< std::pair<WDOUBLE,int> > > Dx;
+	std::vector< std::pair<WDOUBLE,int> > tmp;
 
 	for(i=0;i<p_Meshs->GridsTmp.size();i++)
 	{
@@ -132,7 +132,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 		n++;
 		for(int i=1;i<Dx[n-2].size()-1;i+=2)
 		{
-			double nextsize=Dx[n-2][i].first+(Dx[n-2][i-1].first+Dx[n-2][i+1].first)*0.5;
+			WDOUBLE nextsize=Dx[n-2][i].first+(Dx[n-2][i-1].first+Dx[n-2][i+1].first)*0.5;
 
 			tmp.push_back( {nextsize, Dx[n-2][i].second} );
 
@@ -205,8 +205,8 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
 	std::vector< std::vector<int> >    Cellidx_i(MPI_Layer,std::vector<int>() );
 	std::vector< std::vector<int> >    Cellidx_j(MPI_Layer,std::vector<int>() );
 
-	std::vector< std::vector<double> > Celldx(MPI_Layer,std::vector<double>() );
-	std::vector< std::vector<double> > Celldy(MPI_Layer,std::vector<double>() );
+	std::vector< std::vector<WDOUBLE> > Celldx(MPI_Layer,std::vector<WDOUBLE>() );
+	std::vector< std::vector<WDOUBLE> > Celldy(MPI_Layer,std::vector<WDOUBLE>() );
 
 
 	for (n=1; n<=MPI_Layer; n++)
@@ -215,7 +215,7 @@ MultiGrid::MultiGrid(int rank, int XGridN, int YGridN, FILE *f):NList("MultiGrid
     	int jflag=0;
 		for(i=0;i<Dx[n-1].size();i++)
 		{
-			double ddx = Dx[n-1][i].first;
+			WDOUBLE ddx = Dx[n-1][i].first;
 			int    idx = Dx[n-1][i].second;
 
 			//x-dir
@@ -745,10 +745,10 @@ void MultiGrid::Restriction(int send, int rece, int tolayer, int where) //v
 {
 
 	int i,j;
-	double wmm, wxm, wmp;
-	double wym, wcc, wyp;
-	double wpm, wxp, wpp;
-	double wa;
+	WDOUBLE wmm, wxm, wmp;
+	WDOUBLE wym, wcc, wyp;
+	WDOUBLE wpm, wxp, wpp;
+	WDOUBLE wa;
 
 switch(where)
 {
@@ -855,7 +855,7 @@ void MultiGrid::Prolongation(int send, int rece, int tolayer, int where) //v
 {
 
 	int i,j;
-	double dxm, dxp, dym, dyp;
+	WDOUBLE dxm, dxp, dym, dyp;
 
 switch(where)
 {
@@ -1078,12 +1078,12 @@ void MultiGrid::Relaxation(int field, int layer, int where) //v
 	int i,j;
 	int nx,ny, amp;
 
-	double hxp,hxm,hxa,hxd,h2x;
-	double hyp,hym,hya,hyd,h2y;
+	WDOUBLE hxp,hxm,hxa,hxd,h2x;
+	WDOUBLE hyp,hym,hya,hyd,h2y;
 
-	double wcc,wxm,wxp,wym,wyp,wmm,wmp,wpm,wpp;
-	double d2xS, d2yS, dxS, dyS;
-	double kcc,kxm,kxp,kym,kyp;
+	WDOUBLE wcc,wxm,wxp,wym,wyp,wmm,wmp,wpm,wpp;
+	WDOUBLE d2xS, d2yS, dxS, dyS;
+	WDOUBLE kcc,kxm,kxp,kym,kyp;
 
 	switch(RelaxType)
 	{
@@ -1193,12 +1193,12 @@ void MultiGrid::Residual(int field, int layer, int where) //v
 	int nx,ny, amp;
 
 
-	double hxp,hxm,hxa,hxd,h2x;
-	double hyp,hym,hya,hyd,h2y;
+	WDOUBLE hxp,hxm,hxa,hxd,h2x;
+	WDOUBLE hyp,hym,hya,hyd,h2y;
 
-	double wcc,wxm,wxp,wym,wyp,wmm,wmp,wpm,wpp;
-	double d2xS, d2yS, dxS, dyS;
-	double kcc,kxm,kxp,kym,kyp;
+	WDOUBLE wcc,wxm,wxp,wym,wyp,wmm,wmp,wpm,wpp;
+	WDOUBLE d2xS, d2yS, dxS, dyS;
+	WDOUBLE kcc,kxm,kxp,kym,kyp;
 
 // switch(where)
 // {
@@ -1376,7 +1376,7 @@ void MultiGrid::AddCorrection(int layer, int where)//v
 }
 
 
-double MultiGrid::FindError(double &maxall) //v
+WDOUBLE MultiGrid::FindError(WDOUBLE &maxall) //v
 {
 
 	int i,j;
@@ -1390,11 +1390,11 @@ double MultiGrid::FindError(double &maxall) //v
 	nx=LayerGridX[1];
 	ny=LayerGridY[1];
 
-	double epsn;
-	double epsp;
-	double eps;
+	WDOUBLE epsn;
+	WDOUBLE epsp;
+	WDOUBLE eps;
 
-	double maxp;
+	WDOUBLE maxp;
 
 	epsp = 0.0;
 	maxp=0;
@@ -1412,13 +1412,13 @@ double MultiGrid::FindError(double &maxall) //v
 
 	}
 
-	MPI_Allreduce(&epsp, &eps,    1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	MPI_Allreduce(&maxp, &maxall, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	MPI_Allreduce(&epsp, &eps,    1, MPI_WDOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&maxp, &maxall, 1, MPI_WDOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
 	return eps;
 }
 
-void MultiGrid::Put_Source(int field, double k0, int k) //v
+void MultiGrid::Put_Source(int field, WDOUBLE k0, int k) //v
 {
 
 	int i,j;
@@ -1523,13 +1523,13 @@ void MultiGrid::Put_Fields(int field, int k)//v
 
 
 
-int MultiGrid::MG_V_cycle(int field, double k0, int k)
+int MultiGrid::MG_V_cycle(int field, WDOUBLE k0, int k)
 {
 
 
 	int i,j,n;
-	double eps;
-	double maxall=1.0;
+	WDOUBLE eps;
+	WDOUBLE maxall=1.0;
 
 //============================================================
 //==============   Put Source For Different Equation =========

@@ -20,7 +20,7 @@
 #include "wand_PIC.h"
 
 
-Trajectory::Trajectory(double xt, double yt, double ztime, int TpCellx, int TpCelly, double sxx, double syy)
+Trajectory::Trajectory(WDOUBLE xt, WDOUBLE yt, WDOUBLE ztime, int TpCellx, int TpCelly, WDOUBLE sxx, WDOUBLE syy)
   {
   p_PrevTraj = p_NextTraj = NULL;
   x = old_x = x0 = xt;
@@ -47,9 +47,9 @@ Trajectory::Trajectory(double xt, double yt, double ztime, int TpCellx, int TpCe
 
 
 
-double Mesh::ProfileLongi(double xt, double yt, double zt)
+WDOUBLE Mesh::ProfileLongi(WDOUBLE xt, WDOUBLE yt, WDOUBLE zt)
 {
-    double tmp;
+    WDOUBLE tmp;
  
 
     switch(PProfileL)
@@ -90,7 +90,7 @@ double Mesh::ProfileLongi(double xt, double yt, double zt)
 }; 
 
 
-double Mesh::ProfileTrans(double xt, double yt, double zt)
+WDOUBLE Mesh::ProfileTrans(WDOUBLE xt, WDOUBLE yt, WDOUBLE zt)
 {
 
 
