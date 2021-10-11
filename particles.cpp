@@ -169,7 +169,7 @@ WDOUBLE Specie::Density(WDOUBLE x0, WDOUBLE y0, WDOUBLE z0)
 
 			if( abs(x0-P_Centerx)*2<P_Sizex && abs(y0-P_Centery)*2<P_Sizey && abs(z0-P_Centerz)*2<P_Sizez )
 			{
-				return ((P_deltaZ-1)/P_Sizez*(z0-P_Centerz)+(P_deltaZ+1))/2.0;
+				return ((P_deltaZ-1)/P_Sizez*(z0-P_Centerz)*2+(P_deltaZ+1))/2.0;
 			}
 
 			return 0;
@@ -235,7 +235,7 @@ WDOUBLE Specie::Density(WDOUBLE x0, WDOUBLE y0, WDOUBLE z0)
 
 			if( arg<4.0&&abs(z0-P_Centerz)*2<P_Sizez )
 			{
-				return exp(-arg)*( (P_deltaZ-1)/P_Sizez*(z0-P_Centerz) + (P_deltaZ+1) )/2.0;
+				return exp(-arg)*( (P_deltaZ-1)/P_Sizez*(z0-P_Centerz)*2 + (P_deltaZ+1) )/2.0;
 			}
 
 			return 0;
